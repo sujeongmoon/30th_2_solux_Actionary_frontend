@@ -13,21 +13,21 @@
 
 commit 형식
 
-[Feat]: 새로운 기능 추가
-[Fix]: 버그 수정
-[Docs]: 문서 수정
-[Style]: 코드 포맷팅, 세미콜론 누락, 코드 변경이 없는 경우
-[Refactor]: 코드 리펙토링
-[Test]: 테스트 코드, 리펙토링 테스트 코드 추가
-[Chore]: 빌드 업무 수정, 패키지 매니저 수정  
-🖥️ git add 자신이 수정한 파일명
+[Feat]: 새로운 기능 추가  
+[Fix]: 버그 수정  
+[Docs]: 문서 수정  
+[Style]: 코드 포맷팅, 세미콜론 누락, 코드 변경이 없는 경우  
+[Refactor]: 코드 리펙토링  
+[Test]: 테스트 코드, 리펙토링 테스트 코드 추가  
+[Chore]: 빌드 업무 수정, 패키지 매니저 수정    
+🖥️ git add 자신이 수정한 파일명  
 
-🖥️ git commit -m “[Feat(이름)] ㅇㅇ기능 추가”
+🖥️ git commit -m “[Feat(이름)] ㅇㅇ기능 추가”  
 
 📤 Github 레파지토리에 적용하기
-작업을 모두 끝냈다면, 프로젝트 변경 사항을 remote repository(github repository)에 push 합니다.
+작업을 모두 끝냈다면, 프로젝트 변경 사항을 remote repository(github repository)에 push 합니다.  
 
-🖥️ git push origin 본인의 브랜치명(깃허브 닉네임)
+🖥️ git push origin 본인의 브랜치명(깃허브 닉네임)  
 
-push를 완료했다면 pull request를 진행합니다
-pull request를 진행한 뒤 카톡으로 남겨주신 후, 팀원 모두 확인 후에 merge합니다
+push를 완료했다면 pull request를 진행합니다  
+pull request를 진행한 뒤 카톡으로 남겨주신 후, 팀원 모두 확인 후에 merge합니다  
