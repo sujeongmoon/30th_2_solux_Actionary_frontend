@@ -1,16 +1,15 @@
-# 💻 Re2Res 프로젝트 규칙✏️
+# 💻 Re2Res 프론트 규칙✏️
 📥 프로젝트 시작하기
 자신이 원하는 위치에 자신의 파트 레파지토리 중 자신의 깃허브 닉네임 branch를 클론해줍니다
-
 🖥️ git clone -b {브랜치이름} —-single-branch {저장소 url}
 
 
 📌 commit 하기
 파트 별로 작업을 끝냈거나 더 작은 단위로 작업을 끝낼 때마다 add 후에 commit을 해 주는 게 좋아요
-
 반드시 자신의 브랜치에서만 commit을 해주세요‼️
 
-commit 형식
+
+- commit 형식
 
 [Feat]: 새로운 기능 추가
 [Fix]: 버그 수정
