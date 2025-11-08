@@ -19,7 +19,7 @@ commit 형식
 [Style]: 코드 포맷팅, 세미콜론 누락, 코드 변경이 없는 경우 <br>
 [Refactor]: 코드 리펙토링 <br>
 [Test]: 테스트 코드, 리펙토링 테스트 코드 추가 <br>
-[Chore]: 빌드 업무 수정, 패키지 매니저 수정 <br>
+[Chore]: 빌드 업무 수정, 패키지 매니저 수정 <br><br>
 🖥️ git add 자신이 수정한 파일명 
 
 🖥️ git commit -m “[Feat(이름)] ㅇㅇ기능 추가”
