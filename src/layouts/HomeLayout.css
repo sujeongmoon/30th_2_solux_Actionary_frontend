@@ -1,0 +1,16 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;   /* 전체 화면 높이 */
+}
+
+/* navbar 높이 고정 */
+.navbar-container {
+  height: 60px;        /* 원하는 고정 높이 */
+}
+
+/* 메인 영역이 나머지 공간 전체 차지 */
+.main-container {
+  flex: 1;
+  overflow: auto;       /* 메인 영역 스크롤 */
+}

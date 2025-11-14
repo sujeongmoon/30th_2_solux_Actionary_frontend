@@ -1,0 +1,23 @@
+body {
+  background-color: #F8F8F6;
+}
+
+
+.home-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;    
+  justify-content: center;  
+  min-height: 100vh;        
+}
+
+.home-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.home-text {
+  color: #555;
+  font-size: 1rem;
+}
