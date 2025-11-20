@@ -1,23 +1,366 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
 body {
   background-color: #F8F8F6;
 }
 
-
-.home-page {
+.home-main-content {
   display: flex;
   flex-direction: column;
-  align-items: center;    
-  justify-content: center;  
-  min-height: 100vh;        
+}
+.homepage-content-wrapper {
+  width: 100%;
+
 }
 
-.home-title {
-  font-size: 2rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
+/* 서브 네비게이션 */
+.sub-navigation {
+  vertical-align: middle;
+  display: flex;
+  gap: 8px; /* 메뉴 간격 */
+  padding: 12px;
+  margin: 15px 0 15px 80px; /* 메인 콘텐츠와의 간격 */
+  align-items: center;
+  
 }
 
-.home-text {
-  color: #555;
-  font-size: 1rem;
+.nav-link {
+  font-size: 18px;
+  font-weight: 400;
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-style: normal;
+  color: #B3B3B3;
+  text-decoration: none;
+
+}
+
+.nav-link-home-link {
+    font-size: 30px;
+    color:black;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.nav-divider {
+  color: #CCCCCC;
+  margin: 0 5px;
+  font-weight: 200; 
+  font-size: 13px; 
+  align-items: center;
+  line-height: 18px;
+
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background-color: #B3B3B3; /* 선의 색상 */
+  margin-bottom: 21px; /* 메인 콘텐츠와의 간격 */
+}
+
+
+/* ===== 2. 메인 콘텐츠 ===== */
+.home-main-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 0; /* 상단 sub-navigation과의 간격은 margin-bottom으로 처리함 */
+}
+
+.cta-container {
+   width: calc(100% - 360px);
+  padding: 60px 40px;
+  margin: 45px 80px 9px 80px;
+  border-radius: 50px; /* 둥근 모서리 */
+  background: linear-gradient(90deg, #FA785B, #FF3761);
+  display: flex;
+  flex-direction: column; /* 세로 정렬 */
+  align-items: center; /* 가로축 중앙 정렬 */
+  gap: 24px; /* 플러스 버튼과 텍스트 사이 간격 */
+  color: white; /* 내부 글자색 */
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+  box-shadow: 0px 2px 15px 5px #0000001A;
+
+
+}
+
+.cta-container:hover {
+  transform: scale(1.01); /* 마우스 오버 시 살짝 커지는 효과 */
+}
+
+.cta-plus-button {
+  width: 70px;
+  height: 70px;
+  background-color: white;
+  border-radius: 50%; /* 원형 버튼 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 48px; /* 플러스 기호 크기 */
+  font-weight: 300;
+  color: #e65c82; /* 플러스 기호 색상 (그라데이션 끝 색상) */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
+}
+
+.cta-plus-button-img {
+    width: 30px;
+}
+.cta-logo {
+    width: 19.4px;
+    height: 17px;
+}
+.cta-text {
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0; /* p 태그의 기본 마진 제거 */
+  display: flex;
+  align-items: center;
+  gap: 8px; /* 이모지와 텍스트 사이 간격 */
+}
+
+.Ai-Container {
+    width: 100%;
+    margin-top: 70px;
+    background: linear-gradient(90deg, rgba(250, 120, 91, 0.1748) 0%, rgba(240, 175, 161, 0.1656) 11.54%, rgba(230, 230, 230, 0) 37.98%, rgba(230, 230, 230, 0.2208) 77.4%, rgba(255, 55, 97, 0.0644) 100%);
+    height: 300px;
+    display: flex;
+}
+
+.Ai-Container-Title {
+    margin: 32px 0px 37px 80px;
+    font-family: 'Pretendard', sans-serif; 
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 1;
+}
+
+/* AI 입력 전체 박스 */
+.ai-input-box {
+  width: 80%;
+  max-width: 950px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  border: 2px solid #FA785B;
+  border-radius: 50px;
+  background: white;
+  padding: 0 20px;
+  gap: 12px;
+  margin-top: 110px;
+  box-shadow: 0px 3.94px 3.94px 4.93px #0000000D;
+  position: relative;
+}
+
+.ai-input::placeholder {
+  color: #CCCCCC; 
+}
+/* + 버튼 */
+.plus-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #FA785B, #FF3761);
+  color: white;
+  font-size: 22px;
+  line-height: 32px;
+  text-align: center;
+}
+
+/* 입력창 */
+.ai-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-family: "Pretendard";
+  font-size: 16px;
+}
+
+/* 돋보기 버튼 */
+.search-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.search-button img {
+  width: 18px;
+}
+
+.file-menu-popup {
+  position: absolute;
+  bottom: 100%;        /* + 버튼 바로 위로 */
+  left: 0px;
+  margin-bottom: 8px;
+  background-color: #1A1A1A;
+  border-radius: 30px;
+  padding: 10px 14px;
+  white-space: nowrap;
+  z-index: 30;
+  animation: fadeIn 0.15s ease-out;
+  z-index: 30;
+}
+
+.popup-overlay {
+  position: fixed; /* 화면 전체 기준 */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: transparent; /* 투명 */
+  z-index: 29; 
+}
+.file-menu-popup button {
+  border: none;
+  background: none;
+  font-family: "Pretendard";
+  font-size: 14px;
+  cursor: pointer;
+  color: #FFFFFF;
+}
+
+.Bookmark-container{
+  display: flex;
+  margin: 60px 80px;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.Bookmark-title {
+  font-family: "Pretendard", 'sans-serif';
+  color: #000000;
+  font-weight: 600;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.Bookmark-plus {
+  margin: 0 15px;
+  width: 19px;
+  cursor: pointer;
+}
+
+/* === 3.1. 3x3 그리드 레이아웃 === */
+.bookmark-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3열을 똑같은 비율로 생성 */
+  gap: 15px 30px; /* 아이템 간 간격 */
+  margin-bottom: 24px;
+}
+
+/* === 3.2. 개별 북마크 아이템 (알약 모양) === */
+.bookmark-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #2F2F2F; /* 어두운 배경색 */
+  color: white;
+  height: 35px;
+  padding: 12px 8px;
+  border-radius: 51.5px; /* 둥근 모서리 */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.bookmark-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden; 
+}
+
+.bookmark-category {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 4px;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: none;
+  flex-shrink: 0;
+}
+
+/* 아이콘 + 텍스트 컨테이너는 그대로 유지 */
+.bookmark-category {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: none;
+  flex-shrink: 0;
+}
+
+/* 아이콘은 고정 크기 유지 */
+.bookmark-category img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.gradient-text {
+  background: linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+
+.bookmark-name {
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* 글자가 길면 ... 처리 */
+}
+
+/* 삭제 버튼 (흰색 원) */
+.bookmark-delete-btn {
+  background-color: #F8F8F6;
+  border: none;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+/* 휴지통 이미지 크기 조절 */
+.trash-icon-img {
+  width: 20px; 
+  height: 20px;
+  object-fit: contain;
+}
+
+/* === 3.3. 페이지네이션 점 === */
+.pagination-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background-color: #D9D9D9; 
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.dot.active {
+  background-color: #333; /* 활성화된 점 색상 */
 }
