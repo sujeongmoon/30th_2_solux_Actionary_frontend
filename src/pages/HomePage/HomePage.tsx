@@ -6,7 +6,8 @@ import PlusButton from '../../assets/PlusButton.svg';
 import BookmarkPlus from '../../assets/BookmarkPlus.svg';
 import TrashCan from '../../assets/TrashCan.svg';
 import LinkImg from '../../assets/LinkImg.svg';
-
+import GradientArrow from '../../assets/Gradient_Arrow.svg';
+import BlackArrow from '../../assets/BlackArrow.svg';
 /* 더미 데이터 */
 const mockBookmarks = Array(9).fill({
   bookmarkId: 1,
@@ -14,6 +15,37 @@ const mockBookmarks = Array(9).fill({
   link: "링크"
 }).map((item, index) => ({ ...item, id: index }));
 
+const studyList = [
+  {
+    id: 1,
+    title: "같이 시험 공부 해요",
+    desc: "설명 설명 설명 설명 설명 설명 설명 설명 설명",
+    count: 239503,
+    img: "https://images.unsplash.com/photo-1513258496099-48168024aec0",
+    bg: "study-dark",
+  },
+  {
+    id: 2,
+    title: "A+ 가자",
+    desc: "설명 설명 설명 설명 설명 설명 설명",
+    count: 239503,
+    img: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f",
+    bg: "study-gradient",
+  },
+  {
+    id: 3,
+    title: "cpa 뿌시자",
+    count: 239503,
+    img: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f",
+    bg: "study-gray",
+  },
+  {
+    id: 4,
+    title: "너무졸려",
+    count: 233,
+    bg: "study-dark",
+  }
+];
 
 const HomePage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -137,11 +169,42 @@ const HomePage: React.FC = () => {
           </div> 
         ))}
       </div>
-
       <div className="pagination-dots">
         <span className="dot"></span>
         <span className="dot active"></span>
         <span className="dot"></span>
+      </div>
+    </div>
+    
+    {/* ===== 인기 스터디 섹션 ===== */}
+    <div className="popular-study-container">
+      <div className="popular-study-header">
+        <h2 className="popular-study-title">인기 스터디를 확인해보세요 !</h2>
+        <button className="popular-study-more">더보기</button>
+      </div>
+
+      <div className="popular-study-grid">
+        {studyList.map((item) => (
+          <div key={item.id} className={`study-card ${item.bg}`}>
+            {item.img && <img src={item.img} alt="" className="study-card-img" />}
+
+            <div className="study-card-content">
+              <h3 className="study-card-title">{item.title}</h3>
+              {item.desc && <p className="study-card-desc">{item.desc}</p>}
+
+              <div className="study-card-footer">
+                <span className="study-card-count">{item.count.toLocaleString()} 명</span>
+                <div className="study-card-arrow">
+                  {item.bg === 'study-dark' ? (
+                    <img src={GradientArrow} alt="gradient arrow" />
+                  ) : (
+                    <img src={BlackArrow} alt="black arrow" />
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   </div>

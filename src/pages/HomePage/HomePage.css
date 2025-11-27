@@ -364,3 +364,112 @@ body {
 .dot.active {
   background-color: #333; /* 활성화된 점 색상 */
 }
+
+/* ===== 인기 스터디 전체 컨테이너 ===== */
+.popular-study-container {
+  margin: 50px 100px;
+  padding: 24px 50px;
+  border: 2px solid #FA785B;
+  border-radius: 24px;
+  background-color: #FFFFFF;
+}
+
+/* 헤더 영역 */
+.popular-study-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.popular-study-title {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.popular-study-more {
+  padding: 8px 16px;
+  border-radius: 18px;
+  border: 1px solid #B3B3B3;
+  background: #FFFFFF;
+  cursor: pointer;
+}
+
+/* 3줄 반응형 그리드 */
+.popular-study-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+
+  /* 최대 3줄까지만 보이도록 고정 */
+  max-height: calc((260px + 20px) * 3);
+  overflow: hidden;
+}
+
+/* 카드 공통 */
+.study-card {
+  border-radius: 30px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 카드 스타일 테마 */
+.study-dark {
+  background-color: #262627;
+  color: white;
+}
+
+.study-gray {
+  background: #B3B3B3;
+  color: #222;
+}
+
+.study-gradient {
+  background: linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+
+}
+
+/* 이미지 */
+.study-card-img {
+  width: 100%;
+  height: 140px;
+  border-radius: 25px;
+  object-fit: cover;
+  margin-bottom: 12px;
+}
+
+.study-card-title {
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+.study-card-desc {
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 16px;
+  overflow: hidden;
+  height: 38px;
+}
+
+.study-card-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.study-card-arrow {
+  width: 36px;
+  height: 36px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.study-card-arrow img {
+  width: 36px;
+  height: 36px;
+}
