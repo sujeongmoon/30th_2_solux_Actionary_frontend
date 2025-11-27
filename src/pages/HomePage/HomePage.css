@@ -397,13 +397,10 @@ body {
 
 /* 3줄 반응형 그리드 */
 .popular-study-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 20px;
-
-  /* 최대 3줄까지만 보이도록 고정 */
-  max-height: calc((260px + 20px) * 3);
-  overflow: hidden;
+  display:flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: space-between;
 }
 
 /* 카드 공통 */
@@ -412,6 +409,8 @@ body {
   padding: 20px;
   display: flex;
   flex-direction: column;
+  flex: 0 0 calc((100% - 80px*2) / 3); /* 한 줄에 3개, gap 고려 */
+  height: 400px; /* 카드 높이 조정 가능 */
 }
 
 /* 카드 스타일 테마 */
@@ -427,13 +426,14 @@ body {
 
 .study-gradient {
   background: linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+  color: #262627
 
 }
 
 /* 이미지 */
 .study-card-img {
   width: 100%;
-  height: 140px;
+  height: 180px;
   border-radius: 25px;
   object-fit: cover;
   margin-bottom: 12px;
@@ -445,11 +445,12 @@ body {
 }
 
 .study-card-desc {
+  font-family: 'Pretendard', sans-serif;
   font-size: 13px;
   line-height: 1.4;
   margin-bottom: 16px;
   overflow: hidden;
-  height: 38px;
+  height: 80px;
 }
 
 .study-card-footer {
