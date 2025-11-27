@@ -247,7 +247,7 @@ body {
   display: grid;
   grid-template-columns: repeat(3, 1fr); /* 3열을 똑같은 비율로 생성 */
   gap: 15px 30px; /* 아이템 간 간격 */
-  margin-bottom: 24px;
+  margin-bottom: 0px;
 }
 
 /* === 3.2. 개별 북마크 아이템 (알약 모양) === */
@@ -349,13 +349,13 @@ body {
 .pagination-dots {
   display: flex;
   justify-content: center;
-  gap: 8px;
+  gap: 11px;
   margin-top: 10px;
 }
 
 .dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   background-color: #D9D9D9; 
   border-radius: 50%;
   cursor: pointer;
@@ -401,6 +401,7 @@ body {
   flex-wrap: wrap;
   gap: 15px;
   justify-content: space-between;
+  margin-bottom: 30px;
 }
 
 /* 카드 공통 */
