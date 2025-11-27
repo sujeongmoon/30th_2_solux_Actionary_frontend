@@ -2,6 +2,7 @@
 
 body {
   background-color: #F8F8F6;
+
 }
 
 .home-main-content {
@@ -474,4 +475,87 @@ body {
 .study-card-arrow img {
   width: 36px;
   height: 36px;
+}
+
+/* 5. 인기 게시글 섹션 스타일 */
+
+.popular-board-container {
+    margin: 50px 100px;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.popular-board-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-direction: column;
+}
+
+.popular-board-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #000;
+}
+
+.popular-board-more {
+    border: none;
+    background: none;
+    color: #777;
+    font-size: 14px;
+    cursor: pointer;
+     display: block;
+    margin-left: auto;
+}
+
+/* 2열 그리드 */
+.popular-board-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2열 */
+    gap: 20px 30px; /* row-gap / column-gap */
+}
+
+/* 게시글 항목 */
+.board-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #EBEBEB;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.board-item:hover {
+    background-color: #f9f9f9;
+}
+
+/* 태그 스타일 */
+.board-tag {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 6px;
+    margin-right: 15px;
+    white-space: nowrap; 
+    background-color: #F8F8F6;
+}
+
+/* 제목 내용 */
+.board-content {
+    flex-grow: 1;
+    font-size: 15px;
+    color: #333;
+    margin: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* 댓글 수 */
+.board-likes {
+    font-size: 14px;
+    color: #999;
+    margin-left: 15px;
+    white-space: nowrap;
 }

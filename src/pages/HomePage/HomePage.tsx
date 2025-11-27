@@ -8,6 +8,7 @@ import TrashCan from '../../assets/TrashCan.svg';
 import LinkImg from '../../assets/LinkImg.svg';
 import GradientArrow from '../../assets/Gradient_Arrow.svg';
 import BlackArrow from '../../assets/BlackArrow.svg';
+import { mockBoardList } from '../../types/MainPagePostType';
 
 /* 더미 데이터 */
 const mockBookmarks = Array(27).fill({
@@ -25,7 +26,9 @@ const studyList = [
   { id: 6, title: "JavaScript 마스터", count: 320, bg: "study-gray" }
 ];
 
+const boardList = mockBoardList;
 const HomePage: React.FC = () => {
+  //임시로 mockData 사용
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -38,6 +41,8 @@ const HomePage: React.FC = () => {
   const [studyPage, setStudyPage] = useState(0);
   const studiesPerPage = 3;
   const studyPageCount = Math.ceil(studyList.length / studiesPerPage);
+
+  
 
   const handlePlusClick = () => setIsMenuOpen(prev => !prev);
   const handleCloseMenu = () => setIsMenuOpen(false);
@@ -185,6 +190,28 @@ const HomePage: React.FC = () => {
               onClick={() => handleStudyPageClick(idx)}
             />
           ))}
+        </div>
+      </div>
+
+      {/*인기 게시글 섹션 */}
+      <div className="popular-board-container">
+        <div className="popular-board-header">
+          <h2 className="popular-board-title">인기 게시글</h2>
+          <button className="popular-board-more">더 보기</button>
+
+          <div className="popular-board-grid">
+            {boardList.map(item => (
+              <div key={item.postId} className="board-item">
+                <span className = {`board-tag ${
+                  item.type === '소통' ? 'tag-communication' : 
+                  item.type === '멘토' ? 'tag-study' : 'tag-question'
+                  }`}>{item.type}</span>
+                <p className="board-content">{item.title}</p>
+                <span className="board-likes">💬</span>
+              </div>
+            ))}
+      
+          </div>
         </div>
       </div>
 
