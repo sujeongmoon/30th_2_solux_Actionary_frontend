@@ -362,13 +362,21 @@ body {
   background-color: #333; /* 활성화된 점 색상 */
 }
 
+.divider-box2 {
+    width: 100%;
+    height: 10px;
+    background-color: #FFFFFF; /* 선의 색상 */
+}
+
 /* ===== 인기 스터디 전체 컨테이너 ===== */
 .popular-study-container {
-  margin: 50px 100px;
+  margin: 50px 100px 90px 100px;
   padding: 24px 50px;
   border: 2px solid #FA785B;
   border-radius: 24px;
   background-color: #FFFFFF;
+  box-shadow: 0px 4px 4px 5px #0000000D;
+
 }
 
 /* 헤더 영역 */
@@ -385,11 +393,16 @@ body {
 }
 
 .popular-study-more {
-  padding: 8px 16px;
-  border-radius: 18px;
+  padding: 10px 20px;
+  height: 30px;
+  font-size: 12px;
+  border-radius: 22.5px;
   border: 1px solid #B3B3B3;
   background: #FFFFFF;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* 3줄 반응형 그리드 */
@@ -449,6 +462,7 @@ body {
   margin-bottom: 16px;
   overflow: hidden;
   height: 80px;
+  font-weight: 300;
 }
 
 .study-card-footer {
@@ -486,62 +500,86 @@ body {
     display: flex;
     justify-content: space-between;
     margin-bottom: 20px;
-    flex-direction: column;
+    flex-direction: row;
 }
 
 .popular-board-title {
     font-size: 20px;
-    font-weight: 700;
-    color: #000;
+    font-weight: 600;
+    color: #262627;
 }
 
 .popular-board-more {
     border: none;
     background: none;
-    color: #777;
-    font-size: 14px;
+    color: #262627;
+    font-size: 12px;
     cursor: pointer;
-     display: block;
+    display: block;
     margin-left: auto;
+    border: 1px solid #B3B3B3;
+    border-radius : 22.5px;
+    height: 30px;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* 2열 그리드 */
 .popular-board-grid {
     display: grid;
     grid-template-columns: 1fr 1fr; /* 2열 */
-    gap: 20px 30px; /* row-gap / column-gap */
+    gap: 20px 0px; /* row-gap / column-gap */
 }
 
 /* 게시글 항목 */
 .board-item {
     display: flex;
     align-items: center;
-    padding: 10px;
+    padding: 10px 10px 10px 0px;
     border-bottom: 1px solid #EBEBEB;
     transition: background-color 0.2s;
     cursor: pointer;
+  
 }
 
-.board-item:hover {
-    background-color: #f9f9f9;
-}
 
 /* 태그 스타일 */
 .board-tag {
-    font-size: 12px;
-    font-weight: 500;
-    padding: 4px 10px;
-    border-radius: 6px;
-    margin-right: 15px;
-    white-space: nowrap; 
-    background-color: #F8F8F6;
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 5px 20px;
+  margin-right: 15px;
+  white-space: nowrap;
+  border-radius: 22.5px;
+  background: #F8F8F6; /* 안쪽 배경 */
+  position: relative;
+}
+
+.board-tag::before {
+  content: "";
+  position: absolute;
+  top: -1px; left: -1px; right: -1px; bottom: -1px;
+  border-radius: 18px; /* border-radius + border 두께 */
+  background: linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+  z-index: -1;
+}
+
+.board-tag-text {
+  background: linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text; /* 일부 브라우저용 */
+  display: inline-block;
 }
 
 /* 제목 내용 */
 .board-content {
     flex-grow: 1;
     font-size: 15px;
-    color: #333;
+    color: #262627;
     margin: 0;
     overflow: hidden;
     white-space: nowrap;
@@ -550,8 +588,23 @@ body {
 
 /* 댓글 수 */
 .board-likes {
+    display: flex;
+    align-items: left;
     font-size: 14px;
-    color: #999;
     margin-left: 15px;
     white-space: nowrap;
+    gap: 10px;
+    margin-right: 30px;
+}
+.comment-icon-img {
+    width: 15px;
+    height: 15px; 
+}
+
+.likes-count {
+    font-size: 13px;
+    color: #262627;
+    position: relative;
+    top: -2px;
+    width: 30px;
 }

@@ -9,7 +9,7 @@ import LinkImg from '../../assets/LinkImg.svg';
 import GradientArrow from '../../assets/Gradient_Arrow.svg';
 import BlackArrow from '../../assets/BlackArrow.svg';
 import { mockBoardList } from '../../types/MainPagePostType';
-
+import CommentIcon from '../../assets/HomePageCommentIcon.svg'
 /* 더미 데이터 */
 const mockBookmarks = [
   {
@@ -267,27 +267,31 @@ const HomePage: React.FC = () => {
           ))}
         </div>
       </div>
+      <div className="divider-box2"></div>
 
       {/*인기 게시글 섹션 */}
       <div className="popular-board-container">
         <div className="popular-board-header">
           <h2 className="popular-board-title">인기 게시글</h2>
-          <button className="popular-board-more">더 보기</button>
-
+          <button className="popular-board-more">더보기</button>
+        </div>
           <div className="popular-board-grid">
             {boardList.map(item => (
               <div key={item.postId} className="board-item">
                 <span className = {`board-tag ${
                   item.type === '소통' ? 'tag-communication' : 
                   item.type === '멘토' ? 'tag-study' : 'tag-question'
-                  }`}>{item.type}</span>
+                  }`}>
+                    <span className="board-tag-text">{item.type}</span></span>
                 <p className="board-content">{item.title}</p>
-                <span className="board-likes">💬</span>
+                <span className="board-likes">
+                  <img src = {CommentIcon} alt="댓글 아이콘" className="comment-icon-img"/>
+                  <span className="likes-count">{item.commentCount}</span>
+                </span>
               </div>
             ))}
       
           </div>
-        </div>
       </div>
 
     </div>
