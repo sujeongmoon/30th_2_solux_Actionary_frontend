@@ -3,13 +3,11 @@ import "./HomePage.css";
 import MainPageLogo from '../../assets/MainPageLogo.svg';
 import SearchIcon from '../../assets/SearchIcon.svg';
 import PlusButton from '../../assets/PlusButton.svg';
-import BookmarkPlus from '../../assets/BookmarkPlus.svg';
-import TrashCan from '../../assets/TrashCan.svg';
-import LinkImg from '../../assets/LinkImg.svg';
 import GradientArrow from '../../assets/Gradient_Arrow.svg';
 import BlackArrow from '../../assets/BlackArrow.svg';
 import { mockBoardList } from '../../types/MainPagePostType';
 import CommentIcon from '../../assets/HomePageCommentIcon.svg'
+import BookmarkSection from "../../components/Bookmark/BookmarkSection";
 /* 더미 데이터 */
 const mockBookmarks = [
   {
@@ -105,10 +103,6 @@ const HomePage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // 북마크 페이지네이션
-  const [bookmarkPage, setBookmarkPage] = useState(0);
-  const bookmarksPerPage = 9;
-  const bookmarkPageCount = Math.ceil(mockBookmarks.length / bookmarksPerPage);
 
   // 스터디 페이지네이션
   const [studyPage, setStudyPage] = useState(0);
@@ -124,13 +118,8 @@ const HomePage: React.FC = () => {
     handleCloseMenu();
   };
 
-  const handleBookmarkPageClick = (pageIndex: number) => setBookmarkPage(pageIndex);
   const handleStudyPageClick = (pageIndex: number) => setStudyPage(pageIndex);
 
-  const paginatedBookmarks = mockBookmarks.slice(
-    bookmarkPage * bookmarksPerPage,
-    bookmarkPage * bookmarksPerPage + bookmarksPerPage
-  );
 
   const paginatedStudies = studyList.slice(
     studyPage * studiesPerPage,
@@ -190,42 +179,8 @@ const HomePage: React.FC = () => {
         </div>
       </div>
 
-      {/* ===== 북마크 섹션 ===== */}
-      <div className="Bookmark-container">
-        <div className="Bookmark-title">
-          <span>북마크</span>
-          <img src={BookmarkPlus} alt="플러스 버튼" className="Bookmark-plus" />
-        </div>
-
-        <div className="bookmark-grid">
-          {paginatedBookmarks.map((bookmark) => (
-            <div key={bookmark.bookmarkId} className="bookmark-item">
-              <div className="bookmark-left">
-                <div className="bookmark-category">
-                  <img src={LinkImg} alt="링크 이미지" />
-                  <a href={bookmark.link} className="gradient-text" target="_blank" rel="noopener noreferrer">
-                    {bookmark.link}
-                  </a>
-                </div>
-                <span className="bookmark-name">{bookmark.name}</span>
-              </div>
-              <button className="bookmark-delete-btn">
-                <img src={TrashCan} alt="삭제" className="trash-icon-img" />
-              </button>
-            </div>
-          ))}
-        </div>
-
-        <div className="pagination-dots">
-          {Array.from({ length: bookmarkPageCount }).map((_, idx) => (
-            <span
-              key={idx}
-              className={`dot ${bookmarkPage === idx ? "active" : ""}`}
-              onClick={() => handleBookmarkPageClick(idx)}
-            />
-          ))}
-        </div>
-      </div>
+      {/* 북마크 섹션 */}
+      <BookmarkSection />
 
       {/* ===== 인기 스터디 섹션 ===== */}
       <div className="popular-study-container">
