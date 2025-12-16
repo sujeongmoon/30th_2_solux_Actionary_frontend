@@ -3,91 +3,11 @@ import "./HomePage.css";
 import MainPageLogo from '../../assets/MainPageLogo.svg';
 import SearchIcon from '../../assets/SearchIcon.svg';
 import PlusButton from '../../assets/PlusButton.svg';
-import BookmarkPlus from '../../assets/BookmarkPlus.svg';
-import TrashCan from '../../assets/TrashCan.svg';
-import LinkImg from '../../assets/LinkImg.svg';
 import GradientArrow from '../../assets/Gradient_Arrow.svg';
 import BlackArrow from '../../assets/BlackArrow.svg';
 import { mockBoardList } from '../../types/MainPagePostType';
+import BookmarkSection from "../../components/Bookmark/BookmarkSection";
 
-/* 더미 데이터 */
-const mockBookmarks = [
-  {
-    bookmarkId: 101, // 고유 ID
-    name: '인프런',
-    link: 'https://www.inflearn.com/ko/',
-  },
-  {
-    bookmarkId: 102, // 고유 ID
-    name: '스노우보드 동아리',
-    link: 'https://snowboard.sookmyung.ac.kr',
-  },
-  {
-    bookmarkId: 103, // 고유 ID
-    name: 'React 공식 문서',
-    link: 'https://react.dev/',
-  },
-  {
-    bookmarkId: 104,
-    name: 'Next.js 가이드',
-    link: 'https://nextjs.org/',
-  },
-  {
-    bookmarkId: 105,
-    name: 'MDN Web Docs',
-    link: 'https://developer.mozilla.org/ko/',
-  },
-  {
-    bookmarkId: 106,
-    name: '자바스크립트 정보',
-    link: 'https://javascript.info/',
-  },
-  {
-    bookmarkId: 107,
-    name: 'CSS-Tricks',
-    link: 'https://css-tricks.com/',
-  },
-  {
-    bookmarkId: 108,
-    name: '프로그래머스 코딩 테스트',
-    link: 'https://programmers.co.kr/',
-  },
-  {
-    bookmarkId: 109,
-    name: '리덕스 툴킷 공식',
-    link: 'https://redux-toolkit.js.org/',
-  },
-  {
-    bookmarkId: 110,
-    name: 'Vercel 블로그',
-    link: 'https://vercel.com/blog',
-  },
-  {
-    bookmarkId: 111,
-    name: '토스 기술 블로그',
-    link: 'https://tosstech.blog/',
-  },
-  {
-    bookmarkId: 112,
-    name: '네이버 D2',
-    link: 'https://d2.naver.com/',
-  },
-  {
-    bookmarkId: 113,
-    name: '프론트엔드 개발자 인터뷰 질문',
-    link: 'https://github.com/h5bp/Front-end-Developer-Interview-Questions',
-  },
-  {
-    bookmarkId: 114,
-    name: 'TypeScript 핸드북',
-    link: 'https://www.typescriptlang.org/docs/handbook/intro.html',
-  },
-  {
-    bookmarkId: 115,
-    name: 'Sentry 오류 추적',
-    link: 'https://sentry.io/welcome/',
-  },
-];
 
 const studyList = [
   { id: 1, title: "같이 시험 공부 해요", desc: " 설명 설명설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명설명 설명 설명 설명 설명 설명 설명 설명 설명설명 설명 설명 설명 설명 설명 설명", count: 239503, img: "https://images.unsplash.com/photo-1513258496099-48168024aec0", bg: "study-dark" },
@@ -105,10 +25,6 @@ const HomePage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // 북마크 페이지네이션
-  const [bookmarkPage, setBookmarkPage] = useState(0);
-  const bookmarksPerPage = 9;
-  const bookmarkPageCount = Math.ceil(mockBookmarks.length / bookmarksPerPage);
 
   // 스터디 페이지네이션
   const [studyPage, setStudyPage] = useState(0);
@@ -124,13 +40,8 @@ const HomePage: React.FC = () => {
     handleCloseMenu();
   };
 
-  const handleBookmarkPageClick = (pageIndex: number) => setBookmarkPage(pageIndex);
   const handleStudyPageClick = (pageIndex: number) => setStudyPage(pageIndex);
 
-  const paginatedBookmarks = mockBookmarks.slice(
-    bookmarkPage * bookmarksPerPage,
-    bookmarkPage * bookmarksPerPage + bookmarksPerPage
-  );
 
   const paginatedStudies = studyList.slice(
     studyPage * studiesPerPage,
@@ -190,42 +101,8 @@ const HomePage: React.FC = () => {
         </div>
       </div>
 
-      {/* ===== 북마크 섹션 ===== */}
-      <div className="Bookmark-container">
-        <div className="Bookmark-title">
-          <span>북마크</span>
-          <img src={BookmarkPlus} alt="플러스 버튼" className="Bookmark-plus" />
-        </div>
-
-        <div className="bookmark-grid">
-          {paginatedBookmarks.map((bookmark) => (
-            <div key={bookmark.bookmarkId} className="bookmark-item">
-              <div className="bookmark-left">
-                <div className="bookmark-category">
-                  <img src={LinkImg} alt="링크 이미지" />
-                  <a href={bookmark.link} className="gradient-text" target="_blank" rel="noopener noreferrer">
-                    {bookmark.link}
-                  </a>
-                </div>
-                <span className="bookmark-name">{bookmark.name}</span>
-              </div>
-              <button className="bookmark-delete-btn">
-                <img src={TrashCan} alt="삭제" className="trash-icon-img" />
-              </button>
-            </div>
-          ))}
-        </div>
-
-        <div className="pagination-dots">
-          {Array.from({ length: bookmarkPageCount }).map((_, idx) => (
-            <span
-              key={idx}
-              className={`dot ${bookmarkPage === idx ? "active" : ""}`}
-              onClick={() => handleBookmarkPageClick(idx)}
-            />
-          ))}
-        </div>
-      </div>
+      {/* 북마크 섹션 */}
+      <BookmarkSection />
 
       {/* ===== 인기 스터디 섹션 ===== */}
       <div className="popular-study-container">
