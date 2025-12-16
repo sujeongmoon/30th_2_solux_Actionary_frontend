@@ -11,11 +11,83 @@ import BlackArrow from '../../assets/BlackArrow.svg';
 import { mockBoardList } from '../../types/MainPagePostType';
 
 /* 더미 데이터 */
-const mockBookmarks = Array(27).fill({
-  bookmarkId: 1,
-  name: '이름이름이름',
-  link: "링크"
-}).map((item, index) => ({ ...item, id: index }));
+const mockBookmarks = [
+  {
+    bookmarkId: 101, // 고유 ID
+    name: '인프런',
+    link: 'https://www.inflearn.com/ko/',
+  },
+  {
+    bookmarkId: 102, // 고유 ID
+    name: '스노우보드 동아리',
+    link: 'https://snowboard.sookmyung.ac.kr',
+  },
+  {
+    bookmarkId: 103, // 고유 ID
+    name: 'React 공식 문서',
+    link: 'https://react.dev/',
+  },
+  {
+    bookmarkId: 104,
+    name: 'Next.js 가이드',
+    link: 'https://nextjs.org/',
+  },
+  {
+    bookmarkId: 105,
+    name: 'MDN Web Docs',
+    link: 'https://developer.mozilla.org/ko/',
+  },
+  {
+    bookmarkId: 106,
+    name: '자바스크립트 정보',
+    link: 'https://javascript.info/',
+  },
+  {
+    bookmarkId: 107,
+    name: 'CSS-Tricks',
+    link: 'https://css-tricks.com/',
+  },
+  {
+    bookmarkId: 108,
+    name: '프로그래머스 코딩 테스트',
+    link: 'https://programmers.co.kr/',
+  },
+  {
+    bookmarkId: 109,
+    name: '리덕스 툴킷 공식',
+    link: 'https://redux-toolkit.js.org/',
+  },
+  {
+    bookmarkId: 110,
+    name: 'Vercel 블로그',
+    link: 'https://vercel.com/blog',
+  },
+  {
+    bookmarkId: 111,
+    name: '토스 기술 블로그',
+    link: 'https://tosstech.blog/',
+  },
+  {
+    bookmarkId: 112,
+    name: '네이버 D2',
+    link: 'https://d2.naver.com/',
+  },
+  {
+    bookmarkId: 113,
+    name: '프론트엔드 개발자 인터뷰 질문',
+    link: 'https://github.com/h5bp/Front-end-Developer-Interview-Questions',
+  },
+  {
+    bookmarkId: 114,
+    name: 'TypeScript 핸드북',
+    link: 'https://www.typescriptlang.org/docs/handbook/intro.html',
+  },
+  {
+    bookmarkId: 115,
+    name: 'Sentry 오류 추적',
+    link: 'https://sentry.io/welcome/',
+  },
+];
 
 const studyList = [
   { id: 1, title: "같이 시험 공부 해요", desc: " 설명 설명설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명설명 설명 설명 설명 설명 설명 설명 설명 설명설명 설명 설명 설명 설명 설명 설명", count: 239503, img: "https://images.unsplash.com/photo-1513258496099-48168024aec0", bg: "study-dark" },
@@ -28,6 +100,7 @@ const studyList = [
 
 const boardList = mockBoardList;
 const HomePage: React.FC = () => {
+
   //임시로 mockData 사용
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -130,7 +203,9 @@ const HomePage: React.FC = () => {
               <div className="bookmark-left">
                 <div className="bookmark-category">
                   <img src={LinkImg} alt="링크 이미지" />
-                  <span className="gradient-text">{bookmark.link}</span>
+                  <a href={bookmark.link} className="gradient-text" target="_blank" rel="noopener noreferrer">
+                    {bookmark.link}
+                  </a>
                 </div>
                 <span className="bookmark-name">{bookmark.name}</span>
               </div>
