@@ -3,6 +3,9 @@ import BookmarkPlus from '../../assets/bookmark/BookmarkPlus.svg';
 import TrashCan from '../../assets/bookmark/TrashCan.svg';
 import LinkImg from '../../assets/bookmark/LinkImg.svg';
 import './BookmarkSection.css';
+import BookmarkModal from './BookmarkModal';
+
+
 /* 더미 데이터 */
 const mockBookmarks = [
   {
@@ -83,6 +86,7 @@ const mockBookmarks = [
 ];
 
 const BookmarkSection = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookmarkPage, setBookmarkPage] = useState(0);
   const bookmarksPerPage = 9;
   const bookmarkPageCount = Math.ceil(
@@ -95,10 +99,16 @@ const BookmarkSection = () => {
   );
 
   return (
+  <>
     <div className="Bookmark-container">
       <div className="Bookmark-title">
         <span>북마크</span>
-        <img src={BookmarkPlus} alt="플러스 버튼" className="Bookmark-plus" />
+        <img
+          src={BookmarkPlus}
+          alt="플러스 버튼"
+          className="Bookmark-plus"
+          onClick={() => setIsModalOpen(true)}
+        />
       </div>
 
       <div className="bookmark-grid">
@@ -140,7 +150,18 @@ const BookmarkSection = () => {
         ))}
       </div>
     </div>
+
+    <BookmarkModal
+      isOpen={isModalOpen}
+      onClose={() => setIsModalOpen(false)}
+      onAdd={(name, url) => {
+        console.log("새 북마크 추가:" , name, url) //임시코드
+        setIsModalOpen(false);
+      }}
+    />
+  </>
   );
-};
+}
+
 
 export default BookmarkSection;
