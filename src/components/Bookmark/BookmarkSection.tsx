@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import BookmarkPlus from '../../assets/BookmarkPlus.svg';
-import TrashCan from '../../assets/TrashCan.svg';
-import LinkImg from '../../assets/LinkImg.svg';
+import BookmarkPlus from '../../assets/bookmark/BookmarkPlus.svg';
+import TrashCan from '../../assets/bookmark/TrashCan.svg';
+import LinkImg from '../../assets/bookmark/LinkImg.svg';
 import './BookmarkSection.css';
 /* 더미 데이터 */
 const mockBookmarks = [

@@ -1,12 +1,12 @@
 import React, { useRef, useState } from "react";
 import "./HomePage.css";
-import MainPageLogo from '../../assets/MainPageLogo.svg';
-import SearchIcon from '../../assets/SearchIcon.svg';
-import PlusButton from '../../assets/PlusButton.svg';
-import GradientArrow from '../../assets/Gradient_Arrow.svg';
-import BlackArrow from '../../assets/BlackArrow.svg';
+import MainPageLogo from '../../assets/homepage/MainPageLogo.svg';
+import SearchIcon from '../../assets/homepage/SearchIcon.svg';
+import PlusButton from '../../assets/homepage/PlusButton.svg';
+import GradientArrow from '../../assets/homepage/Gradient_Arrow.svg';
+import BlackArrow from '../../assets/homepage/BlackArrow.svg';
 import { mockBoardList } from '../../types/MainPagePostType';
-import CommentIcon from '../../assets/HomePageCommentIcon.svg'
+import CommentIcon from '../../assets/homepage/HomePageCommentIcon.svg'
 import BookmarkSection from "../../components/Bookmark/BookmarkSection";
 /* 더미 데이터 */
 const mockBookmarks = [
