@@ -7,6 +7,8 @@ import StudyTime from '../../assets/MyPage/StudyTime.svg';
 import StudyIcon from '../../assets/MyPage/StudyIcon.svg';
 import CheckIcon from '../../assets/MyPage/CheckIcon.svg';
 import OwnerUnion from '../../assets/MyPage/OwnerUnion.svg';
+import BookmarkSection from '../../components/Bookmark/BookmarkSection';
+import OwnerCheck from '../../assets/MyPage/OwnerCheck.svg';
 
 const MyPageOwner: React.FC = () => {
   return (
@@ -109,7 +111,91 @@ const MyPageOwner: React.FC = () => {
         </div>
 
       </div>
+      <div className='owner-divider-box' />
+      <BookmarkSection />
+      <div className='owner-divider-box' />
+    
+      <div className='owner-todo-section'>
+        {/* 왼쪽: 오늘의 TO DO LIST 카드 */}
+        <div className='owner-card-todo'>
+          <div className='owner-study-header'>
+            <span className='owner-todo-title'>오늘의 TO DO LIST</span>
+            <button className='owner-more-btn'>더보기</button>
+          </div>
 
+            
+            <div className='owner-todo-body'>
+            {/* 솔룩스 섹션 */}
+            <div className='owner-todo-group'>
+                <span className='owner-todo-tag solux'>솔룩스</span>
+                <div className='owner-todo-item'>
+                <img src={OwnerCheck} alt="체크 아이콘" className='owner-todo-check' />
+                <span className='owner-todo-text'>시험장에 에어컨 잘 나오나요</span>
+                <div className='owner-todo-status'>
+                    <button className='owner-status-btn active'>달성</button>
+                    <button className='owner-status-btn'>실패</button>
+                </div>
+                </div>
+                <div className='owner-todo-item'>
+                <img src = {OwnerCheck} alt='체크 아이콘' className='owner-todo-check' />
+                <span className='owner-todo-text'>시험장에 에어컨 잘 나오나요</span>
+                <div className='owner-todo-status'>
+                    <button className='owner-status-btn'>달성</button>
+                    <button className='owner-status-btn fail'>실패</button>
+                </div>
+                </div>
+            </div>
+
+            <div className='owner-todo-divider2'></div>
+
+            {/* 수업 섹션 */}
+            <div className='owner-todo-group'>
+                <span className='owner-todo-tag class'>수업</span>
+                <div className='owner-todo-item'>
+                <img src = {OwnerCheck} alt = "체크 아이콘" className='owner-todo-check' />
+                <span className='owner-todo-text'>시험장에 에어컨 잘 나오나요</span>
+                <div className='owner-todo-status'>
+                    <button className='owner-status-btn active'>달성</button>
+                    <button className='owner-status-btn'>실패</button>
+                </div>
+                </div>
+                <div className='owner-todo-item'>
+                <img src = {OwnerCheck} alt = '체크 아이콘' className='owner-todo-check' />
+                <span className='owner-todo-text'>시험장에 에어컨 잘 나오나요</span>
+                <div className='owner-todo-status'>
+                    <button className='owner-status-btn'>달성</button>
+                    <button className='owner-status-btn fail'>실패</button>
+                </div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        {/* 오른쪽: 공부량 카드 */}
+        <div className='owner-card-study'>
+            <div className='owner-study-title'>공부량</div>
+            
+            <div className='owner-study-body'>
+            <div className='owner-study-tabs'>
+                <span className='owner-tab active'>
+                  <div className='owner-tab-active-check'>✓ 일간</div> 
+                  <div></div>
+                </span>
+                <span className='owner-tab'>주간</span>
+                <span className='owner-tab'>월간</span>
+                <span className='owner-tab'>연간</span>
+            </div>
+            
+            <div className='owner-study-time-box'>
+                22H 30M
+            </div>
+            
+            <button className='owner-manual-add-btn'>
+                수동으로 추가하기 <span className='owner-plus-circle'>+</span>
+            </button>
+            </div>
+        </div>
+        </div>
       
     </div>
   );
