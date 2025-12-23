@@ -3,6 +3,8 @@ import Pencil from '../../assets/MyPage/Pencil.svg';
 import Profile from '../../assets/MyPage/Profile.svg';
 import './ProfileSection.css';
 import NickNameModal from './NickNameModal';
+import WithdrawModal from './WithdrawModal';
+import { useNavigate } from 'react-router-dom';
 
 interface UserInfo {
   user_id: number;
@@ -16,6 +18,8 @@ const ProfileSection: React.FC = () => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+  const navigate = useNavigate();
 
   // Modal 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -88,6 +92,32 @@ const ProfileSection: React.FC = () => {
     }
   };
 
+  const handleWithdraw = async () => {
+    console.log('탈퇴 처리 로직 실행');
+    /*
+    try {
+        const accessToken = localStorage.getItem('accessToken');
+        const response = await fetch('/api/auth/withdraw', {
+            method: 'DELETE',
+            headers: {
+                Authorization: `Bearer$${accessToken}`,
+                'Content-Type' : 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`탈퇴 실패: ${response.status}`);
+        }
+
+        localStorage.clear();
+        setIsWithdrawOpen(false);
+        navigate('/');
+    } catch (err) {
+        console.error(err);
+        alert('회원 탈퇴에 실패했습니다.');
+    }*/
+  };
+
   if (loading) return <div>로딩중...</div>;
   if (error) return <div>오류: {error}</div>;
 
@@ -125,7 +155,12 @@ const ProfileSection: React.FC = () => {
       </div>
 
       <div className="owner-withdraw-wrapper">
-        <button className="owner-withdraw-btn">탈퇴하기</button>
+        <button 
+            className="owner-withdraw-btn"
+            onClick = {() => setIsWithdrawOpen(true)}
+        >
+            탈퇴하기
+        </button>
       </div>
 
       {/* 모달 */}
@@ -134,6 +169,11 @@ const ProfileSection: React.FC = () => {
         initialValue= {userInfo?.nickname || ''}
         onClose={closeModal}
         onSave={handleNicknameSave}
+      />
+      <WithdrawModal
+        isOpen = {isWithdrawOpen}
+        onClose={() => setIsWithdrawOpen(false)}
+        onWithdraw={handleWithdraw}
       />
     </div>
   );
