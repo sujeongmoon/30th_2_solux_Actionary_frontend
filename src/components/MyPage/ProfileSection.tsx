@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Pencil from '../../assets/MyPage/Pencil.svg';
 import Profile from '../../assets/MyPage/Profile.svg';
 import './ProfileSection.css';
@@ -20,13 +20,13 @@ const ProfileSection: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Modal 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        /*
         const response = await fetch('/api/users/me/info', {
         method: 'GET',
         headers: {
@@ -41,19 +41,7 @@ const ProfileSection: React.FC = () => {
 
         const data = await response.json();
         setUserInfo(data.data);
-        */
 
-      const dummyData: UserInfo = {
-        user_id: 1,
-        profile_image_url: 'https://i.pravatar.cc/150?img=3',
-        nickname: '솔룩스140',
-        phoneNumber: '010-1234-5678',
-        birthday: '1995-10-25',
-      };
-      setTimeout(() => {
-        setUserInfo(dummyData);
-        setLoading(false);
-      }, 500);
     } catch (err) {
         console.error(err);
     }};
@@ -69,21 +57,19 @@ const ProfileSection: React.FC = () => {
     closeModal();
 
     try {
-      // 서버 연결 시 주석 해제
-      /*
       const response = await fetch('/api/users/me/nickname', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
-        body: JSON.stringify({ nickname: modalInput }),
+        body: JSON.stringify({ nickname: newNickname }),
       });
 
       if (!response.ok) throw new Error(`API 에러: ${response.status}`);
       const data = await response.json();
       setUserInfo((prev) => prev ? { ...prev, nickname: data.data.nickname } : prev);
-      */
+      
 
       // 더미 테스트
     } catch (err) {
@@ -94,7 +80,6 @@ const ProfileSection: React.FC = () => {
 
   const handleWithdraw = async () => {
     console.log('탈퇴 처리 로직 실행');
-    /*
     try {
         const accessToken = localStorage.getItem('accessToken');
         const response = await fetch('/api/auth/withdraw', {
@@ -115,8 +100,36 @@ const ProfileSection: React.FC = () => {
     } catch (err) {
         console.error(err);
         alert('회원 탈퇴에 실패했습니다.');
-    }*/
+    }
   };
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+
+    const formData = new FormData();
+    formData.append('profile_image', file); 
+
+    try {
+        const response = await fetch('/api/users/me', {
+        method: 'PATCH',
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+            // 'Content-Type': 'multipart/form-data'는 브라우저가 자동 설정
+        },
+        body: formData,
+        });
+
+        if (!response.ok) throw new Error(`API 에러: ${response.status}`);
+        const data = await response.json();
+
+        // UI 업데이트
+        setUserInfo((prev) => prev ? { ...prev, profile_image_url: data.profile_image_url } : prev);
+    } catch (err) {
+        console.error('프로필 업로드 실패', err);
+    } 
+};
+
+
 
   if (loading) return <div>로딩중...</div>;
   if (error) return <div>오류: {error}</div>;
@@ -131,7 +144,15 @@ const ProfileSection: React.FC = () => {
             className={userInfo?.profile_image_url ? 'owner-avatar-img-full' : 'owner-profile-img'}
           />
         </div>
-        <div className="owner-avatar-plus"></div>
+        <div className="owner-avatar-plus" onClick={() => fileInputRef.current?.click()}></div>
+        <input
+            type="file"
+            ref={fileInputRef}
+            className='hidden-input'
+            accept="image/*"
+            onChange={handleFileChange}
+            aria-label='프로필 이미지 업로드'
+        />
       </div>
 
       <div className="owner-info-container">

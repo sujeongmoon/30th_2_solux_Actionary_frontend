@@ -46,6 +46,10 @@
   cursor: pointer;
 }
 
+.hidden-input {
+    display: none;
+}
+
 /* 플러스 모양 만들기 (가로 선) */
 .owner-avatar-plus::before {
   content: "";
