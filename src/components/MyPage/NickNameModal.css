@@ -1,0 +1,144 @@
+/* 1. 배경 오버레이 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6); /* 뒷배경 어둡게 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* 2. 모달 본체 */
+.modal-content {
+  background-color: #1E1E22; /* 다크 테마 배경 */
+  width: 550px;
+  padding: 40px;
+  border-radius: 40px; /* 아주 둥근 모서리 */
+  color: white;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* 3. 헤더 (아이콘 + 제목) */
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.modal-title-icon {
+  width: 22px;
+  height: 25px;
+}  
+
+.modal-header h3 {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* 4. 입력창 영역 */
+.modal-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.modal-input-group label {
+  font-size: 15px;
+  color: #E0E0E0;
+  padding-left: 5px;
+}
+
+.nickname-input {
+  background-color: #CCCCCC; /* 이미지의 밝은 회색 입력창 */
+  border: 1px solid #FFFFFF;
+  height: 55px;
+  border-radius: 30px; /* 타원형 */
+  padding: 0 25px;
+  font-size: 18px;
+  color: #333;
+  outline: none;
+  caret-color: white;
+
+}
+
+.nickname-input::placeholder {
+  color: #CCCCCC;   /* 원하는 색 */
+  opacity: 1;       /* 사파리에서 흐려지는 거 방지 */
+}
+
+
+.nickname-input.filled {
+  background:
+    linear-gradient(#FFFFFF, #FFFFFF) padding-box, /* 안쪽 */
+    linear-gradient(
+      86.58deg,
+      #FA785B 20.5%,
+      #FF3761 89.45%
+    ) border-box; /* 테두리 */
+
+  border: 1px solid transparent;
+  border-radius: 30px; /* ⬅ 반드시 다시 써줘야 함 */
+}
+
+/* 5. 버튼 레이아웃 */
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+}
+
+.modal-buttons button {
+  padding: 12px 35px;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.modal-buttons button:hover {
+  opacity: 0.9;
+}
+
+/* 취소 버튼 */
+.btn-cancel {
+  background-color: #B0B0B0; /* 회색 버튼 */
+  color: white;
+  border: 2px solid transparent;
+    /* 3️⃣ 핵심: 이중 background */
+  background:
+    /* 안쪽 배경 */
+    linear-gradient(#B0B0B0, #B0B0B0) padding-box,
+    /* 테두리 그라데이션 */
+    linear-gradient(
+      152.27deg,
+      #FFFFFF 35.45%,
+      rgba(255, 255, 255, 0) 127.61%
+    ) border-box;
+}
+
+/* 수정하기 버튼 (그라데이션) */
+.btn-save {
+  background:
+    linear-gradient(
+      86.58deg,
+      #FA785B 20.5%,
+      #FF3761 89.45%
+    ) padding-box,
+    linear-gradient(
+      152.27deg,
+      #FFFFFF 35.45%,
+      rgba(255, 255, 255, 0) 127.61%
+    ) border-box;
+
+  border: 2px solid transparent;
+  border-radius: 30px;
+  color: white;
+}

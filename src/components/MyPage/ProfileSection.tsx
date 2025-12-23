@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Pencil from '../../assets/MyPage/Pencil.svg';
 import Profile from '../../assets/MyPage/Profile.svg';
 import './ProfileSection.css';
+import NickNameModal from './NickNameModal';
 
 interface UserInfo {
   user_id: number;
@@ -16,54 +17,76 @@ const ProfileSection: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Modal 상태
+  const [isModalOpen, setIsModalOpen] = useState(false);
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        // 서버 연결 부분은 주석 처리
         /*
         const response = await fetch('/api/users/me/info', {
-          method: 'GET',
-          headers: {
+        method: 'GET',
+        headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-          },
+        },
         });
 
         if (!response.ok) {
-          throw new Error(`API 에러: ${response.status}`);
+        throw new Error(`API 에러: ${response.status}`);
         }
 
         const data = await response.json();
         setUserInfo(data.data);
         */
 
-        // 서버 없을 때 테스트용 더미 데이터
-        const dummyData: UserInfo = {
-          user_id: 1,
-          profile_image_url: 'https://i.pravatar.cc/150?img=3',
-          nickname: '솔룩스140',
-          phoneNumber: '010-1234-5678',
-          birthday: '1995-10-25',
-        };
-
-        // 비동기 느낌을 위해 setTimeout 사용
-        setTimeout(() => {
-          setUserInfo(dummyData);
-          setLoading(false);
-        }, 500);
-
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError('사용자 정보를 불러오지 못했습니다.');
-        }
+      const dummyData: UserInfo = {
+        user_id: 1,
+        profile_image_url: 'https://i.pravatar.cc/150?img=3',
+        nickname: '솔룩스140',
+        phoneNumber: '010-1234-5678',
+        birthday: '1995-10-25',
+      };
+      setTimeout(() => {
+        setUserInfo(dummyData);
         setLoading(false);
-      }
-    };
-
+      }, 500);
+    } catch (err) {
+        console.error(err);
+    }};
     fetchUserInfo();
   }, []);
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
+  const handleNicknameSave = async (newNickname: string) => {
+    if (!newNickname.trim()) return;
+    setUserInfo((prev) => prev ? {...prev, nickname: newNickname } : prev);
+    closeModal();
+
+    try {
+      // 서버 연결 시 주석 해제
+      /*
+      const response = await fetch('/api/users/me/nickname', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+        body: JSON.stringify({ nickname: modalInput }),
+      });
+
+      if (!response.ok) throw new Error(`API 에러: ${response.status}`);
+      const data = await response.json();
+      setUserInfo((prev) => prev ? { ...prev, nickname: data.data.nickname } : prev);
+      */
+
+      // 더미 테스트
+    } catch (err) {
+      if (err instanceof Error) setError(err.message);
+      else setError('닉네임 수정 실패');
+    }
+  };
 
   if (loading) return <div>로딩중...</div>;
   if (error) return <div>오류: {error}</div>;
@@ -72,16 +95,11 @@ const ProfileSection: React.FC = () => {
     <div className="owner-profile-container">
       <div className="owner-avatar-container">
         <div className="owner-avatar-white-circle">
-          {userInfo?.profile_image_url ? (
-            <img
-                src = {userInfo.profile_image_url}
-                alt = "profile"
-                className='owner-avatar-img-full'
-            />
-          ) : (
-            <img src= {Profile} alt="profile" className='owner-profile-img' />
-          )} 
-
+          <img
+            src={userInfo?.profile_image_url || Profile}
+            alt="profile"
+            className={userInfo?.profile_image_url ? 'owner-avatar-img-full' : 'owner-profile-img'}
+          />
         </div>
         <div className="owner-avatar-plus"></div>
       </div>
@@ -92,7 +110,12 @@ const ProfileSection: React.FC = () => {
             <span className="owner-nickname">{userInfo?.nickname}</span>
             <div className="owner-nickname-underline"></div>
           </div>
-          <img src={Pencil} alt="편집 아이콘" className="owner-edit-icon" />
+          <img
+            src={Pencil}
+            alt="편집 아이콘"
+            className="owner-edit-icon"
+            onClick={openModal}
+          />
         </div>
 
         <div className="owner-details-group">
@@ -104,6 +127,14 @@ const ProfileSection: React.FC = () => {
       <div className="owner-withdraw-wrapper">
         <button className="owner-withdraw-btn">탈퇴하기</button>
       </div>
+
+      {/* 모달 */}
+      <NickNameModal
+        isOpen = {isModalOpen}
+        initialValue= {userInfo?.nickname || ''}
+        onClose={closeModal}
+        onSave={handleNicknameSave}
+      />
     </div>
   );
 };
