@@ -25,6 +25,12 @@
     width: 35px;
 }
 
+.owner-avatar-img-full {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
 /* 플러스 버튼 본체 (검은색 원) */
 .owner-avatar-plus {
   position: absolute;
