@@ -1,0 +1,167 @@
+:root{
+  --bg:#F8F8F6;
+  --white:#fff;
+  --black:#1A1A1A;
+  --n90:#E6E6E6;
+  --point1:#FA785B;
+  --point2:#FF3D7A;
+  --grad: linear-gradient(90deg, var(--point1), var(--point2));
+  --shadow: 0 10px 30px rgba(0,0,0,.08);
+}
+
+.studyPage{
+  background: var(--bg);
+  min-height: 100vh;
+  padding: 24px;
+  color: var(--black);
+}
+
+.studyTitle{
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0 0 14px;
+}
+
+.hero{
+  height: 96px;
+  background: var(--grad);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap: 10px;
+}
+
+.heroPlus{
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,.92);
+  font-size: 26px;
+  cursor: pointer;
+}
+
+.heroText{
+  color: rgba(255,255,255,.9);
+  font-size: 13px;
+}
+
+.pill{
+  border-radius: 999px;
+  padding: 9px 14px;
+  border: 1px solid var(--n90);
+  background: var(--white);
+  font-weight: 600;
+  font-size: 13px;
+  cursor:pointer;
+}
+
+.pill.active{
+  background: var(--black);
+  color: var(--white);
+  border-color: transparent;
+}
+
+.toolbar{
+  margin-top: 14px;
+  display:flex;
+  justify-content:space-between;
+  gap: 10px;
+  align-items:center;
+}
+
+.count{ font-size: 14px; opacity: .8; }
+.vis{ display:flex; gap: 8px; flex-wrap: wrap; }
+
+.cats{
+  margin-top: 10px;
+  display:flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.grid{
+  margin-top: 16px;
+  display:grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+}
+
+.card{
+  border-radius: 18px;
+  overflow:hidden;
+  background: var(--white);
+  box-shadow: var(--shadow);
+}
+
+.thumb{
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background: #EEE;
+}
+
+.thumb img{
+  width:100%;
+  height:100%;
+  object-fit: cover;
+  display:block;
+}
+
+.ph{ width:100%; height:100%; background: #D9D9D9; }
+
+.overlay{
+  position:absolute;
+  left: 10px; right: 10px; bottom: 10px;
+  background: rgba(26,26,26,.9);
+  color:#fff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.state{ margin-top: 18px; opacity:.7; }
+
+.pager{
+  margin-top: 18px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap: 10px;
+}
+
+.pageBtn{
+  width: 34px; height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--n90);
+  background: var(--white);
+  cursor:pointer;
+}
+.pageNum{ font-size: 14px; opacity:.7; }
+
+.studyPage { outline: 6px solid red !important; }
+
+.studyPage .hero {
+  height: 96px !important;
+  background: linear-gradient(90deg, #FA785B, #FF3D7A) !important;
+  border-radius: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+.studyPage .pill {
+  border-radius: 999px !important;
+  padding: 9px 14px !important;
+  border: 1px solid #E6E6E6 !important;
+  background: #fff !important;
+}
+
+.studyPage .pill.active {
+  background: #1A1A1A !important;
+  color: #fff !important;
+}
