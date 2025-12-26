@@ -2,7 +2,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomeLayout from './layouts/HomeLayout';
 import HomePage from './pages/HomePage/HomePage';
 import EmptyLayout from "./layouts/EmptyLayout";
+import StudyPage from "./pages/StudyPage/StudyPage";
 import MyPageOwner from './pages/MyPage/MyPageOwner';
+
 
 function App() {
   return (
@@ -12,6 +14,8 @@ function App() {
         <Route element = {<HomeLayout />}>
           <Route path="/" element={<HomePage />}/>
           <Route path="/OwnerPage" element={<MyPageOwner />}/>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/studies" element={<StudyPage />} /> 
         </Route>
 
         {/* Navbar 없는 레이아웃 */}

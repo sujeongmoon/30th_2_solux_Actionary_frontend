@@ -44,6 +44,9 @@ const ProfileSection: React.FC = () => {
 
     } catch (err) {
         console.error(err);
+        setError('회원 정보를 불러오지 못했습니다.');
+    } finally {
+        setLoading(false);
     }};
     fetchUserInfo();
   }, []);
@@ -71,7 +74,7 @@ const ProfileSection: React.FC = () => {
       setUserInfo((prev) => prev ? { ...prev, nickname: data.data.nickname } : prev);
       
 
-      // 더미 테스트
+
     } catch (err) {
       if (err instanceof Error) setError(err.message);
       else setError('닉네임 수정 실패');
