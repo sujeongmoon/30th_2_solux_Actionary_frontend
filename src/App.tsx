@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomeLayout from './layouts/HomeLayout';
 import HomePage from './pages/HomePage/HomePage';
 import EmptyLayout from "./layouts/EmptyLayout";
+import MyPageOwner from "./pages/MyPage/MyPageOwner";
+import StudyPage from "./pages/StudyPage/StudyPage";
 
 function App() {
   return (
