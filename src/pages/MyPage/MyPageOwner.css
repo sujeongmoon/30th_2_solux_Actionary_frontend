@@ -122,28 +122,34 @@ body {
 
 
 /* 투두 내용 스타일 */
-.owner-todo-body { padding: 25px; }
+.owner-todo-body { padding: 15px 45px 10px 45px; }
 
 .owner-todo-group {
   padding: 0px 50px;
 }
 
 .owner-todo-tag {
-    font-size: 12px;
+    font-size: 15px;
     padding: 3px 12px;
     border-radius: 12px;
-    display: inline-block;
-    margin-bottom: 15px;
+    display: block;
+    margin-bottom: 10px;
+    width: fit-content;
+    align-items: center;
+    margin-top: 10px;
+
+  
 }
 
-.owner-todo-tag.solux { border: 1px solid #D4E1BC; color: #A1C46B; }
-.owner-todo-tag.class { border: 1px solid #F5E9B0; color: #D4C36D; }
-
+.owner-todo-item-wrapper {
+  display: flex;
+  flex-direction: column;
+}
 .owner-todo-item {
     display: flex;
     align-items: center;
-    margin-bottom: 15px;
     gap: 15px;
+    margin-bottom: 10px;
 }
 
 .owner-todo-check {
