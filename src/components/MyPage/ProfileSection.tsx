@@ -14,6 +14,15 @@ interface UserInfo {
   birthday: string;
 }
 
+// MOCK DATA (API 연동 전 임시 사용)
+const mockUserInfo: UserInfo = {
+  user_id: 1,
+  profile_image_url: 'https://i.pravatar.cc/150?img=3',
+  nickname: 'mockUser',
+  phoneNumber: '010-1234-5678',
+  birthday: '2000-01-01',
+};
+
 const ProfileSection: React.FC = () => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -24,7 +33,10 @@ const ProfileSection: React.FC = () => {
 
   // Modal 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
+  { /* API 연동 시 다시 사용하기 */}
+  {/*
   useEffect(() => {
+    
     const fetchUserInfo = async () => {
       try {
         const response = await fetch('/api/users/me/info', {
@@ -49,7 +61,13 @@ const ProfileSection: React.FC = () => {
         setLoading(false);
     }};
     fetchUserInfo();
-  }, []);
+  }, []); */}
+  
+  // MockData 삭제하기
+  useEffect(() => {
+    setUserInfo(mockUserInfo);
+    setLoading(false);
+  })
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
