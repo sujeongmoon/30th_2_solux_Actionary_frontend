@@ -15,8 +15,8 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   background-color: rgba(0, 0, 0, 0.5);
 }
 
@@ -28,6 +28,8 @@
   padding: 30px;
   color: white;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  z-index: 1001;
+  box-sizing: border-box;
 }
 
 .modal-header {
@@ -53,16 +55,24 @@
   font-weight: 600;
 }
 
-.modal-content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+
+.input-wrapper {
+  padding: 1px;
+  margin: 0 auto;
+}
+
+.input-field,
+.input-wrapper,
+.input-wrapper input {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .input-field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
+  margin-top: 20px;
 }
 
 .modal-secname {
