@@ -1,0 +1,267 @@
+div {
+  font-family: 'Pretendard', sans-serif;
+}
+body {
+  background-color: #F8F8F6;
+}
+
+.owner-title {
+    margin: 30px 60px 20px;
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 100%;
+    letter-spacing: 0%;
+}
+
+.owner-divider {
+  width: 95%;
+  height: 1px;
+  background-color: #B3B3B3;
+  margin: 0 auto;
+  
+}
+
+.owner-container {
+  background: linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+  margin: 40px 120px 80px;
+  border-radius: 50px; /* 큰 둥근 모서리 */
+  padding: 40px 40px 20px 50px;
+  color: white;
+  box-shadow: 0px 2px 15px 5px #0000001A;
+  min-height: 500px;
+}
+
+/* 내부 구분선 */
+.owner-profile-divider {
+  width: 100%;
+  height: 1px;
+  background-color: #FFFFFF;
+  margin: 35px 0;
+}
+
+.owner-divider-box {
+  width: 100%;
+  height: 10px;
+  background-color: #FFFFFF;
+}
+
+/* 섹션 레이아웃 */
+.owner-todo-section {
+    display: flex;
+    gap: 24px;
+    padding: 100px 0;
+    justify-content: center;
+    background: linear-gradient(90deg, rgba(250, 120, 91, 0.152) 0%, rgba(240, 175, 161, 0.144) 11.54%, rgba(230, 230, 230, 0) 37.98%, rgba(230, 230, 230, 0.192) 77.4%, rgba(255, 55, 97, 0.056) 100%);
+
+}
+
+/* 카드 공통 스타일 */
+.owner-card-todo, .owner-card-study {
+    background: #FFFFFF;
+    border-radius: 30px;
+    box-sizing: border-box;
+    border: 2px solid transparent;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+}
+
+.owner-card-todo { 
+  background-image: linear-gradient(#FFFFFF, #FFFFFF), 
+                    linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+  width: 650px;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  padding: 20px;
+}
+
+.owner-card-study {
+  background-image: linear-gradient(#FFFFFF, #FFFFFF),
+                    linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+  width: 430px;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  padding: 20px;
+}
+
+.owner-study-header {
+    display: flex;
+    flex-direction: row;
+    background: linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+    padding: 20px;
+    border-radius: 50px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 헤더 스타일 */
+.owner-todo-title { 
+  color: white; 
+  font-weight: 600; 
+  font-size: 18px;
+ }
+
+
+
+.owner-study-title {
+  display: flex;
+  color: #262627;
+  font-weight: 500;
+  font-size: 18px;
+  padding: 30px 20px;
+}
+
+/* 버튼 스타일 */
+.owner-more-btn {
+  background-color: transparent;
+  border: 1px solid #FFFFFF;
+  border-radius: 15px;
+  padding: 4px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  color: #FFFFFF;
+}
+
+
+/* 투두 내용 스타일 */
+.owner-todo-body { padding: 15px 45px 10px 45px; }
+
+.owner-todo-group {
+  padding: 0px 50px;
+}
+
+.owner-todo-tag {
+    font-size: 15px;
+    padding: 3px 12px;
+    border-radius: 12px;
+    display: block;
+    margin-bottom: 10px;
+    width: fit-content;
+    align-items: center;
+    margin-top: 10px;
+
+  
+}
+
+.owner-todo-item-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+.owner-todo-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.owner-todo-check {
+  width: 20px;
+}
+
+.owner-todo-text {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: #000000;
+}
+
+.owner-todo-status { display: flex; gap: 12px; }
+
+.owner-status-btn {
+    width: 80px;
+    padding: 8px 0;
+    border-radius: 15px;
+    border: 1px solid #B3B3B3;
+    background: #FFFFFF;
+    color: #B3B3B3;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.owner-status-btn.active, .owner-status-btn.fail {
+    background: linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+    color: #FFFFFF;
+    border: none;
+}
+
+.owner-todo-divider2 {
+    border-top: 1px solid #B3B3B3;
+    margin: 20px 0;
+}
+
+/* 공부량 내용 스타일 */
+.owner-study-body {
+    padding: 0 25px 25px 25px;
+    display: flex;
+    flex-direction: column;
+}
+
+.owner-study-tabs {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}
+
+.owner-tab {
+  display: flex;
+  align-items: center; 
+  font-size: 13px;
+  color: #CCC;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.owner-tab.active { color: #333; font-weight: bold; }
+.owner-tab-icon img {
+  width: 15px;
+}
+.owner-tab-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background-color: #ccc; /* 회색 */
+  border-radius: 50%; /* 원 모양 */
+  margin-right: 4px; /* 텍스트와 간격 */
+}
+
+
+.owner-study-time-box {
+    background: linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+    height: 140px;
+    border-radius: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 40px;
+}
+
+.owner-manual-add-btn {
+    align-self: flex-end;
+    background-image: linear-gradient(#FFFFFF, #FFFFFF),
+                      linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    border: 2px solid transparent;
+    padding: 6px 6px 6px 18px;
+    border-radius: 25px;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.owner-plus-circle {
+    background: linear-gradient(90deg, #E67E66 0%, #E94E68 100%);
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+}

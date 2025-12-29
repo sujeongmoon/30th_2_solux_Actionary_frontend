@@ -1,0 +1,56 @@
+/* NickNameModal.css의 overlay 스타일을 공유하거나 복사해서 사용하세요 */
+
+.withdraw-modal {
+  width: 550px !important; /* 이미지에 명시된 너비 */
+  height: 350px !important; /* 이미지에 명시된 높이 */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.withdraw-body {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.withdraw-text {
+  display: flex;
+  align-items: center;
+  font-size: 32px; /* 큰 텍스트 */
+  font-weight: 400;
+  color: white;
+  letter-spacing: -0.02em;
+  align-items: center;
+  gap: 8px;
+}
+
+.bold-white {
+  width: 200px;
+  color: #FFFFFF;
+}
+
+.highlight-red {
+  color: #FF3761;
+  font-weight: 700;
+}
+
+.btn-withdraw {
+    background:
+    linear-gradient(
+      86.58deg,
+      #FA785B 20.5%,
+      #FF3761 89.45%
+    ) padding-box,
+    linear-gradient(
+      152.27deg,
+      #FFFFFF 35.45%,
+      rgba(255, 255, 255, 0) 127.61%
+    ) border-box;
+
+  border: 2px solid transparent;
+  border-radius: 30px;
+  color: white;
+}

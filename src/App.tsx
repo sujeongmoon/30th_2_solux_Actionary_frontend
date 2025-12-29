@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomeLayout from './layouts/HomeLayout';
 import HomePage from './pages/HomePage/HomePage';
 import EmptyLayout from "./layouts/EmptyLayout";
+import MyPageOwner from "./pages/MyPage/MyPageOwner";
 import StudyPage from "./pages/StudyPage/StudyPage";
 
 function App() {
@@ -10,6 +11,8 @@ function App() {
       <Routes>
         {/*Navbar 있는 레이아웃 */}
         <Route element = {<HomeLayout />}>
+          <Route path="/" element={<HomePage />}/>
+          <Route path="/OwnerPage" element={<MyPageOwner />}/>
           <Route path="/" element={<HomePage />} />
           <Route path="/studies" element={<StudyPage />} /> 
         </Route>
