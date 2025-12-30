@@ -403,6 +403,14 @@ body {
   
 }
 
+.popular-board-grid .board-item:last-child {
+    border-bottom: none;
+}
+
+.popular-board-grid .board-item:nth-child(9) {
+    border-bottom: none;
+}
+
 
 /* 태그 스타일 */
 .board-tag {
@@ -437,12 +445,13 @@ body {
 /* 제목 내용 */
 .board-content {
     flex-grow: 1;
-    font-size: 15px;
+    font-size: 12px;
     color: #262627;
     margin: 0;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    font-weight: 600;
 }
 
 /* 댓글 수 */
