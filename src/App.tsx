@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage/HomePage';
 import EmptyLayout from "./layouts/EmptyLayout";
 import MyPageOwner from "./pages/MyPage/MyPageOwner";
 import StudyPage from "./pages/StudyPage/StudyPage";
+import BoardListPage from "./pages/BoardPage/BoardListPage";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="/OwnerPage" element={<MyPageOwner />}/>
           <Route path="/" element={<HomePage />} />
           <Route path="/studies" element={<StudyPage />} /> 
+          <Route path= "/board" element={<BoardListPage />} />
         </Route>
 
         {/* Navbar 없는 레이아웃 */}
