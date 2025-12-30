@@ -5,7 +5,7 @@ import SearchIcon from '../../assets/homepage/SearchIcon.svg';
 import PlusButton from '../../assets/homepage/PlusButton.svg';
 import GradientArrow from '../../assets/homepage/Gradient_Arrow.svg';
 import BlackArrow from '../../assets/homepage/BlackArrow.svg';
-import { mockBoardList } from '../../types/MainPagePostType';
+import { mockPopularPosts } from '../../types/MainPagePostType';
 import CommentIcon from '../../assets/homepage/HomePageCommentIcon.svg'
 import BookmarkSection from "../../components/Bookmark/BookmarkSection";
 //import { getPopularStudies } from "../../api/HomePage/getPopularStudies";
@@ -49,7 +49,7 @@ const studyList = [
 ];
 
 
-const boardList = mockBoardList;
+const boardList = mockPopularPosts;
 const HomePage: React.FC = () => {
 
   //임시로 mockData 사용
@@ -220,7 +220,7 @@ const bgClasses = ['study-dark', 'study-gradient', 'study-gray'];
                 <p className="board-content">{item.title}</p>
                 <span className="board-likes">
                   <img src = {CommentIcon} alt="댓글 아이콘" className="comment-icon-img"/>
-                  <span className="likes-count">{item.commentCount}</span>
+                  <span className="likes-count">{item.comment_count}</span>
                 </span>
               </div>
             ))}
