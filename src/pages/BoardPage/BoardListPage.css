@@ -8,6 +8,11 @@
   box-sizing: border-box;
 }
 
+.arrowImg {
+  width: 10px;
+  height: 10px;
+}
+
 /* --- 공통 드롭다운 스타일 (White Theme 기본) --- */
 .dropdown-label,
 .header-label {
@@ -214,6 +219,7 @@
 }
 
 .arrow {
+  height: 12px;
   display: flex;
   align-items: center;
   transition: transform 0.3s;
