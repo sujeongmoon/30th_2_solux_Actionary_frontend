@@ -1,6 +1,6 @@
 export interface PopularPostItem {
     postId: number;
-    type: '소통' | '멘토' | '질문';
+    type: string;
     title: string;
     nickname: string;
     created_at: string;

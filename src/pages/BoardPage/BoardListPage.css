@@ -1,8 +1,109 @@
 /* BoardListPage.css */
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+/* 드롭다운 전체 컨테이너 */
+.custom-dropdown-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+/* 드롭다운을 감싸는 영역을 가로 전체로 잡고 오른쪽으로 정렬 */
+.sort-section {
+  display: flex;          /* Flexbox 활성화 */
+  justify-content: flex-end; /* 자식 요소를 오른쪽 끝으로 밀기 */
+  width: 100%;            /* 가로 전체 너비 확보 */
+  margin-bottom: 7px;    /* 테이블과의 간격 */
+}
+
+/* 드롭다운 컨테이너의 위치 기준점 확인 */
+.custom-dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* (선택 사항) 메뉴 박스가 오른쪽 끝에서 튀어나가지 않게 설정 */
+.custom-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;               /* 기준을 왼쪽(left:0)이 아닌 오른쪽(right:0)으로 변경 */
+  margin-top: 8px;
+  background-color: #1a1a1a;
+  border-radius: 15px;
+  width: 100px;
+  z-index: 100;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+/* 드롭다운 버튼 (기본 상태) */
+.dropdown-label {
+  background-color: #1a1a1a;
+  color: white;
+  padding: 5px 20px;
+  border-radius: 25px;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 100px;
+  justify-content: center;
+}
+
+/* 드롭다운 메뉴 박스 (이미지 디자인의 핵심) */
+.custom-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 8px;
+  background-color: #1a1a1a; /* 이미지 속 아주 짙은 회색 */
+  border-radius: 15px;      /* 둥근 모서리 */
+  width: 100px;
+  z-index: 100;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.board-pagination {
+  width: 12px;
+  height: 12px;
+  margin-top: 4px;
+}
+/* 인기순, 최신순 각각의 항목 */
+.dropdown-item {
+  color: white;
+  padding: 12px 0;
+  text-align: center;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.dropdown-item:hover {
+  background-color: #333; /* 마우스 올렸을 때 */
+}
+
+.dropdown-item.active {
+  font-weight: bold;
+}
+
+/* 이미지의 하얀색 가로선 */
+.dropdown-divider {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.2); /* 은은한 흰색 구분선 */
+  width: 80%;
+  margin: 0 auto;
+}
+
+/* 화살표 애니메이션 (선택 사항) */
+.arrow {
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+.arrow.up { transform: rotate(180deg); }
+
 .board-container {
   width: 100%;
-  margin: 40x auto;
+  margin: 0px auto;
   padding: 20px 40px;
   background-color: #F8F8F6;
   box-sizing: border-box; /* 전체 배경색 */
@@ -36,6 +137,11 @@
   margin-top: 15px;
 }
 
+.board-table th,
+.board-table td {
+  text-align: center;       /* 수평 중앙 */
+  vertical-align: middle;   /* 수직 중앙 */
+}
 /* --- Sort Dropdown --- */
 .sort-wrapper {
   display: flex;
@@ -57,13 +163,15 @@
 .table-card {
   background-color: #222222;
   border-radius: 35px;
+  padding: 10px 40px 20px 40px;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 .board-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0 12px;
   color: #ffffff;
 }
 
@@ -72,22 +180,58 @@
   color: #000000;
 }
 
+/* 3. 첫 번째 칸 (말머리 부분) 왼쪽을 둥글게 */
+.board-table th:first-child {
+  border-top-left-radius: 30px;
+  border-bottom-left-radius: 30px;
+}
+
+/* 4. 마지막 칸 (댓글수 부분) 오른쪽을 둥글게 */
+.board-table th:last-child {
+  border-top-right-radius: 30px;
+  border-bottom-right-radius: 30px;
+}
+
 .board-table th {
-  padding: 15px;
-  font-size: 15px;
+  padding: 15px;;
+  font-size: 18px;
   font-weight: 700;
   border: none;
+}
+
+/* --- 밑줄 왼쪽만 자르기 구현 --- */
+.board-table tbody tr {
+  position: relative; /* 선의 위치 기준점 */
+}
+
+.board-table tbody tr::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 40px;         /* 왼쪽은 40px 자름 */
+  right: 0;          /* 오른쪽은 자르지 않고 끝까지 채움 */
+  height: 1px;
+  background-color: #333333; /* 기존 선 색상 */
+}
+
+.board-table tbody tr:last-child::after {
+  display: none;      /* 마지막 행은 선 제거 */
 }
 
 .board-table td {
   padding: 18px 15px;
   text-align: center;
-  border-bottom: 1px solid #333333;
   font-size: 14px;
 }
 
-.text-left {
-  text-align: left !important;
+.board-table th:first-child {
+  text-align: left;     /* 왼쪽 정렬 */
+  padding-left: 50px;   /* 알약 곡선 안쪽으로 들어오도록 여백 추가 */
+}
+/* 첫 번째 열(말머리) 정렬 및 여백 조절 */
+.board-table td:first-child {
+  text-align: left;     /* 왼쪽 정렬 */
+  padding-left: 40px;   /* 알약 곡선 안쪽으로 들어오도록 여백 추가 */
 }
 
 /* 말머리 배지 스타일 */
@@ -169,4 +313,20 @@
   color: #bbbbbb;
   font-size: 15px;
   cursor: pointer;
+}
+
+.header-select {
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: #333;
+  cursor: pointer;
+  outline: none;
+}
+
+.header-select option {
+  background-color: #fff;
+  color: #333;
 }
