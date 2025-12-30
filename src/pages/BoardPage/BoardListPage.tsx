@@ -3,12 +3,16 @@ import './BoardListPage.css';
 import Pagination from '../../components/Pagination/Pagination';
 import '../../pages/HomePage/HomePage.css';
 import { type PopularPostItem } from '../../types/MainPagePostType';
-import Dropdown from '../../assets/Board/Dropdown.svg'
+import DropdownIcon from '../../assets/Board/Dropdown.svg'
+import MagePen from '../../assets/Board/mage_pen.svg'
 
 const BoardListPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedSort, setSelectedSort] = useState<'popular' | 'latest'>('popular');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // 드롭다운 열림 상태
+  const [isSortOpen, setIsSortOpen] = useState(false); // 정렬 드롭다운
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false); // 말머리 드롭다운
+  const [selectedCategory, setSelectedCategory] = useState('말머리'); // 선택된 말머리 (기본값)
+
   const itemsPerPage = 5;
 
   // --- mockData ---
@@ -21,16 +25,22 @@ const BoardListPage: React.FC = () => {
     comment_count: Math.floor(Math.random() * 100),
   }));
 
-  // --- 정렬 로직 ---
-  const sortedData = [...allBoardData].sort((a, b) => {
+  // --- 1. 말머리 필터링 로직 ---
+  const filteredData = allBoardData.filter((item) => {
+    if (selectedCategory === '말머리' || selectedCategory === '전체') return true;
+    return item.type === selectedCategory;
+  });
+
+  // --- 2. 정렬 로직 ---
+  const sortedData = [...filteredData].sort((a, b) => {
     if (selectedSort === 'popular') {
       return b.comment_count - a.comment_count;
     } else {
-      return b.postId - a.postId; // 최신순: postId 기준 내림차순
+      return b.postId - a.postId; 
     }
   });
 
-  // --- 페이지네이션 로직 ---
+  // --- 3. 페이지네이션 로직 ---
   const totalPages = Math.ceil(sortedData.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -39,8 +49,14 @@ const BoardListPage: React.FC = () => {
   // --- 핸들러 ---
   const handleSortChange = (sortType: 'popular' | 'latest') => {
     setSelectedSort(sortType);
-    setIsDropdownOpen(false); // 선택 후 닫기
-    setCurrentPage(1); // 정렬 변경 시 1페이지로 이동
+    setIsSortOpen(false);
+    setCurrentPage(1);
+  };
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setIsCategoryOpen(false);
+    setCurrentPage(1); // 카테고리 변경 시 1페이지로
   };
 
   return (
@@ -54,46 +70,55 @@ const BoardListPage: React.FC = () => {
         <a href="/board" className="nav-link">게시판</a>
       </nav>
 
-      {/* 커스텀 정렬 드롭다운 */}
+      <div className="divider"></div>
+
+      {/* 우측 상단 정렬 드롭다운 */}
+      <div className='content-section'>
       <div className="sort-section">
         <div className="custom-dropdown-container">
-          {/* 현재 선택된 값을 보여주는 버튼 */}
-          <button 
-            className="dropdown-label" 
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          >
+          <button className="dropdown-label" onClick={() => {setIsSortOpen(!isSortOpen); setIsCategoryOpen(false);}}>
             {selectedSort === 'popular' ? '인기순' : '최신순'}
-            <span className={`arrow ${isDropdownOpen ? 'up' : 'down'}`}><img src={Dropdown} alt="arrow" className='board-pagination' /></span>
+            <span className={`arrow ${isSortOpen ? 'up' : 'down'}`}>
+              <img src={DropdownIcon} alt="arrow" className='board-pagination-icon' />
+            </span>
           </button>
-
-          {/* 이미지 디자인이 적용된 드롭다운 메뉴 */}
-          {isDropdownOpen && (
+          {isSortOpen && (
             <div className="custom-dropdown-menu">
-              <div 
-                className={`dropdown-item ${selectedSort === 'popular' ? 'active' : ''}`}
-                onClick={() => handleSortChange('popular')}
-              >
-                인기순
-              </div>
+              <div className="dropdown-item" onClick={() => handleSortChange('popular')}>인기순</div>
               <div className="dropdown-divider"></div>
-              <div 
-                className={`dropdown-item ${selectedSort === 'latest' ? 'active' : ''}`}
-                onClick={() => handleSortChange('latest')}
-              >
-                최신순
-              </div>
+              <div className="dropdown-item" onClick={() => handleSortChange('latest')}>최신순</div>
             </div>
           )}
         </div>
       </div>
-
       {/* 게시판 테이블 */}
       <div className="table-card">
         <table className="board-table">
           <thead>
             <tr>
-              <th>말머리</th>
-              <th className="text-left">제목</th>
+              {/* 말머리 헤더 드롭다운 적용 */}
+              <th className="header-dropdown-cell">
+                <div className="header-dropdown-wrapper">
+                  <div className="header-label" onClick={() => {setIsCategoryOpen(!isCategoryOpen); setIsSortOpen(false);}}>
+                    {selectedCategory}
+                    <span className={`arrow ${isCategoryOpen ? 'up' : 'down'}`}>
+                      <img src={DropdownIcon} alt="arrow" className='board-pagination-icon' />
+                    </span>
+                  </div>
+                  {isCategoryOpen && (
+                    <div className="header-dropdown-menu">
+                      <div className="dropdown-item" onClick={() => handleCategoryChange('전체')}>말머리</div>
+                      <div className="dropdown-divider"></div>
+                      <div className="dropdown-item" onClick={() => handleCategoryChange('소통')}>소통</div>
+                      <div className="dropdown-divider"></div>
+                      <div className="dropdown-item" onClick={() => handleCategoryChange('인증')}>인증</div>
+                      <div className="dropdown-divider"></div>
+                      <div className="dropdown-item" onClick={() => handleCategoryChange('질문')}>질문</div>
+                    </div>
+                  )}
+                </div>
+              </th>
+              <th >제목</th>
               <th>작성자</th>
               <th>작성일</th>
               <th>댓글수</th>
@@ -102,10 +127,10 @@ const BoardListPage: React.FC = () => {
           <tbody>
             {currentItems.map((item) => (
               <tr key={item.postId}>
-                <td><span className="badge">{item.type}</span></td>
-                <td className="text-left">{item.title}</td>
+                <td><div className="badge"><span>{item.type}</span></div></td>
+                <td>{item.title}</td>
                 <td className="author-cell">{item.nickname}</td>
-                <td>{item.created_at}</td>
+                <td className="date-cell">{item.created_at}</td>
                 <td className="comment-count">{item.comment_count}</td>
               </tr>
             ))}
@@ -113,14 +138,16 @@ const BoardListPage: React.FC = () => {
         </table>
       </div>
 
-      {/* 하단 버튼 및 페이지네이션 */}
       <div className="bottom-section">
-        <button className="btn-write">🖋 게시글 작성하기</button>
+        <button className="btn-write"><img src={MagePen} alt="게시글 작성하기" className='mage-pen'/>게시글 작성하기</button>
+        <div className="pagination-wrapper">
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={(pageNumber) => setCurrentPage(pageNumber)}
         />
+        </div>
+      </div>
       </div>
     </div>
   );

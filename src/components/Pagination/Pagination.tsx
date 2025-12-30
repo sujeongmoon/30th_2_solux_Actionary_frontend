@@ -29,7 +29,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) 
           className="page-next" 
           onClick={() => onPageChange(startPage - 1)}
         >
-          &lt;
+          <img src={Arrow} alt="이전 페이지" className='paginationArrow prev'/>
         </button>
       )}
 
