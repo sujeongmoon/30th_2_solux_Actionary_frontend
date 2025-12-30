@@ -141,6 +141,7 @@
   border-radius: 50px;
   padding: 20px 40px 15px 40px;
   overflow: hidden;
+  min-height: 200px;
 }
 
 .board-table {

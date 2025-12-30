@@ -69,11 +69,11 @@ const BoardListPage: React.FC = () => {
   return (
     <div className="board-container">
       <nav className="sub-navigation">
-        <a href="/" className="nav-link-home-link">홈</a>
+        <a href="/board" className="nav-link-home-link">게시판</a>
         <span className="nav-divider">|</span>
-        <a href="/study" className="nav-link">스터디</a>
+        <a href="/" className="nav-link">홈</a>
         <span className="nav-divider">|</span>
-        <a href="/board" className="nav-link">게시판</a>
+        <a href="/studies" className="nav-link">스터디</a>
       </nav>
 
       <div className="divider" />
