@@ -1,0 +1,68 @@
+.pagination {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 50px;
+  max-height: 25px; /* 버튼이 사라져도 높이가 유지되도록 설정 */
+  background-color: #FFFFFF;
+  border-radius: 50px;
+  padding: 2px 8px;
+}
+
+.pagination button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.paginationArrow.prev {
+  transform: rotate(180deg);
+}
+
+
+.page-num {
+  border: none;
+  background: none;
+  color: #B3B3B3;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 눌려있는 페이지 (활성화 상태) 스타일 */
+.page-num.active {
+  background: linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+  color: white;
+  width: 40px;
+  height: 22px;
+  border-radius: 50px;
+  font-weight: bold;
+}
+
+.page-num:hover:not(.active) {
+  color: #B3B3B3;
+}
+
+.page-next {
+  color: #1E1E1E;
+  transition: color 0.2s;
+  font-weight: bold;
+}
+
+.page-next:disabled {
+  color: #eeeeee;    /* 흐릿하게 변경 */
+  cursor: default;   /* 커서 모양 변경 */
+  pointer-events: none; /* 클릭 방지 */
+}
+
+.paginationArrow {
+  width: 11px;
+  height: 11px;
+}

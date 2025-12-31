@@ -9,6 +9,7 @@ import { mockPopularPosts } from '../../types/MainPagePostType';
 import CommentIcon from '../../assets/homepage/HomePageCommentIcon.svg'
 import BookmarkSection from "../../components/Bookmark/BookmarkSection";
 //import { getPopularStudies } from "../../api/HomePage/getPopularStudies";
+import { useNavigate } from "react-router-dom";
 
 const studyList = [
   {
@@ -102,6 +103,8 @@ const bgClasses = ['study-dark', 'study-gradient', 'study-gray'];
     studyPage * studiesPerPage + studiesPerPage
   );
 
+  const navigate = useNavigate();
+
   return (
     <div className="homepage-content-wrapper">
 
@@ -109,7 +112,7 @@ const bgClasses = ['study-dark', 'study-gradient', 'study-gray'];
       <nav className="sub-navigation">
         <a href="/" className="nav-link-home-link">홈</a>
         <span className="nav-divider">|</span>
-        <a href="/study" className="nav-link">스터디</a>
+        <a href="/studies" className="nav-link">스터디</a>
         <span className="nav-divider">|</span>
         <a href="/board" className="nav-link">게시판</a>
       </nav>
@@ -207,7 +210,9 @@ const bgClasses = ['study-dark', 'study-gradient', 'study-gray'];
       <div className="popular-board-container">
         <div className="popular-board-header">
           <h2 className="popular-board-title">인기 게시글</h2>
-          <button className="popular-board-more">더보기</button>
+          <button
+            className="popular-board-more"
+            onClick={() => navigate('/board')}>더보기</button>
         </div>
           <div className="popular-board-grid">
             {boardList.map(item => (
