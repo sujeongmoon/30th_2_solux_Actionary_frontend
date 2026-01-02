@@ -6,6 +6,7 @@ import MyPageOwner from "./pages/MyPage/MyPageOwner";
 import StudyPage from "./pages/StudyPage/StudyPage";
 import BoardListPage from "./pages/BoardPage/BoardListPage";
 import MyPagePublic from "./pages/MyPage/MyPagePulic";
+import BoardDetailPage from "./pages/BoardPage/BoardDetailPage";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/studies" element={<StudyPage />} /> 
           <Route path= "/board" element={<BoardListPage />} />
           <Route path= "/publicPage" element={<MyPagePublic />} />
+          <Route path= "/board/:postId" element={<BoardDetailPage />} />
         </Route>
 
         {/* Navbar 없는 레이아웃 */}
