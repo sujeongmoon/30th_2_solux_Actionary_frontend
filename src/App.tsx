@@ -4,6 +4,8 @@ import HomePage from './pages/HomePage/HomePage';
 import EmptyLayout from "./layouts/EmptyLayout";
 import StudyPage from "./pages/StudyPage/StudyPage";
 import StudyCreatePage from "./pages/StudyCreatePage/StudyCreatePage";
+import StudyDetailPage from "./pages/StudyDetailPage/StudyDetailPage";
+import MyStudiesPage from "./pages/MyStudiesPage/MyStudiesPage";
 
 function App() {
   return (
@@ -14,6 +16,8 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/studies" element={<StudyPage />} /> 
           <Route path="/studies/new" element={<StudyCreatePage />} />
+          <Route path="/studies/:studyId" element={<StudyDetailPage />} />
+          <Route path="/studies/my" element={<MyStudiesPage />} />
         </Route>
 
         {/* Navbar 없는 레이아웃 */}
