@@ -27,3 +27,27 @@ export const createComment = async (
     const res = await api.post(`/api/posts/$${postId}/comments`, body);
     return res.data;
 };
+
+export const updateComment = async (
+    postId: number,
+    commentId: number,
+    data: { content: string; is_secret: boolean },
+    token: string
+) => {
+    try {
+        const res = await api.patch(`/api/posts/${postId}/comments/${commentId}`,
+            data,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type' : 'application/json',
+                },
+            }
+        );
+        
+        return res.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+};

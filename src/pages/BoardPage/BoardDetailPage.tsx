@@ -55,7 +55,7 @@ const MOCK_COMMENTS: Comment[] = [
       badge_id: 2,
     },
   },
-    // 제 3자가 쓴 비밀 댓글
+
   {
     comment_id: 3,
     content: '이건 비밀 댓글테스트하는 용도입니다',
@@ -92,8 +92,11 @@ const BoardDetailPage = () => {
   const postMenuRef = useRef<HTMLDivElement | null>(null);
   const commentMenuRef = useRef<HTMLDivElement | null>(null);
 
-  const [loginUserId, setLoginUserId] = useState<number>(2); // 로그인 사용자 설정
+  const [loginUserId, setLoginUserId] = useState<number>(1); // 로그인 사용자 설정
 
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editingCommentText, setEditingCommentText] = useState('');
+  const [editingIsSecret, setEditingIsSecret] = useState(false);
 
   /* 실제 연동용 코드 */
   {/*
@@ -127,12 +130,12 @@ const BoardDetailPage = () => {
   if (!commentText.trim()) return; // 빈 댓글 방지
 
   const newComment: Comment = {
-    comment_id: Date.now(), // 임시 ID
+    comment_id: 4, // 임시 ID
     content: commentText,
     created_at: new Date().toISOString(), // 현재 시간
     is_secret: isSecret,
     author: {
-      memberId: 2, // 로그인한 유저 ID
+      memberId: 4, // 작성자 ID
       nickname: '가인', // 로그인 유저 이름
       profile_image_url: 'https://picsum.photos/seed/me/40/40', // 임시 이미지
       badge_id: 3, // 임시 뱃지
@@ -208,7 +211,15 @@ const handleCommentSubmit = async () => {
   if (!data) return <div className="error">게시글을 찾을 수 없습니다.</div>;
 
   const { post, author, post_image_urls } = data;
-  const formattedDate = post.created_at.split('T')[0].replace(/-/g, '/');
+  const formatDate = (dateString: string) => {
+  const d = new Date(dateString);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}/${month}/${day}`;
+};
+
+
 
   // mock 로그인 유저
   const isMyPost = author.memberId === loginUserId;
@@ -229,7 +240,9 @@ const handleCommentSubmit = async () => {
                   <img src={BADGE_MAP[author.badge]} alt="뱃지" className="badge-img" />
                 )}
               </div>
-              <span className="date">{formattedDate}</span>
+              <span className="date">
+                  {formatDate(post.created_at)}
+              </span>
             </div>
           </div>
 
@@ -277,14 +290,18 @@ const handleCommentSubmit = async () => {
         {comments.map((comment) => {
           const isMyComment = loginUserId === comment.author.memberId;
           const isPostAuthor = loginUserId === author.memberId;
+
           const commentContent =
             comment.is_secret && !isMyComment && !isPostAuthor
             ? '비밀 댓글입니다.'
             : comment.content;
+          
+            const isEditing = editingCommentId === comment.comment_id;
 
           return (
           <div key={comment.comment_id} className="comment-item">
             <div className="user-info">
+              <div className='user-left'>
               <img
                 src={comment.author.profile_image_url}
                 alt="댓글 작성자 이미지"
@@ -303,40 +320,89 @@ const handleCommentSubmit = async () => {
                   />
                 )}
 
-                {comment.is_secret && comment.author.memberId === loginUserId && (
+                {comment.is_secret && (isMyComment || isPostAuthor) && (
                   <span className='secret-lock'>
                     <img src={lock} alt="자물쇠" className='lock-commentimg' />
                   </span>
                 )}
-
-                <div className="menu-wrapper">
-                  <button
-                    className="more-btn-comment"
-                    onClick={() =>
-                      setOpenCommentMenuId((prev) =>
-                        prev === comment.comment_id
-                          ? null
-                          : comment.comment_id
-                      )
-                    }
-                  >
-                    ⋮
-                  </button>
-
-                  {openCommentMenuId === comment.comment_id && (
-                    <div className="dropdown-menu" ref={commentMenuRef}>
-                      <button className="menu-item border-b">수정</button>
-                      <button className="menu-item">삭제</button>
-                    </div>
-                  )}
                 </div>
               </div>
+                {isMyComment && (
+                  <div className="menu-wrapper">
+                    <button
+                      className="more-btn-comment"
+                      onClick={() =>
+                        setOpenCommentMenuId((prev) =>
+                          prev === comment.comment_id
+                            ? null
+                            : comment.comment_id
+                        )
+                      }
+                    >
+                      ⋮
+                    </button>
+                    {openCommentMenuId === comment.comment_id && (
+                      <div className="dropdown-menu" ref={commentMenuRef}>
+                        <button 
+                          className="menu-item border-b"
+                          onClick={() => {
+                            setEditingCommentId(comment.comment_id);
+                            setEditingCommentText(commentContent);
+                            setEditingIsSecret(comment.is_secret);
+                            setOpenCommentMenuId(null);
+                          }}>수정</button>
+                          <button className="menu-item">삭제</button>
+                        </div>
+                     )}
+                    </div>
+                )}
             </div>
 
             <div className="comment-content-area">
-              <p className="comment-text">
-                {commentContent}
-              </p>
+              {isEditing ? (
+                <div className='editing-comment-box'>
+                  <div className='editing-left'>
+                    <input
+                      className='comment-edit-field'
+                      value={editingCommentText}
+                      onChange={(e) => setEditingCommentText(e.target.value)}
+                      placeholder='댓글 작성 칸 |'
+                      title="수정 입력 창"
+                    />
+                    <div className={`lock-icon-wrapper ${editingIsSecret ? 'active': ''}`}
+                      onClick={() => setEditingIsSecret(prev => !prev)}
+                    >
+                    <img src={lock} alt="좌물쇠" className='lock-img-edit' />
+                  </div>
+                </div>
+                    <div className='editing-btn-group'>
+                  <button
+                    className='edit-save-btn'
+                    onClick={() => {
+                      setComments(
+                        comments.map((c) => 
+                          c.comment_id === editingCommentId
+                            ? {...c, content: editingCommentText, is_secret: editingIsSecret}
+                            : c
+                          )
+                      );
+                      setEditingCommentId(null);
+                    }}
+                  >
+                    저장
+                  </button>
+                  <button
+                    className='edit-cancel-btn'
+                    onClick={() => setEditingCommentId(null)}
+                  > 취소 
+                  </button>
+                </div>
+
+
+              </div>
+              ) : (
+                <p className='comment-text'>{comment.content}</p>
+              )}
             </div>
 
             <hr className="comment-divider" />
