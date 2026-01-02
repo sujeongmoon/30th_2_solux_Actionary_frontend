@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import "./MyStudiesPage.css";
+import StudyViewModal, { type StudyViewData } from "../StudyDetailPage/StudyViewModal";
 
 type MyScope = "ALL" | "OWNER" | "PARTICIPATING" | "FAVORITE"; // 전체 / 개설 / 참여 / 즐겨찾기
 type VisibilityFilter = "ALL" | "PUBLIC" | "PRIVATE";
@@ -92,6 +93,38 @@ const MOCK: StudyCard[] = [
 
 const PAGE_SIZE = 8;
 
+function toModalData(s: StudyCard): StudyViewData {
+  // ✅ 요구사항 반영(안내는 공백 가능 / 커버 없으면 모달에서 로고로 대체)
+  const limit = 15;
+  const live = Math.min(limit, Math.max(0, (s.studyId * 3) % (limit + 1))); // 임시
+
+  return {
+    studyId: s.studyId,
+    studyName: s.studyName,
+    coverImage: s.coverImage ?? null,
+    categoryLabel: s.categoryLabel ?? "기타",
+    isPublic: !!s.isPublic,
+
+    liked: !!s.isFavorite,
+    canManage: !!s.isOwner, // 내가 만든 것만 ⋮ 활성화
+
+    description: "설명설명설명설명설명설명설명설명설명",
+    guide: "", // 안내는 공백 가능
+
+    liveCount: live,
+    memberLimit: limit,
+
+    ranking: [
+      { rank: 1, nickname: "눈송이", daily: "2시간 10분", total: "12시간 05분" },
+      { rank: 2, nickname: "눈송이", daily: "1시간 20분", total: "10시간 40분" },
+      { rank: 3, nickname: "눈송이", daily: null, total: "9시간 15분" },
+      { rank: 4, nickname: "눈송이", daily: "0시간 50분", total: "8시간 03분" },
+      { rank: 5, nickname: "눈송이", daily: null, total: "7시간 20분" },
+      { rank: 6, nickname: "눈송이", daily: "0시간 10분", total: "6시간 59분" },
+    ],
+  };
+}
+
 export default function MyStudiesPage() {
   const navigate = useNavigate();
 
@@ -107,6 +140,9 @@ export default function MyStudiesPage() {
   // 페이지네이션
   const [page, setPage] = useState(1);
 
+  // ✅ 모달 선택 상태(이것만 있으면 됨)
+  const [selected, setSelected] = useState<StudyViewData | null>(null);
+
   // ===== 상단 "나만의 스터디" 후보 리스트 (scope에 따라) =====
   const myList = useMemo(() => {
     const base = MOCK.filter((s) => s.isOwner || s.isParticipating || s.isFavorite);
@@ -116,7 +152,7 @@ export default function MyStudiesPage() {
     return base.filter((s) => s.isFavorite);
   }, [scope]);
 
-  // 캐러셀은 3장씩 보여주기
+  // 캐러셀은 3장씩
   const carouselPageSize = 3;
   const carouselMaxIndex = Math.max(0, Math.ceil(myList.length / carouselPageSize) - 1);
   const carouselSlice = useMemo(() => {
@@ -124,14 +160,11 @@ export default function MyStudiesPage() {
     return myList.slice(start, start + carouselPageSize);
   }, [myList, carouselIndex]);
 
-  // ===== 아래 그리드(전체 목록 느낌) =====
+  // ===== 아래 그리드 =====
   const gridList = useMemo(() => {
     let result = [...MOCK];
-
-    // 공개/비공개
     if (visibility === "PUBLIC") result = result.filter((s) => s.isPublic);
     if (visibility === "PRIVATE") result = result.filter((s) => !s.isPublic);
-
     return result;
   }, [visibility]);
 
@@ -151,6 +184,13 @@ export default function MyStudiesPage() {
   const onChangeScope = (s: MyScope) => {
     setScope(s);
     setCarouselIndex(0);
+  };
+
+  // ✅ 카드 클릭 공통: 모달 열기
+  const openModal = (e: MouseEvent<HTMLElement>, s: StudyCard) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelected(toModalData(s));
   };
 
   return (
@@ -207,7 +247,7 @@ export default function MyStudiesPage() {
                     className="miniCard"
                     role="button"
                     tabIndex={0}
-                    onClick={() => navigate(`/studies/${s.studyId}`)}
+                    onClick={(e) => openModal(e, s)} // ✅ 모달
                   >
                     <div className="miniThumb">
                       {s.coverImage ? <img src={s.coverImage} alt="" /> : <div className="miniFallback" />}
@@ -231,7 +271,7 @@ export default function MyStudiesPage() {
         </div>
       </section>
 
-      {/* ===== 아래: 그리드(전체) ===== */}
+      {/* ===== 아래: 그리드 ===== */}
       <section className="myGridArea">
         <div className="gridTop">
           <div className="visTabs">
@@ -266,7 +306,7 @@ export default function MyStudiesPage() {
               className="gridCard"
               role="button"
               tabIndex={0}
-              onClick={() => navigate(`/studies/${s.studyId}`)} // 나중에 "팝업"으로 바꾸면 여기만 바꾸면 됨
+              onClick={(e) => openModal(e, s)} // ✅ 모달
             >
               <div className="gridThumb">
                 {s.coverImage ? <img src={s.coverImage} alt="" /> : <div className="gridFallback" />}
@@ -297,6 +337,27 @@ export default function MyStudiesPage() {
           </button>
         </div>
       </section>
+
+      {/* ✅ 모달(항상 return 안에 존재해야 뜸) */}
+      <StudyViewModal
+        open={!!selected}
+        data={
+          selected ?? {
+            studyId: 0,
+            studyName: "",
+            ranking: [], // ✅ map 터짐 방지
+          }
+        }
+        onClose={() => setSelected(null)}
+        enterPath={`/study-room/${selected?.studyId ?? 0}`} // 임의 경로 가정
+        onEdit={(id) => {
+          navigate(`/studies/${id}/edit`); // 임의 경로 가정
+        }}
+        onDelete={(id) => {
+          const ok = window.confirm(`스터디(${id})를 삭제할까요? (현재는 UI 단계)`);
+          if (ok) setSelected(null);
+        }}
+      />
     </div>
   );
 }

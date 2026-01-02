@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getStudies } from "../../api/studies";
 import "./StudyPage.css";
+import StudyViewModal, { type StudyViewData } from "../StudyDetailPage/StudyViewModal";
 
 /** ===== 명세 기준(추후 API 연동) =====
  * GET /api/studies?visibility={public/private}&category={category}&page={pageNumber}
@@ -225,7 +226,7 @@ export default function StudyPage() {
               <article
                 key={s.studyId}
                 className="studyCard"
-                onClick={() => navigate(`/studies/${s.studyId}`)}
+                onClick={() => setSelected(s)}
                 role="button"
                 tabIndex={0}
               >
@@ -278,6 +279,34 @@ export default function StudyPage() {
       <div className="footMeta">
         총 {totalElements}개 · pageSize {size}
       </div>
+      {selected && (
+  <StudyViewModal
+    open={!!selected}
+    onClose={() => setSelected(null)}
+    data={{
+      studyId: selected.studyId,
+      studyName: selected.studyName,
+      coverImage: selected.coverImage ?? null,
+
+      // ✅ 일단 목업으로 (API 붙이면 여기 데이터만 바꾸면 됨)
+      categoryLabel,
+      isPublic: visibility === "public",
+
+      liveCount: 5,     // 예: 실시간 참여 인원
+      memberLimit: 15,  // 예: 제한 인원
+      liked: false,
+      description: "설명설명설명설명설명설명설명",
+      rankingDaily: [
+        { rank: 1, nickname: "눈송이", time: "—시간:—분" },
+        { rank: 2, nickname: "눈송이", time: "—시간:—분" },
+      ],
+      rankingTotal: [
+        { rank: 1, nickname: "눈송이", time: "—시간:—분" },
+        { rank: 2, nickname: "눈송이", time: "—시간:—분" },
+      ],
+    }}
+  />
+)}
     </div>
   );
 }
