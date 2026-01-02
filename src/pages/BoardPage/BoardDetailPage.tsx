@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-// import { getPostDetail } from '../../api/boardDetail/postApi';
 import type { PostDetailData, Comment } from '../../types/Board';
 import './BoardDetailPage.css';
 import { BADGE_MAP } from '../../utils/badgeMap';
 import lock from '../../assets/Board/lock.svg';
 import send from '../../assets/homepage/Gradient_Arrow.svg';
+//import { getPostDetail } from '../../api/boardDetail/postApi';
+//import { getComments, createComment } from '../../api/boardDetail/comment';
 
 /* ================= MOCK DATA ================= */
 const MOCK_DATA: PostDetailData = {
@@ -54,35 +55,122 @@ const MOCK_COMMENTS: Comment[] = [
       badge_id: 2,
     },
   },
+    // 제 3자가 쓴 비밀 댓글
+  {
+    comment_id: 3,
+    content: '이건 비밀 댓글테스트하는 용도입니다',
+    created_at: '2023-10-27T13:00:00',
+    is_secret: true,
+    author: {
+      memberId: 4,
+      nickname: '개발자D',
+      profile_image_url: 'https://picsum.photos/seed/userD/40/40',
+      badge_id: 0,
+    },
+  },
 ];
 /* ============================================= */
 
 const BoardDetailPage = () => {
   const { postId } = useParams<{ postId: string }>();
+
   const [data, setData] = useState<PostDetailData | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  /** 게시글 메뉴 */
+  const [isPostMenuOpen, setIsPostMenuOpen] = useState(false);
+
+  /** 댓글 메뉴 */
+  const [openCommentMenuId, setOpenCommentMenuId] = useState<number | null>(null);
+
+  /** 댓글 입력 */
   const [commentText, setCommentText] = useState('');
   const [isSecret, setIsSecret] = useState(false);
-  useEffect(() => {
-    /* ================= 실제 API 연동 ================= */
-    /*
-    if (postId) {
-      getPostDetail(Number(postId))
-        .then((res) => {
-          if (res.data.success) {
-            setData(res.data.data);
-            setComments(res.data.data.comments);
-          }
-        })
-        .catch((err) => console.error(err))
-        .finally(() => setLoading(false));
-    }
-    */
-    /* =============================================== */
 
-    // UI 개발용 mock 데이터
+  /** ref */
+  const postMenuRef = useRef<HTMLDivElement | null>(null);
+  const commentMenuRef = useRef<HTMLDivElement | null>(null);
+
+  const [loginUserId, setLoginUserId] = useState<number>(2); // 로그인 사용자 설정
+
+
+  /* 실제 연동용 코드 */
+  {/*
+  useEffect(() => {
+    if (!postId) return;
+    const fetchData = async() => {
+      try {
+        setLoading(true);
+
+        const postRes = await getPostDetail(Number(postId));
+        if (postRes.success) {
+          setData(postRes.data);
+        }
+
+        const commentRes = await getComments(Number(postId));
+        if (commentRes.success) {
+          setComments(commentRes.data.comments);
+        }
+      } catch(error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [postId]); */}
+
+  {/* 댓글 작성 기능 (MockData) */ }
+  const handleCommentSubmitMock = () => {
+  if (!commentText.trim()) return; // 빈 댓글 방지
+
+  const newComment: Comment = {
+    comment_id: Date.now(), // 임시 ID
+    content: commentText,
+    created_at: new Date().toISOString(), // 현재 시간
+    is_secret: isSecret,
+    author: {
+      memberId: 2, // 로그인한 유저 ID
+      nickname: '가인', // 로그인 유저 이름
+      profile_image_url: 'https://picsum.photos/seed/me/40/40', // 임시 이미지
+      badge_id: 3, // 임시 뱃지
+    },
+  };
+
+  // 기존 댓글 배열에 새 댓글 추가
+  setComments([...comments, newComment]);
+
+  // 입력칸 초기화
+  setCommentText('');
+  setIsSecret(false);
+};
+
+{/*댓글 작성 API 연동용 */}
+{/*
+const handleCommentSubmit = async () => {
+  if (!commentText.trim() || !postId) return;
+
+  try {
+    const body = { content: commentText, is_secret: isSecret };
+    const res = await createComment(Number(postId), body);
+
+    if (res.success) {
+      const commentRes = await getComments(Number(postId));
+      if (commentRes.success) setComments(commentRes.data.comments);
+
+      setCommentText('');
+      setIsSecret(false);
+    }
+  } catch (error) {
+    console.error(error);
+  }
+} */}
+
+  
+  {/* MockData용 */}
+  useEffect(() => {
     setTimeout(() => {
       setData(MOCK_DATA);
       setComments(MOCK_COMMENTS);
@@ -90,40 +178,55 @@ const BoardDetailPage = () => {
     }, 300);
   }, [postId]);
 
+  /** 바깥 클릭 시 드롭다운 닫기 */
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+
+      if (
+        isPostMenuOpen &&
+        postMenuRef.current &&
+        !postMenuRef.current.contains(target)
+      ) {
+        setIsPostMenuOpen(false);
+      }
+
+      if (
+        openCommentMenuId !== null &&
+        commentMenuRef.current &&
+        !commentMenuRef.current.contains(target)
+      ) {
+        setOpenCommentMenuId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isPostMenuOpen, openCommentMenuId]);
+
   if (loading) return <div className="loading">로딩 중...</div>;
   if (!data) return <div className="error">게시글을 찾을 수 없습니다.</div>;
 
   const { post, author, post_image_urls } = data;
   const formattedDate = post.created_at.split('T')[0].replace(/-/g, '/');
 
-  // 나중에 auth에서 가져오기
-  const loginUserId = 1;
+  // mock 로그인 유저
   const isMyPost = author.memberId === loginUserId;
-
-  //댓글 입력 창
 
   return (
     <div className="board-detail-container">
-      {/* 게시글 섹션 */}
+      {/* ================= 게시글 ================= */}
       <section className="post-section">
         <h1 className="post-title">{post.title}</h1>
 
         <div className="post-header">
           <div className="author-info">
-            <img
-              src={author.profile_image_url}
-              alt="profile"
-              className="profile-img"
-            />
+            <img src={author.profile_image_url} alt="프로필 이미지" className="profile-img" />
             <div className="meta-text">
               <div className="nickname-row">
                 <span className="nickname">{author.nickname}</span>
                 {BADGE_MAP[author.badge] && (
-                  <img
-                    src={BADGE_MAP[author.badge]}
-                    alt="badge"
-                    className="badge-img"
-                  />
+                  <img src={BADGE_MAP[author.badge]} alt="뱃지" className="badge-img" />
                 )}
               </div>
               <span className="date">{formattedDate}</span>
@@ -132,20 +235,20 @@ const BoardDetailPage = () => {
 
           <div className="header-right">
             <div className="comment-info">
-              댓글 <span className="highlight">{post.comment_count}</span>
+              댓글 <span className="highlight">{comments.length}</span>
             </div>
 
             {isMyPost && (
               <div className="menu-wrapper">
                 <button
                   className="more-btn"
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  onClick={() => setIsPostMenuOpen((prev) => !prev)}
                 >
                   ⋮
                 </button>
 
-                {isMenuOpen && (
-                  <div className="dropdown-menu">
+                {isPostMenuOpen && (
+                  <div className="dropdown-menu" ref={postMenuRef}>
                     <button className="menu-item border-b">수정</button>
                     <button className="menu-item">삭제</button>
                   </div>
@@ -155,86 +258,117 @@ const BoardDetailPage = () => {
           </div>
         </div>
 
-        <hr className="divider" />
-
         <div className="post-content">
-          {post_image_urls.length > 0 &&
-            post_image_urls.map((url, index) => (
-              <div key={index} className="content-image-box">
-                <img src={url} alt="post content" />
-              </div>
-            ))}
+          {post_image_urls.map((url, idx) => (
+            <div key={idx} className="content-image-box">
+              <img src={url} alt="게시글 이미지" />
+            </div>
+          ))}
           <p className="text-body">{post.text_content}</p>
         </div>
       </section>
 
-      <hr className="divider" />
-
-      {/* 댓글 섹션 */}
+      {/* ================= 댓글 ================= */}
       <section className="comment-section">
         <h2 className="comment-title">
           댓글 <span className="count-grey">{comments.length}</span>
         </h2>
+        
+        {comments.map((comment) => {
+          const isMyComment = loginUserId === comment.author.memberId;
+          const isPostAuthor = loginUserId === author.memberId;
+          const commentContent =
+            comment.is_secret && !isMyComment && !isPostAuthor
+            ? '비밀 댓글입니다.'
+            : comment.content;
 
-        <div className="comment-list">
-          {comments.map((comment) => {
+          return (
+          <div key={comment.comment_id} className="comment-item">
+            <div className="user-info">
+              <img
+                src={comment.author.profile_image_url}
+                alt="댓글 작성자 이미지"
+                className="profile-img"
+              />
+              <div className="nickname-badge-wrapper">
+                <span className="nickname">
+                  {comment.author.nickname}
+                </span>
 
-            return (
-              <div key={comment.comment_id} className="comment-item">
-                <div className="user-info">
+                {BADGE_MAP[comment.author.badge_id] && (
                   <img
-                    src={comment.author.profile_image_url}
-                    alt="profile"
-                    className="profile-img"
+                    src={BADGE_MAP[comment.author.badge_id]}
+                    alt="작성자 뱃지"
+                    className="badge-img"
                   />
-                  <div className="nickname-badge-wrapper">
-                      <span className="nickname">{comment.author.nickname}</span>
-                      {BADGE_MAP[comment.author.badge_id] && (
-                        <img
-                          src={BADGE_MAP[comment.author.badge_id]}
-                          alt="badge"
-                          className="badge-img"
-                        />
-                      )}
-                  </div>
-                </div>
-                {/* 댓글 본문 내용*/}
-                <div className='comment-content-area'>
-                  <p className='comment-text'>{comment.content}</p>
-              </div>
+                )}
 
-              <hr className='comment-divider' />
+                {comment.is_secret && comment.author.memberId === loginUserId && (
+                  <span className='secret-lock'>
+                    <img src={lock} alt="자물쇠" className='lock-commentimg' />
+                  </span>
+                )}
+
+                <div className="menu-wrapper">
+                  <button
+                    className="more-btn-comment"
+                    onClick={() =>
+                      setOpenCommentMenuId((prev) =>
+                        prev === comment.comment_id
+                          ? null
+                          : comment.comment_id
+                      )
+                    }
+                  >
+                    ⋮
+                  </button>
+
+                  {openCommentMenuId === comment.comment_id && (
+                    <div className="dropdown-menu" ref={commentMenuRef}>
+                      <button className="menu-item border-b">수정</button>
+                      <button className="menu-item">삭제</button>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-            );
-          })}
-        </div>
+
+            <div className="comment-content-area">
+              <p className="comment-text">
+                {commentContent}
+              </p>
+            </div>
+
+            <hr className="comment-divider" />
+          </div>
+          );
+      })}
+
       </section>
 
-      {/* 댓글 입력창 */}
-      <div className='comment-input-container'>
-        <div className='comment-input-bar'>
-          <div className='input-left-group'>
+      {/* ================= 댓글 입력 ================= */}
+      <div className="comment-input-container">
+        <div className="comment-input-bar">
+          <div className="input-left-group">
             <input
-              type="text"
-              className='comment-input-field'
-              placeholder = '댓글 작성 칸 |'
+              className="comment-input-field"
+              placeholder="댓글 작성 칸 |"
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
             />
-            <div className={`lock-icon-wrapper${isSecret ? 'active' : ''}`}
-            onClick={() => setIsSecret(!isSecret)}
-            //style={{ cursor: 'pointer' }}
-          >
-            <img src={lock} alt='좌물쇠 아이콘' className='lock-img' />
-            
+            <div
+              className={`lock-icon-wrapper ${isSecret ? 'active' : ''}`}
+              onClick={() => setIsSecret((prev) => !prev)}
+            >
+              <img src={lock} alt="자물쇠" className="lock-img" />
+            </div>
           </div>
-          </div>
-          <button className='comment-send-btn'>
-            <img src={send} alt="전송 버튼" className='send-icon' />
+
+          <button className="comment-send-btn" onClick={handleCommentSubmitMock}>
+            <img src={send} alt="전송버튼" className="send-icon" />
           </button>
         </div>
       </div>
-
     </div>
   );
 };
