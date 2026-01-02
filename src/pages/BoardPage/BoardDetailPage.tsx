@@ -4,6 +4,8 @@ import { useParams } from 'react-router-dom';
 import type { PostDetailData, Comment } from '../../types/Board';
 import './BoardDetailPage.css';
 import { BADGE_MAP } from '../../utils/badgeMap';
+import lock from '../../assets/Board/lock.svg';
+import send from '../../assets/homepage/Gradient_Arrow.svg';
 
 /* ================= MOCK DATA ================= */
 const MOCK_DATA: PostDetailData = {
@@ -61,7 +63,8 @@ const BoardDetailPage = () => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-
+  const [commentText, setCommentText] = useState('');
+  const [isSecret, setIsSecret] = useState(false);
   useEffect(() => {
     /* ================= 실제 API 연동 ================= */
     /*
@@ -79,7 +82,7 @@ const BoardDetailPage = () => {
     */
     /* =============================================== */
 
-    // ✅ UI 개발용 mock 데이터
+    // UI 개발용 mock 데이터
     setTimeout(() => {
       setData(MOCK_DATA);
       setComments(MOCK_COMMENTS);
@@ -93,9 +96,11 @@ const BoardDetailPage = () => {
   const { post, author, post_image_urls } = data;
   const formattedDate = post.created_at.split('T')[0].replace(/-/g, '/');
 
-  // 🔥 나중에 auth에서 가져오기
+  // 나중에 auth에서 가져오기
   const loginUserId = 1;
   const isMyPost = author.memberId === loginUserId;
+
+  //댓글 입력 창
 
   return (
     <div className="board-detail-container">
@@ -204,6 +209,32 @@ const BoardDetailPage = () => {
           })}
         </div>
       </section>
+
+      {/* 댓글 입력창 */}
+      <div className='comment-input-container'>
+        <div className='comment-input-bar'>
+          <div className='input-left-group'>
+            <input
+              type="text"
+              className='comment-input-field'
+              placeholder = '댓글 작성 칸 |'
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+            />
+            <div className={`lock-icon-wrapper${isSecret ? 'active' : ''}`}
+            onClick={() => setIsSecret(!isSecret)}
+            //style={{ cursor: 'pointer' }}
+          >
+            <img src={lock} alt='좌물쇠 아이콘' className='lock-img' />
+            
+          </div>
+          </div>
+          <button className='comment-send-btn'>
+            <img src={send} alt="전송 버튼" className='send-icon' />
+          </button>
+        </div>
+      </div>
+
     </div>
   );
 };
