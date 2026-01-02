@@ -5,6 +5,7 @@ import EmptyLayout from "./layouts/EmptyLayout";
 import MyPageOwner from "./pages/MyPage/MyPageOwner";
 import StudyPage from "./pages/StudyPage/StudyPage";
 import BoardListPage from "./pages/BoardPage/BoardListPage";
+import Login from "./pages/Login/Login";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         {/* Navbar 없는 레이아웃 */}
         <Route element = {<EmptyLayout />}>
           {/*로그인, 회원가입 등 상단바 없으면 이쪽에 넣으시면 됩니다.*/}
+          <Route path="/login" element={<Login />} />
         </Route>
       </Routes>
     </BrowserRouter>
