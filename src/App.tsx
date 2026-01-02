@@ -3,6 +3,7 @@ import HomeLayout from './layouts/HomeLayout';
 import HomePage from './pages/HomePage/HomePage';
 import EmptyLayout from "./layouts/EmptyLayout";
 import StudyPage from "./pages/StudyPage/StudyPage";
+import StudyCreatePage from "./pages/StudyCreatePage/StudyCreatePage";
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route element = {<HomeLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/studies" element={<StudyPage />} /> 
+          <Route path="/studies/new" element={<StudyCreatePage />} />
         </Route>
 
         {/* Navbar 없는 레이아웃 */}

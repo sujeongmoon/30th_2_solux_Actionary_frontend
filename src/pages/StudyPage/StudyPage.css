@@ -2,7 +2,8 @@
   --bg:#F8F8F6;
   --white:#fff;
   --black:#1A1A1A;
-  --n90:#E6E6E6;
+  --line:#E6E6E6;
+  --muted: rgba(26,26,26,.6);
   --point1:#FA785B;
   --point2:#FF3D7A;
   --grad: linear-gradient(90deg, var(--point1), var(--point2));
@@ -16,152 +17,240 @@
   color: var(--black);
 }
 
-.studyTitle{
-  font-size: 22px;
-  font-weight: 800;
-  margin: 0 0 14px;
+/* Hero */
+.hero{
+  margin-bottom: 18px;
 }
 
-.hero{
-  height: 96px;
+.heroCard{
+  position: relative;
+  border-radius: 22px;
   background: var(--grad);
-  border-radius: 24px;
   box-shadow: var(--shadow);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap: 10px;
+  padding: 26px 22px;
+  overflow: hidden;
+}
+
+.heroText{ color: rgba(255,255,255,.94); }
+
+.heroKicker{
+  font-weight: 800;
+  font-size: 14px;
+  opacity: .95;
+  margin-bottom: 6px;
+}
+
+.heroTitle{
+  font-weight: 900;
+  font-size: 24px;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+.heroSub{
+  font-size: 14px;
+  opacity: .92;
 }
 
 .heroPlus{
-  width: 44px; height: 44px;
-  border-radius: 50%;
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
   border: none;
-  background: rgba(255,255,255,.92);
-  font-size: 26px;
+  background: rgba(255,255,255,.94);
+  color: var(--black);
+  font-size: 32px;
+  line-height: 0;
   cursor: pointer;
+  box-shadow: 0 10px 24px rgba(0,0,0,.12);
 }
 
-.heroText{
-  color: rgba(255,255,255,.9);
-  font-size: 13px;
+/* Filters */
+.filterBar{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 14px 0 18px;
+}
+
+.pillRow{
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pillRow.scroll{
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 4px;
 }
 
 .pill{
   border-radius: 999px;
-  padding: 9px 14px;
-  border: 1px solid var(--n90);
+  padding: 10px 14px;
+  border: 1px solid var(--line);
   background: var(--white);
-  font-weight: 600;
-  font-size: 13px;
-  cursor:pointer;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
 }
 
 .pill.active{
   background: var(--black);
   color: var(--white);
-  border-color: transparent;
+  border-color: var(--black);
 }
 
-.toolbar{
-  margin-top: 14px;
-  display:flex;
-  justify-content:space-between;
-  gap: 10px;
-  align-items:center;
-}
-
-.count{ font-size: 14px; opacity: .8; }
-.vis{ display:flex; gap: 8px; flex-wrap: wrap; }
-
-.cats{
+/* Content */
+.content{
   margin-top: 10px;
-  display:flex;
-  gap: 8px;
-  flex-wrap: wrap;
 }
 
+.state{
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--white);
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.state.error{
+  color: rgba(255, 61, 122, .95);
+}
+
+.state.empty{
+  color: rgba(26,26,26,.6);
+}
+
+/* Grid + Card */
 .grid{
-  margin-top: 16px;
-  display:grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 960px){
+  .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px){
+  .grid{ grid-template-columns: 1fr; }
 }
 
 .card{
   border-radius: 18px;
-  overflow:hidden;
   background: var(--white);
-  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,.05);
 }
 
 .thumb{
-  position: relative;
-  aspect-ratio: 1 / 1;
-  background: #EEE;
+  height: 120px;
+  background: rgba(26,26,26,.06);
+  overflow: hidden;
 }
 
 .thumb img{
-  width:100%;
-  height:100%;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  display:block;
+  display: block;
 }
 
-.ph{ width:100%; height:100%; background: #D9D9D9; }
+.thumbFallback{
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(255,255,255,.0), rgba(0,0,0,.06));
+}
 
-.overlay{
-  position:absolute;
-  left: 10px; right: 10px; bottom: 10px;
-  background: rgba(26,26,26,.9);
-  color:#fff;
-  border-radius: 12px;
-  padding: 10px 12px;
+.cardBody{
+  padding: 14px 14px 16px;
+}
+
+.cardTitle{
+  font-weight: 900;
+  font-size: 16px;
+  line-height: 1.25;
+  margin-bottom: 10px;
+}
+
+.chipRow{
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip{
+  font-size: 12px;
   font-weight: 800;
-  font-size: 14px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: rgba(26,26,26,.75);
 }
 
-.state{ margin-top: 18px; opacity:.7; }
+.chipPublic{
+  border-color: rgba(26,26,26,.16);
+}
+.chipPrivate{
+  border-color: rgba(255, 61, 122, .35);
+  color: rgba(255, 61, 122, .95);
+}
 
+/* Pager */
 .pager{
-  margin-top: 18px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 10px;
+  margin: 18px 0 6px;
 }
 
 .pageBtn{
-  width: 34px; height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
-  border: 1px solid var(--n90);
+  border: 1px solid var(--line);
   background: var(--white);
-  cursor:pointer;
-}
-.pageNum{ font-size: 14px; opacity:.7; }
-
-.studyPage { outline: 6px solid red !important; }
-
-.studyPage .hero {
-  height: 96px !important;
-  background: linear-gradient(90deg, #FA785B, #FF3D7A) !important;
-  border-radius: 24px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  flex-direction: column !important;
-  gap: 10px !important;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 900;
 }
 
-.studyPage .pill {
-  border-radius: 999px !important;
-  padding: 9px 14px !important;
-  border: 1px solid #E6E6E6 !important;
-  background: #fff !important;
+.pageBtn:disabled{
+  opacity: .45;
+  cursor: not-allowed;
 }
 
-.studyPage .pill.active {
-  background: #1A1A1A !important;
-  color: #fff !important;
+.pageNums{
+  display: flex;
+  gap: 6px;
+}
+
+.pageNumBtn{
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--white);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.pageNumBtn.active{
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+}
+
+.pageNumText{
+  font-weight: 900;
+  color: rgba(26,26,26,.7);
 }
