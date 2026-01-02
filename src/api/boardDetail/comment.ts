@@ -51,3 +51,8 @@ export const updateComment = async (
         throw error;
     }
 };
+
+export const deleteComment = async (ommentId: number, postId: number) => {
+    const res = await api.delete(`/api/posts/${postId}/commens/$${commentId}`);
+    return res.data;
+}

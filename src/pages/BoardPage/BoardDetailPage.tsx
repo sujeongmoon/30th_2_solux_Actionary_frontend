@@ -6,7 +6,7 @@ import { BADGE_MAP } from '../../utils/badgeMap';
 import lock from '../../assets/Board/lock.svg';
 import send from '../../assets/homepage/Gradient_Arrow.svg';
 //import { getPostDetail } from '../../api/boardDetail/postApi';
-//import { getComments, createComment } from '../../api/boardDetail/comment';
+//import { getComments, createComment, deleteComment } from '../../api/boardDetail/comment';
 
 /* ================= MOCK DATA ================= */
 const MOCK_DATA: PostDetailData = {
@@ -92,7 +92,7 @@ const BoardDetailPage = () => {
   const postMenuRef = useRef<HTMLDivElement | null>(null);
   const commentMenuRef = useRef<HTMLDivElement | null>(null);
 
-  const [loginUserId, setLoginUserId] = useState<number>(1); // 로그인 사용자 설정
+  const [loginUserId, setLoginUserId] = useState<number>(4); // 로그인 사용자 설정
 
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editingCommentText, setEditingCommentText] = useState('');
@@ -180,6 +180,27 @@ const handleCommentSubmit = async () => {
       setLoading(false);
     }, 300);
   }, [postId]);
+
+  {/*연동용 */}
+  {/*
+  const handleDeleteComment = async (commentId: number, postId: number) => {
+    try {
+      await deleteComment(postId,commentId);
+
+      setComments((prev) => 
+        prev.filter((comment) => comment.comment_id !== commentId)
+    );
+    } catch(error) {
+      console.error(error);
+      alert('댓글 삭제에 실패했습니다.');
+    }
+  }; */}
+  {/*MockData*/}
+  const handleDeleteCommentMock = (commentId: number) => {
+  setComments((prev) =>
+    prev.filter((comment) => comment.comment_id !== commentId)
+  );
+};
 
   /** 바깥 클릭 시 드롭다운 닫기 */
   useEffect(() => {
@@ -351,7 +372,13 @@ const handleCommentSubmit = async () => {
                             setEditingIsSecret(comment.is_secret);
                             setOpenCommentMenuId(null);
                           }}>수정</button>
-                          <button className="menu-item">삭제</button>
+                          <button 
+                            className="menu-item"
+                            onClick={() => {
+                              //handleDeleteComment(Number(postId), comment.comment_id);
+                              handleDeleteCommentMock(comment.comment_id);
+                              setOpenCommentMenuId(null);
+                            }}>삭제</button>
                         </div>
                      )}
                     </div>
