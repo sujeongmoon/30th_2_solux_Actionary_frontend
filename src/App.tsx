@@ -8,20 +8,26 @@ import BoardListPage from "./pages/BoardPage/BoardListPage";
 import MyPagePublic from "./pages/MyPage/MyPagePulic";
 import BoardDetailPage from "./pages/BoardPage/BoardDetailPage";
 import Login from "./pages/Login/Login";
+import BoardCreatePage from "./pages/BoardPage/BoardCreatePage";
+import BoardEditPage from './pages/BoardPage/BoardEditPage';
+import { PostProvider } from './context/PostContext';
 
 function App() {
   return (
     <BrowserRouter>
+    <PostProvider>
       <Routes>
         {/*Navbar 있는 레이아웃 */}
         <Route element = {<HomeLayout />}>
           <Route path="/" element={<HomePage />}/>
           <Route path="/OwnerPage" element={<MyPageOwner />}/>
           <Route path="/" element={<HomePage />} />
-          <Route path="/studies" element={<StudyPage />} /> 
+          <Route path="/studies" element={<StudyPage />} />
+          <Route path= "/publicPage" element={<MyPagePublic />} /> 
           <Route path= "/board" element={<BoardListPage />} />
-          <Route path= "/publicPage" element={<MyPagePublic />} />
-          <Route path= "/board/:postId" element={<BoardDetailPage />} />
+            <Route path= "/board/:postId" element={<BoardDetailPage />} />
+            <Route path= "/board/write" element={<BoardCreatePage />} />
+            <Route path= "/board/edit/:postId" element={<BoardEditPage />} />
         </Route>
 
         {/* Navbar 없는 레이아웃 */}
@@ -30,6 +36,7 @@ function App() {
           <Route path="/login" element={<Login />} />
         </Route>
       </Routes>
+      </PostProvider>
     </BrowserRouter>
   )
 }
