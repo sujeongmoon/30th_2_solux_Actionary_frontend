@@ -243,11 +243,6 @@
   cursor: pointer;
 }
 
-/* 자물쇠 아이콘 활성화 시 효과 */
-.lock-icon-wrapper.active {
-  background-color: #FF3761;
-}
-
 .comment-send-btn {
   background-color: transparent;
   border: none;

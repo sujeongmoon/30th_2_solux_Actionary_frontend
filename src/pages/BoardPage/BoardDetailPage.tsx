@@ -4,6 +4,7 @@ import type { PostDetailData, Comment } from '../../types/Board';
 import './BoardDetailPage.css';
 import { BADGE_MAP } from '../../utils/badgeMap';
 import lock from '../../assets/Board/lock.svg';
+import unlock from '../../assets/Board/unlock.svg';
 import send from '../../assets/homepage/Gradient_Arrow.svg';
 //import { getPostDetail } from '../../api/boardDetail/postApi';
 //import { getComments, createComment, deleteComment } from '../../api/boardDetail/comment';
@@ -453,7 +454,10 @@ const handleCommentSubmit = async () => {
               className={`lock-icon-wrapper ${isSecret ? 'active' : ''}`}
               onClick={() => setIsSecret((prev) => !prev)}
             >
-              <img src={lock} alt="자물쇠" className="lock-img" />
+              <img 
+                src={isSecret ? lock : unlock} 
+                alt="자물쇠" 
+                className="lock-img" />
             </div>
           </div>
 
