@@ -100,6 +100,21 @@
 
 .content-image-box img { width: 100%; height: 100%; object-fit: cover; }
 .text-body { line-height: 1.6; font-size: 15px; color: #333; white-space: pre-wrap; border-bottom: 1px solid #B3B3B3; padding-bottom: 20px; }
+.text-body img {
+  width: 100%;
+  height: auto;        /* 비율 유지 */
+  object-fit: cover;
+  border-radius: 12px; /* 둥글게 */
+  margin-bottom: 12px; /* 이미지 간 간격 */
+}
+
+.content-image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px; /* 추가하면 둥글게 */
+}
+
 .count-grey {
   color: #B3B3B3;
 }

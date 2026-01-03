@@ -8,29 +8,10 @@ import unlock from '../../assets/Board/unlock.svg';
 import send from '../../assets/homepage/Gradient_Arrow.svg';
 //import { getPostDetail } from '../../api/boardDetail/postApi';
 //import { getComments, createComment, deleteComment } from '../../api/boardDetail/comment';
+import { useNavigate } from 'react-router-dom'
+import { usePosts } from '../../context/PostContext';
 
 /* ================= MOCK DATA ================= */
-const MOCK_DATA: PostDetailData = {
-  post: {
-    postId: 101,
-    type: '질문',
-    title: 'ERD 설계 질문입니다',
-    text_content: '게시글 본문 내용입니다. UI 확인용 mock 데이터입니다.',
-    comment_count: 2,
-    created_at: '2023-10-27T10:00:00',
-  },
-  post_image_urls: [
-    'https://picsum.photos/seed/board1/600/400',
-    'https://picsum.photos/seed/board2/600/400',
-  ],
-  author: {
-    memberId: 1,
-    nickname: '개발자A',
-    profile_image_url: 'https://picsum.photos/seed/profile/80/80',
-    badge: 0,
-  },
-};
-
 const MOCK_COMMENTS: Comment[] = [
   {
     comment_id: 1,
@@ -73,7 +54,10 @@ const MOCK_COMMENTS: Comment[] = [
 /* ============================================= */
 
 const BoardDetailPage = () => {
+  const { posts } = usePosts();
   const { postId } = useParams<{ postId: string }>();
+
+  const navigate = useNavigate();
 
   const [data, setData] = useState<PostDetailData | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -83,7 +67,7 @@ const BoardDetailPage = () => {
   const [isPostMenuOpen, setIsPostMenuOpen] = useState(false);
 
   /** 댓글 메뉴 */
-  const [openCommentMenuId, setOpenCommentMenuId] = useState<number | null>(null);
+  const [openCommentMenuMap, setOpenCommentMenuMap] = useState<{ [id: number]: boolean }>({});
 
   /** 댓글 입력 */
   const [commentText, setCommentText] = useState('');
@@ -91,7 +75,6 @@ const BoardDetailPage = () => {
 
   /** ref */
   const postMenuRef = useRef<HTMLDivElement | null>(null);
-  const commentMenuRef = useRef<HTMLDivElement | null>(null);
 
   const [loginUserId, setLoginUserId] = useState<number>(4); // 로그인 사용자 설정
 
@@ -175,11 +158,32 @@ const handleCommentSubmit = async () => {
   
   {/* MockData용 */}
   useEffect(() => {
-    setTimeout(() => {
-      setData(MOCK_DATA);
-      setComments(MOCK_COMMENTS);
-      setLoading(false);
-    }, 300);
+    if (!postId || !posts) return;
+
+    const postFromContext = posts.find(p=> p.postId === Number(postId));
+    if (!postFromContext) return;
+
+    const mappedData: PostDetailData = {
+      post: {
+        postId: postFromContext.postId,
+        type: postFromContext.type,
+        title: postFromContext.title,
+        text_content: postFromContext.content.text_content,
+        comment_count: postFromContext.comment_count,
+        created_at: postFromContext.created_at,
+      },
+      post_image_urls: postFromContext.content.image_urls,
+      author: {
+        memberId: 1,
+        nickname: postFromContext.nickname,
+        profile_image_url: 'https://picsum.photos/seed/me/40/40',
+        badge: 0,
+      }
+    }
+
+    setData(mappedData);
+    setComments(MOCK_COMMENTS);
+    setLoading(false);
   }, [postId]);
 
   {/*연동용 */}
@@ -204,30 +208,6 @@ const handleCommentSubmit = async () => {
 };
 
   /** 바깥 클릭 시 드롭다운 닫기 */
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as Node;
-
-      if (
-        isPostMenuOpen &&
-        postMenuRef.current &&
-        !postMenuRef.current.contains(target)
-      ) {
-        setIsPostMenuOpen(false);
-      }
-
-      if (
-        openCommentMenuId !== null &&
-        commentMenuRef.current &&
-        !commentMenuRef.current.contains(target)
-      ) {
-        setOpenCommentMenuId(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isPostMenuOpen, openCommentMenuId]);
 
   if (loading) return <div className="loading">로딩 중...</div>;
   if (!data) return <div className="error">게시글을 찾을 수 없습니다.</div>;
@@ -284,7 +264,8 @@ const handleCommentSubmit = async () => {
 
                 {isPostMenuOpen && (
                   <div className="dropdown-menu" ref={postMenuRef}>
-                    <button className="menu-item border-b">수정</button>
+                    <button className="menu-item border-b"
+                      onClick={() => navigate(`/board/edit/${post.postId}`)}>수정</button>
                     <button className="menu-item">삭제</button>
                   </div>
                 )}
@@ -299,8 +280,16 @@ const handleCommentSubmit = async () => {
               <img src={url} alt="게시글 이미지" />
             </div>
           ))}
-          <p className="text-body">{post.text_content}</p>
+          <div
+  className='text-body'
+  dangerouslySetInnerHTML={{
+    __html: post.text_content.replace(/<img[^>]*>/g, '')
+  }}
+/>
+
         </div>
+
+
       </section>
 
       {/* ================= 댓글 ================= */}
@@ -353,32 +342,29 @@ const handleCommentSubmit = async () => {
                   <div className="menu-wrapper">
                     <button
                       className="more-btn-comment"
-                      onClick={() =>
-                        setOpenCommentMenuId((prev) =>
-                          prev === comment.comment_id
-                            ? null
-                            : comment.comment_id
-                        )
-                      }
+                      onClick= {() => {
+                        setOpenCommentMenuMap(prev => ({
+                          ...prev,
+                          [comment.comment_id]: !prev[comment.comment_id]
+                        }));
+                      }}
                     >
                       ⋮
                     </button>
-                    {openCommentMenuId === comment.comment_id && (
-                      <div className="dropdown-menu" ref={commentMenuRef}>
+                    {openCommentMenuMap[comment.comment_id] && (
+                      <div className="dropdown-menu">
                         <button 
                           className="menu-item border-b"
                           onClick={() => {
                             setEditingCommentId(comment.comment_id);
                             setEditingCommentText(commentContent);
                             setEditingIsSecret(comment.is_secret);
-                            setOpenCommentMenuId(null);
                           }}>수정</button>
                           <button 
                             className="menu-item"
                             onClick={() => {
-                              //handleDeleteComment(Number(postId), comment.comment_id);
                               handleDeleteCommentMock(comment.comment_id);
-                              setOpenCommentMenuId(null);
+                              //handleDeleteComment(Number(postId), comment.comment_id);
                             }}>삭제</button>
                         </div>
                      )}
@@ -400,7 +386,8 @@ const handleCommentSubmit = async () => {
                     <div className={`lock-icon-wrapper ${editingIsSecret ? 'active': ''}`}
                       onClick={() => setEditingIsSecret(prev => !prev)}
                     >
-                    <img src={lock} alt="좌물쇠" className='lock-img-edit' />
+                    <img 
+                      src={editingIsSecret ? lock : unlock} alt="좌물쇠" className='lock-img-edit' />
                   </div>
                 </div>
                     <div className='editing-btn-group'>
