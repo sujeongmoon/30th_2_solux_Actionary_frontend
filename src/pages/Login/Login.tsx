@@ -3,7 +3,6 @@ import "./Login.css";
 
 import Loginvector from '../../assets/login/LoginVector.svg';
 import LoginLogo from '../../assets/login/LoginLogo.svg';
-import LoginButton from '../../assets/login/LoginButton.svg';
 
 /* 더미 데이터 */
 const DUMMY_ACCOUNT = {
@@ -78,10 +77,7 @@ const Login: React.FC = () => {
           </div>
 
           {/* 로그인 버튼 */}
-          <div className="login-button-wrapper" onClick={handleLogin}>
-            <img src={LoginButton} alt="로그인 버튼" />
-            <span>로그인</span>
-          </div>
+          <button className="login-button" onClick={handleLogin}> 로그인 </button>
 
           {/* 에러 메시지 */}
           {errorMessage && (<p className="error-message">{errorMessage}</p>)}
