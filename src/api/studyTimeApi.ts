@@ -1,17 +1,18 @@
 import { api } from './client';
 
-export interface DailyStudyTimeResponse {
+export interface DailyStudyTime {
   date: string;           // yyyy-mm-dd
   durationSeconds: number;
 }
 
-export const getDailyStudyTime = async (date: string): Promise<number> => {
+export const getMonthlyStudyTime = async (yearMonth: string): Promise<DailyStudyTime[]> => {
+  // yearMonth 예: "2025-10"
   const res = await api.get('/api/studytimes', {
     params: {
-      period: 'DAY',
-      date,
+      period: 'MONTH',
+      date: yearMonth
     },
   });
 
-  return res.data.data;
+  return res.data.data.montlyDurationSeconds;
 };
