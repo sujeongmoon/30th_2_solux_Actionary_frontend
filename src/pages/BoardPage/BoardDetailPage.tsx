@@ -6,7 +6,7 @@ import { BADGE_MAP } from '../../utils/badgeMap';
 import lock from '../../assets/Board/lock.svg';
 import unlock from '../../assets/Board/unlock.svg';
 import send from '../../assets/homepage/Gradient_Arrow.svg';
-//import { getPostDetail } from '../../api/boardDetail/postApi';
+//import { getPostDetail, deletePost } from '../../api/boardDetail/postApi';
 //import { getComments, createComment, deleteComment } from '../../api/boardDetail/comment';
 import { useNavigate } from 'react-router-dom'
 import { usePosts } from '../../context/PostContext';
@@ -76,7 +76,7 @@ const BoardDetailPage = () => {
   /** ref */
   const postMenuRef = useRef<HTMLDivElement | null>(null);
 
-  const [loginUserId, setLoginUserId] = useState<number>(4); // 로그인 사용자 설정
+  const [loginUserId, setLoginUserId] = useState<number>(1); // 로그인 사용자 설정
 
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editingCommentText, setEditingCommentText] = useState('');
@@ -266,7 +266,23 @@ const handleCommentSubmit = async () => {
                   <div className="dropdown-menu" ref={postMenuRef}>
                     <button className="menu-item border-b"
                       onClick={() => navigate(`/board/edit/${post.postId}`)}>수정</button>
-                    <button className="menu-item">삭제</button>
+                    <button 
+                      className="menu-item"
+                      onClick={async () => {
+                        if(!window.confirm('정말로 게시글을 삭제하시겠습니까?')) return;
+
+                        try {
+                          // 실제 연동용
+                          // const res = await deletePost(post.postId);
+
+
+                          alert('게시글이 삭제되었습니다.');
+                          navigate('/board');
+                        } catch (error) {
+                          console.error(error);
+                          alert('게시글 삭제에 실패했습니다.');
+                        }
+                      }}>삭제</button>
                   </div>
                 )}
               </div>
@@ -281,11 +297,11 @@ const handleCommentSubmit = async () => {
             </div>
           ))}
           <div
-  className='text-body'
-  dangerouslySetInnerHTML={{
-    __html: post.text_content.replace(/<img[^>]*>/g, '')
-  }}
-/>
+            className='text-body'
+            dangerouslySetInnerHTML={{
+              __html: post.text_content.replace(/<img[^>]*>/g, '')
+            }}
+          />
 
         </div>
 
