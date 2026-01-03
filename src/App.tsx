@@ -12,6 +12,7 @@ import BoardCreatePage from "./pages/BoardPage/BoardCreatePage";
 import BoardEditPage from './pages/BoardPage/BoardEditPage';
 import { PostProvider } from './context/PostContext';
 import StudyTime from './pages/StudyTime/StudyTime';
+import RightSidebar from "./components/Sidebar/Sidebar";
 
 function App() {
   return (
@@ -38,6 +39,8 @@ function App() {
           <Route path="/login" element={<Login />} />
         </Route>
       </Routes>
+
+      <RightSidebar />
       </PostProvider>
     </BrowserRouter>
   )
