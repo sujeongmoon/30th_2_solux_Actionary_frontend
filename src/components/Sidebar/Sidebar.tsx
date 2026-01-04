@@ -7,6 +7,7 @@ import Bell from '../../assets/sidebar/Bell.svg';
 import Clock from '../../assets/sidebar/mingcute_time-line.svg';
 import gradientCheck from '../../assets/sidebar/gradientCheck.svg';
 import { updateTodoStatus, type TodoStatus } from '../../api/Todos/todosApi';
+import { useNavigate } from "react-router-dom";
 
 interface SideTodoItem {
   id: number;
@@ -32,6 +33,7 @@ const RightSidebar = () => {
   const [totalPoint, setTotalPoint] = useState(0);
   const [todayStudyTime, setTodayStudyTime] = useState("0H 0M");
   const [todoList, setTodoList] = useState<SideTodoItem[]>([]);
+  const navigate = useNavigate();
 
   // TODO 선택 토글
   const handleToggle = async (todoId: number, selected: boolean) => {
@@ -93,7 +95,8 @@ const RightSidebar = () => {
         {/* 오늘 공부량 */}
         <div className="section-header-row">
           <span className="section-title">오늘 공부량</span>
-          <span className="view-more">더보기</span>
+          <button className="view-more"
+            onClick={() => navigate('/studyTime')}>더보기</button>
         </div>
         <div className="study-volume-card">
           <img src={Clock} alt='시간' className="sidebar-clock" />
