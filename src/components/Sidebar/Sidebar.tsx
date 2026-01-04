@@ -36,7 +36,7 @@ const MOCK_NOTIFICATIONS: NotificationItem[] = [
     id: 131,
     content: "다현님이 작성한 글에 새로운 댓글이 있어요.",
     createdAt: "2025-10-31T12:55:00",
-    link: "/posts/77",
+    link: "/board",
   },
   {
     id: 130,
