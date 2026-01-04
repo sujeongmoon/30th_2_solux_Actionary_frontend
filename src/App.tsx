@@ -14,6 +14,7 @@ import Login from "./pages/Login/Login";
 import BoardCreatePage from "./pages/BoardPage/BoardCreatePage";
 import BoardEditPage from './pages/BoardPage/BoardEditPage';
 import { PostProvider } from './context/PostContext';
+import StudyTime from './pages/StudyTime/StudyTime';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
           <Route path= "/board/:postId" element={<BoardDetailPage />} />
           <Route path= "/board/write" element={<BoardCreatePage />} />
           <Route path= "/board/edit/:postId" element={<BoardEditPage />} />
+          <Route path = "/studyTime" element={<StudyTime />} />
         </Route>
 
         {/* Navbar 없는 레이아웃 */}

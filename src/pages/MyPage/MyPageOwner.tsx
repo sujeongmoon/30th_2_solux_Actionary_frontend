@@ -5,12 +5,14 @@ import OwnerCheck from '../../assets/MyPage/OwnerCheck.svg';
 import ProfileSection from '../../components/MyPage/ProfileSection';
 import AchievementSection from '../../components/MyPage/AchievementSection';
 import StudyTimeCheckIcon from '../../assets/MyPage/StudyTimeCheck.svg';
+import { useNavigate } from 'react-router-dom';
+//import { getTodosByDate, TodoItem } from '../../api/Todos/todosApi';
 
 const MyPageOwner: React.FC = () => {
 
   type Tabkey = 'DAY' | 'WEEK' | 'MONTH' | 'YEAR';
 
-  type TodoStatus = 'PENDING' | 'DONE' | 'FAIL';
+  type TodoStatus = 'PENDING' | 'DONE' | 'FAILED';
 
   interface TodoItem {
     todoId: number;
@@ -24,6 +26,8 @@ const MyPageOwner: React.FC = () => {
     name: string;
     color: string;
   }
+
+  const navigate = useNavigate();
 
   const tabs : { key: Tabkey; label: string} []= [
     { key: 'DAY', label: '일간'},
@@ -70,10 +74,22 @@ const mockCategories: TodoCategory[] = [
 
 // Mock 투두리스트
 const mockTodos: TodoItem[] = [
-  { todoId: 1, title: '운영체제 과제하기', categoryId: 3, status: 'FAIL' },
+  { todoId: 1, title: '운영체제 과제하기', categoryId: 3, status: 'FAILED' },
   { todoId: 2, title: '네트워크 정리 업로드', categoryId: 3, status: 'DONE' },
   { todoId: 3, title: '헬스장 가기', categoryId: 11, status: 'PENDING' },
 ];
+
+// 투두리스트 업데이트
+const handleStatusChange = (
+  todoId: number,
+  status: TodoStatus
+) => {
+  setTodoList(prev =>
+    prev.map(todo =>
+      todo.todoId === todoId ? { ...todo, status } : todo 
+    )
+  );
+};
 
 
 // api 연동 시 삭제하기
@@ -84,28 +100,21 @@ useEffect(() => {
 }, []);
 
 
-
+// 오늘 투두만 불러오기
   //API 호출
   const fetchStudyData = async (tab: Tabkey, date: string) => {
     // 실제 API 호출 코드 //
-    {/*}
+    {/*
     try {
-        const response = await fetch(`/api/studytimes?period=${tab}&date=${date}`, {
-            headers: {Authorization: `Bearer ${localStorage.getItem('accessToken')}`},
-        });
-
-        if (!response.ok) throw new Error ('공부 시간 조회 실패');
-
-        const result = await response.json();
-        if (result.success && result.data) {
-            setStudyData(prev => ({
-                ...prev,
-                [tab] : formatDuration(result.data.durationSeconds),
-            }));
-        }
+      const res = await getStudyTimeByPeriod(tab, date);
+      setStudyData(prev => ({
+        ...prev,
+        [tab]: formatDuration(res.durationSeconds),
+      }));
     } catch (err) {
         console.error(err);
     } */}
+
      // MOCK DATA임
     const seconds = mockStudyData[tab];
     setStudyData(prev => ({
@@ -114,25 +123,16 @@ useEffect(() => {
     }));
   };
 
-  {/* API 연동 시 실제 사용 */}
+  {/* 연동용 코드 */}
   {/*
-
-  const fetchTodoList = async (date: string) => {
-    try {
-        const res = await fetch(`/api/todos?date=${date}`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}`},
-        });
-
-        if (!res.ok) throw new Error('투두 목록 조회 실패');
-        const result = await res.json();
-
-        if (result.success && result.data && result.data.todos) {
-            setTodoList(result.data.todos);
-        }
-    } catch (err) {
-        console.error(err);
-    }
-  }; */}
+  useEffect(() => {
+    const fetchTodos = async() => {
+      const today = new Date().toISOString().slice(0,10);
+      const todos = await getTodosByDate(today);
+      setTodoList(todos);
+    };
+    fetchTodos();
+  }, []); */}
 
   return (
     <div>
@@ -177,51 +177,57 @@ useEffect(() => {
                                   {category?.name}
                                 </span>  
                               )}
-                        <div className='owner-todo-item'>
-                            <img src = {OwnerCheck} alt = '체크 아이콘' className='owner-todo-check' />
-                            <span className='owner-todo-text'>{todo.title}</span>
-                            <div className='owner-todo-status'>
-                                <button className={`owner-status-btn ${todo.status === 'DONE' ? 'active' : ''}`}>달성</button>
-                                <button className={`owner-status-btn ${todo.status === 'FAIL' ? 'fail' : ''}`}>실패</button>
-                            </div>
-                        </div>
+                              <div className='owner-todo-item'>
+                                <img src = {OwnerCheck} alt = '체크 아이콘' className='owner-todo-check' />
+                                <span className='owner-todo-text'>{todo.title}</span>
+                                  <div className='owner-todo-status'>
+                                    <button className={`owner-status-btn ${todo.status === 'DONE' ? 'active' : ''}`}
+                                      onClick={() => handleStatusChange(todo.todoId, 'DONE')}>달성</button>
+                                    <button className={`owner-status-btn ${todo.status === 'FAILED' ? 'fail' : ''}`}
+                                      onClick={() => handleStatusChange(todo.todoId, 'FAILED')}>실패</button>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
                     </div>
-                    );
-                })}
-            </div>
-        </div>
 
-        {/* 오른쪽: 공부량 카드 */}
-        <div className='owner-card-study'>
-            <div className='owner-study-title'>공부량</div>
-            
-            <div className='owner-study-body'>
-            <div className='owner-study-tabs'>
-                {tabs.map((tab) => {
-                    const isActive = activeTab === tab.key;
+                    {/* 오른쪽: 공부량 카드 */}
+                    <div className='owner-card-study'>
+                      <div className='owner-studytime-header'>
+                        <div className='owner-study-title'>공부량</div>
+                        <button className='owner-study-more-btn'
+                          onClick= {() => navigate('/studyTime')}>더보기</button>
+                      </div>
+                        
+                        <div className='owner-study-body'>
+                        <div className='owner-study-tabs'>
+                            {tabs.map((tab) => {
+                                const isActive = activeTab === tab.key;
 
-                    return (
-                        <span
-                            key = {tab.key}
-                            className={`owner-tab ${isActive ? 'active': ''}`}
-                            onClick={() => {
-                                setActiveTab(tab.key);
-                                const today = new Date().toISOString().slice(0,10);
-                                fetchStudyData(tab.key, today);
-                            }}
-                        >
-                            <span className='owner-tab-icon'>
-                                {isActive 
-                                    ? <img src = {StudyTimeCheckIcon} alt ='체크' />
-                                    : (
-                                        <span className='owner-tab-dot' />
-                                    )}
-                            </span>
-                            <span className='owner-tab-text'>{tab.label}</span>
-                        </span>
-                    );
-                })}
-            </div>
+                                return (
+                                    <span
+                                        key = {tab.key}
+                                        className={`owner-tab ${isActive ? 'active': ''}`}
+                                        onClick={() => {
+                                            setActiveTab(tab.key);
+                                            const today = new Date().toISOString().slice(0,10);
+                                            fetchStudyData(tab.key, today);
+                                        }}
+                                    >
+                                        <span className='owner-tab-icon'>
+                                            {isActive 
+                                                ? <img src = {StudyTimeCheckIcon} alt ='체크' />
+                                                : (
+                                                    <span className='owner-tab-dot' />
+                                                )}
+                                        </span>
+                                        <span className='owner-tab-text'>{tab.label}</span>
+                                    </span>
+                                );
+                            })}
+                        </div>
             
             <div className='owner-study-time-box'>
                 {studyData[activeTab]}
@@ -232,8 +238,7 @@ useEffect(() => {
             </button>
             </div>
         </div>
-        </div>
-      
+      </div>
     </div>
   );
 };
