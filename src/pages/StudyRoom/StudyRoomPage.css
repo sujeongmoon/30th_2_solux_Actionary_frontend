@@ -350,3 +350,5 @@
   font-size: 12px;
   opacity: .65;
 }
+
+.srVideoEl{ width:100%; height:100%; object-fit:cover; display:block; }

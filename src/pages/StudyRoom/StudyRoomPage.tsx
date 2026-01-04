@@ -1,20 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useWebRTCRoom } from "./useWebRTCRoom";
 import "./StudyRoomPage.css";
 
 type Participant = {
-  id: number;
+  id: string; 
   nickname: string;
-  badge?: string; // 업적(뱃지) 텍스트/아이콘 자리
-  cameraOn: boolean;
-  micOn: boolean;
-  bubble: string; // 말풍선 텍스트
-  coverImage?: string | null; // 캠 대신 썸네일(임시)
+  badge?: string;
+  bubble: string; 
 };
 
 type Mode = "STUDY" | "REST";
 
-/** mm:ss:ms 느낌이 아니라, 명세대로 시/분/초 표시 */
+/** hh:mm:ss */
 function formatHMS(sec: number) {
   const s = Math.max(0, Math.floor(sec));
   const hh = String(Math.floor(s / 3600)).padStart(2, "0");
@@ -23,82 +21,107 @@ function formatHMS(sec: number) {
   return `${hh}:${mm}:${ss}`;
 }
 
-const MOCK_PARTICIPANTS: Participant[] = [
-  {
-    id: 1,
-    nickname: "눈송이다",
-    badge: "🏅",
-    cameraOn: true,
-    micOn: true,
-    bubble: "",
-    coverImage: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1200",
-  },
-  {
-    id: 2,
-    nickname: "배곱파",
-    badge: "🔥",
-    cameraOn: false,
-    micOn: true,
-    bubble: "",
-    coverImage: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200",
-  },
-  {
-    id: 3,
-    nickname: "공부중",
-    badge: "🎯",
-    cameraOn: true,
-    micOn: false,
-    bubble: "",
-    coverImage: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200",
-  },
-  {
-    id: 4,
-    nickname: "잠깐만",
-    badge: "🧠",
-    cameraOn: false,
-    micOn: false,
-    bubble: "",
-    coverImage: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1200",
-  },
-  // 5명 이상 테스트용(페이지 넘김 확인)
-  {
-    id: 5,
-    nickname: "추가유저",
-    badge: "⭐️",
-    cameraOn: true,
-    micOn: true,
-    bubble: "안녕하세요",
-    coverImage: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200",
-  },
-];
+function Video({ stream, muted }: { stream: MediaStream | null; muted?: boolean }) {
+  const ref = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    ref.current.srcObject = stream;
+  }, [stream]);
+
+  if (!stream) return null;
+
+  return (
+    <video
+      ref={ref}
+      autoPlay
+      playsInline
+      muted={!!muted}
+      className="srVideoEl"
+    />
+  );
+}
 
 export default function StudyRoomPage() {
   const navigate = useNavigate();
   const { studyId } = useParams();
 
-  // ====== 명세: 기본 4명, 5명 이상이면 넘김(화살표) ======  [oai_citation:1‡스터디접속.pdf](sediment://file_00000000e5c87207982f8320d73dc33e)
-  const [participants, setParticipants] = useState<Participant[]>(MOCK_PARTICIPANTS);
-  const [gridPage, setGridPage] = useState(0);
+  // ===== WebRTC (진짜 줌 화면) =====
+  const roomId = String(studyId ?? "unknown-room");
+  const SIGNALING_URL =
+    import.meta.env.VITE_SIGNALING_URL ?? "http://localhost:3000";
+
+  const {
+    myPeerId,
+    localStream,
+    remoteStreams,
+    remoteIds,
+    camOn,
+    micOn,
+    setCamOn,
+    setMicOn,
+  } = useWebRTCRoom({
+    roomId,
+    signalingUrl: SIGNALING_URL,
+    displayName: "나",
+    enableVideo: true,
+    enableAudio: true,
+  });
+
+  // ====== 명세: 기본 4명, 5명 이상이면 넘김(화살표) ======
   const gridSize = 4;
+  const [gridPage, setGridPage] = useState(0);
+
+  // 참가자 목록: (나 + remote들)
+  const participants: Participant[] = useMemo(() => {
+    const list: Participant[] = [];
+  
+    //소켓(myPeerId) 없어도 "나"는 항상 렌더되게
+    const meId = myPeerId || "me";
+  
+    list.push({
+      id: meId,
+      nickname: "나",
+      badge: "👑",
+      bubble: "",
+    });
+  
+    // 상대들(소켓 연결 성공 + remote stream 들어오면 생김)
+    for (const rid of remoteIds) {
+      list.push({
+        id: rid,
+        nickname: `사용자-${rid.slice(0, 4)}`,
+        badge: "🏷️",
+        bubble: "",
+      });
+    }
+  
+    return list;
+  }, [myPeerId, remoteIds]);
 
   const gridMaxPage = useMemo(
     () => Math.max(0, Math.ceil(participants.length / gridSize) - 1),
     [participants.length]
   );
 
+  useEffect(() => {
+    // 인원 줄어서 현재 페이지가 범위를 벗어나면 보정
+    setGridPage((p) => Math.min(p, gridMaxPage));
+  }, [gridMaxPage]);
+
   const gridSlice = useMemo(() => {
     const start = gridPage * gridSize;
     return participants.slice(start, start + gridSize);
   }, [participants, gridPage]);
 
-  // ====== 채팅창 토글(오른쪽 상단 화살표로 닫힘/열림) ======  [oai_citation:2‡스터디접속.pdf](sediment://file_00000000e5c87207982f8320d73dc33e)
+  // ====== 채팅창 토글 ======
   const [chatOpen, setChatOpen] = useState(true);
 
-  // ====== 뽀모도로: 후순위(UI만 자리) ======  [oai_citation:3‡스터디접속.pdf](sediment://file_00000000e5c87207982f8320d73dc33e)
+  // ====== 뽀모도로(UI만 자리) ======
   const [pomoEnabled] = useState(true);
-  const [pomoRemainSec] = useState(25 * 60); // 임시
+  const [pomoRemainSec] = useState(25 * 60);
 
-  // ====== 재생/멈춤(공부/휴식 시간 측정) ======  [oai_citation:4‡스터디접속.pdf](sediment://file_00000000e5c87207982f8320d73dc33e)
+  // ====== 재생/멈춤(공부/휴식 시간 측정) ======
   const [mode, setMode] = useState<Mode>("REST");
   const [studySec, setStudySec] = useState(0);
   const [restSec, setRestSec] = useState(0);
@@ -107,7 +130,6 @@ export default function StudyRoomPage() {
   const running = mode === "STUDY";
 
   useEffect(() => {
-    // 1초마다 증가
     if (tickRef.current) window.clearInterval(tickRef.current);
 
     tickRef.current = window.setInterval(() => {
@@ -120,29 +142,23 @@ export default function StudyRoomPage() {
     };
   }, [mode]);
 
-  // ====== 내 카메라/마이크 토글(줌/Jitsi와 동일하게 토글 UI만) ======  [oai_citation:5‡스터디접속.pdf](sediment://file_00000000e5c87207982f8320d73dc33e)
-  const [myCam, setMyCam] = useState(true);
-  const [myMic, setMyMic] = useState(true);
-
-  // ====== 말풍선: 클릭하면 입력 가능, 비면 빈 상태 유지 ======  [oai_citation:6‡스터디접속.pdf](sediment://file_00000000e5c87207982f8320d73dc33e)
-  const [editingBubbleId, setEditingBubbleId] = useState<number | null>(null);
+  // ====== 말풍선 (participants는 memo라 별도 map으로 관리) ======
+  const [editingBubbleId, setEditingBubbleId] = useState<string | null>(null);
   const [bubbleDraft, setBubbleDraft] = useState("");
+  const [bubbleMap, setBubbleMap] = useState<Record<string, string>>({});
 
   const startEditBubble = (p: Participant) => {
     setEditingBubbleId(p.id);
-    setBubbleDraft(p.bubble ?? "");
+    setBubbleDraft(bubbleMap[p.id] ?? "");
   };
 
   const commitBubble = () => {
-    if (editingBubbleId == null) return;
-    setParticipants((prev) =>
-      prev.map((p) => (p.id === editingBubbleId ? { ...p, bubble: bubbleDraft } : p))
-    );
+    if (!editingBubbleId) return;
+    setBubbleMap((prev) => ({ ...prev, [editingBubbleId]: bubbleDraft }));
     setEditingBubbleId(null);
   };
 
   const leaveRoom = () => {
-    // 명세: 나가기 누르면 스터디 전체 페이지로 이동  [oai_citation:7‡스터디접속.pdf](sediment://file_00000000e5c87207982f8320d73dc33e)
     navigate("/studies");
   };
 
@@ -203,61 +219,66 @@ export default function StudyRoomPage() {
           </div>
 
           <div className="srGrid">
-            {gridSlice.map((p) => (
-              <div key={p.id} className="srTile">
-                {/* 캠 영역 */}
-                <div className="srVideo">
-                  {/* 카메라 껐을 때 기본 사람 이미지 삽입(명세) */} {/*  [oai_citation:8‡스터디접속.pdf](sediment://file_00000000e5c87207982f8320d73dc33e) */}
-                  {p.cameraOn ? (
-                    p.coverImage ? (
-                      <img className="srThumbImg" src={p.coverImage} alt="" />
-                    ) : (
-                      <div className="srThumbFallback" />
-                    )
-                  ) : (
-                    <div className="srAvatar" aria-label="camera off">
-                      <div className="srAvatarIcon">👤</div>
-                    </div>
-                  )}
+            {gridSlice.map((p) => {
+              const isMe = p.id === myPeerId;
+              const stream = isMe ? localStream : remoteStreams[p.id] ?? null;
 
-                  {/* 닉네임/뱃지 */}
-                  <div className="srNamePill">
-                    <span className="srBadge">{p.badge ?? "🏷️"}</span>
-                    <span className="srNick">{p.nickname}</span>
+              // 내 카메라 상태는 camOn, 상대는 stream 유무로 표시(최소 구현)
+              const cameraOn = isMe ? camOn : !!stream;
+
+              const bubbleText = bubbleMap[p.id] ?? "";
+
+              return (
+                <div key={p.id} className="srTile">
+                  {/* 캠 영역 */}
+                  <div className="srVideo">
+                    {cameraOn ? (
+                      <Video stream={stream} muted={isMe} />
+                    ) : (
+                      <div className="srAvatar" aria-label="camera off">
+                        <div className="srAvatarIcon">👤</div>
+                      </div>
+                    )}
+
+                    {/* 닉네임/뱃지 */}
+                    <div className="srNamePill">
+                      <span className="srBadge">{p.badge ?? "🏷️"}</span>
+                      <span className="srNick">{p.nickname}</span>
+                    </div>
+                  </div>
+
+                  {/* 말풍선 */}
+                  <div className="srBubbleWrap">
+                    {editingBubbleId === p.id ? (
+                      <input
+                        className="srBubbleInput"
+                        value={bubbleDraft}
+                        onChange={(e) => setBubbleDraft(e.target.value)}
+                        onBlur={commitBubble}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") commitBubble();
+                          if (e.key === "Escape") setEditingBubbleId(null);
+                        }}
+                        autoFocus
+                        placeholder="메시지 입력…"
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        className={`srBubble ${bubbleText ? "filled" : "empty"}`}
+                        onClick={() => startEditBubble(p)}
+                        title="클릭해서 입력"
+                      >
+                        {bubbleText ? bubbleText : " "}
+                      </button>
+                    )}
                   </div>
                 </div>
-
-                {/* 말풍선 */}
-                <div className="srBubbleWrap">
-                  {editingBubbleId === p.id ? (
-                    <input
-                      className="srBubbleInput"
-                      value={bubbleDraft}
-                      onChange={(e) => setBubbleDraft(e.target.value)}
-                      onBlur={commitBubble}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") commitBubble();
-                        if (e.key === "Escape") setEditingBubbleId(null);
-                      }}
-                      autoFocus
-                      placeholder="메시지 입력…"
-                    />
-                  ) : (
-                    <button
-                      type="button"
-                      className={`srBubble ${p.bubble ? "filled" : "empty"}`}
-                      onClick={() => startEditBubble(p)}
-                      title="클릭해서 입력"
-                    >
-                      {p.bubble ? p.bubble : " "}
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          {/* 하단 컨트롤바: 공부/휴식 시간 + 재생/멈춤 + 카메라/마이크 */} {/*  [oai_citation:9‡스터디접속.pdf](sediment://file_00000000e5c87207982f8320d73dc33e) */}
+          {/* 하단 컨트롤바 */}
           <div className="srDock">
             <div className="srTimePill">
               <span className="srTimeLabel">쉬는 시간</span>
@@ -292,8 +313,8 @@ export default function StudyRoomPage() {
 
               <button
                 type="button"
-                className={`srCtlMini ${myCam ? "on" : "off"}`}
-                onClick={() => setMyCam((v) => !v)}
+                className={`srCtlMini ${camOn ? "on" : "off"}`}
+                onClick={() => setCamOn((v) => !v)}
                 title="카메라"
               >
                 📷
@@ -301,8 +322,8 @@ export default function StudyRoomPage() {
 
               <button
                 type="button"
-                className={`srCtlMini ${myMic ? "on" : "off"}`}
-                onClick={() => setMyMic((v) => !v)}
+                className={`srCtlMini ${micOn ? "on" : "off"}`}
+                onClick={() => setMicOn((v) => !v)}
                 title="마이크"
               >
                 🎙
@@ -311,7 +332,7 @@ export default function StudyRoomPage() {
           </div>
         </section>
 
-        {/* ====== 채팅/뽀모도로 패널(채팅 닫으면 숨김) ====== */}
+        {/* ====== 채팅/뽀모도로 패널 ====== */}
         {chatOpen && (
           <aside className="srSide">
             {pomoEnabled && (
@@ -329,12 +350,8 @@ export default function StudyRoomPage() {
 
               <div className="srChatBody">
                 <div className="srChatMsg">
-                  <span className="srChatNick">눈송이다</span>
-                  <span className="srChatText">화이팅!</span>
-                </div>
-                <div className="srChatMsg">
-                  <span className="srChatNick">배곱파</span>
-                  <span className="srChatText">오늘 목표 뭐야?</span>
+                  <span className="srChatNick">시스템</span>
+                  <span className="srChatText">WebRTC 연결 중…</span>
                 </div>
               </div>
 
@@ -345,9 +362,7 @@ export default function StudyRoomPage() {
                 </button>
               </div>
 
-              <div className="srChatHint">
-                ※채팅은 UI Mock
-              </div>
+              <div className="srChatHint">※채팅은 UI Mock</div>
             </div>
           </aside>
         )}
