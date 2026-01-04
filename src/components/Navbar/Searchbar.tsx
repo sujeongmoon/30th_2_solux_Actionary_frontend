@@ -1,5 +1,5 @@
 import React, { useState} from "react";
-import "./Login.css";
+import './Searchbar.css';
 
 import SerchIcon from '../../assets/navbar/SearchIcon.svg';
 
