@@ -8,6 +8,9 @@ import Clock from '../../assets/sidebar/mingcute_time-line.svg';
 import gradientCheck from '../../assets/sidebar/gradientCheck.svg';
 import { updateTodoStatus, type TodoStatus } from '../../api/Todos/todosApi';
 import { useNavigate } from "react-router-dom";
+import NotificationModal from "../Notification/NotificationModal";
+import { type NotificationItem } from "../Notification/NotificationModal";
+import { getNotifications, type NotificationResponse } from "../../api/Notification/notificationsApi";
 
 interface SideTodoItem {
   id: number;
@@ -26,6 +29,29 @@ const MOCK_TODOS: SideTodoItem[] = [
   { id: 3, category: "운동", task: "스트레칭 15분", selected: true },
   { id: 4, category: "운동", task: "조깅 30분", selected: false },
 ];
+// MOCK 알림 데이터
+// MOCK 알림 데이터 (createdAt 형태)
+const MOCK_NOTIFICATIONS: NotificationItem[] = [
+  {
+    id: 131,
+    content: "다현님이 작성한 글에 새로운 댓글이 있어요.",
+    createdAt: "2025-10-31T12:55:00",
+    link: "/posts/77",
+  },
+  {
+    id: 130,
+    content: "스터디 참여로 10P 적립!",
+    createdAt: "2025-10-31T12:40:00",
+    link: "/mypage/points",
+  },
+  {
+    id: 129,
+    content: "오늘 총 3시간 20분 공부했어요 👏",
+    createdAt: "2025-10-31T00:00:05",
+    link: "/study/report",
+  },
+];
+
 
 const RightSidebar = () => {
   const [open, setOpen] = useState(false);
@@ -34,6 +60,30 @@ const RightSidebar = () => {
   const [todayStudyTime, setTodayStudyTime] = useState("0H 0M");
   const [todoList, setTodoList] = useState<SideTodoItem[]>([]);
   const navigate = useNavigate();
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+
+  // 알림 API 호출
+  const fetchNotifications = async() => {
+    try {
+      const data: NotificationResponse[] = await getNotifications(20);
+      const mapped: NotificationItem[] = data.map(n => ({
+      id: n.notificationId,
+      content: n.content,
+      createdAt: n.createdAt,
+      link: n.link,
+    }));
+
+      setNotifications(mapped);
+    } catch(err) {
+      console.error('알림 불러오기 실패: ', err);
+    }
+  };
+
+  const openNotificationModal = () => {
+    fetchNotifications();
+    setIsNotificationOpen(true);
+  }
 
   // TODO 선택 토글
   const handleToggle = async (todoId: number, selected: boolean) => {
@@ -72,14 +122,18 @@ const RightSidebar = () => {
         <div className="sidebar-header">
           <div className="greeting">
             <h2 className="sidebar-title">
-              <span className="nickname">“{nickname}”</span>님 
+              <span className="sidebar-nickname">“{nickname}”</span>님 
               <img src={gradientArrow} alt='화살표' className="sidebar-arrow" /><br />
               오늘도 달려봐요 !
             </h2>
             <img src={underline} alt="그라데이션밑줄" className="header-underline" />
           </div>
           <div className="header-icons">
-            <img src={Bell} alt='알람 아이콘' className="sidebar-bell" />
+            <img 
+              src={Bell} 
+              alt='알람 아이콘' 
+              className="sidebar-bell"
+              onClick={openNotificationModal} />
             <div className="profile-circle">
               <FiUser size={25} />
             </div>
@@ -139,6 +193,15 @@ const RightSidebar = () => {
           </div>
         </div>
       </aside>
+      {isNotificationOpen && (
+      <NotificationModal
+        isOpen={isNotificationOpen}
+        onClose={() => setIsNotificationOpen(false)}
+        notifications={MOCK_NOTIFICATIONS}
+        //notifications={notifications} 
+      />
+)}
+
     </>
   );
 };
