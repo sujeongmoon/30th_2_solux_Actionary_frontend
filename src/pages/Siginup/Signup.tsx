@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./Signup.css";
 
-import SignupVector from '../../assets/Signup/Signupvector.svg';
+import Signupvector from '../../assets/Signup/Signupvector.svg';
 import Profile from '../../assets/MyPage/Profile.svg';
 
 import { useSignup } from "../../hooks/useSignup";
@@ -61,16 +61,17 @@ const Signup: React.FC = () => {
   return (
     <div className="signup-page">
       {/* 배경 */}
-      <img src={SignupVector} alt="" className="signup-background-vector" />
+      <img src={Signupvector} alt="" className="signup-background-vector" />
 
       <div className="signup-box">
         {/* 프로필 사진 업로드 */}
         <div className="profile-wrapper">
           <div className="profile-circle">
-            <img
-              src={profilePreview || Profile}
-              alt="profile"
-            />
+            {profilePreview ? (
+              <img src={profilePreview} alt="profile" className="profile-image-full"/>
+            ) : (
+              <img src={Profile} alt="default-profile" className="profile-image-small"/>
+            )}
             <button
               type="button"
               className="plus-button"
@@ -91,7 +92,8 @@ const Signup: React.FC = () => {
         <div className="signup-form">
           {/* 아이디 입력 */}
           <label>아이디</label>
-          <input name="loginId" value={form.loginId} onChange={handleChange} />
+          <input name="loginId" value={form.loginId} onChange={handleChange} 
+          placeholder="|"/>
         </div>
 
         {/* 비밀번호 입력 */}
@@ -102,6 +104,7 @@ const Signup: React.FC = () => {
             name="password"
             value={form.password}
             onChange={handleChange}
+            placeholder="|"
           />
         </div>
 
@@ -112,19 +115,22 @@ const Signup: React.FC = () => {
             name="phoneNumber"
             value={form.phoneNumber}
             onChange={handleChange}
+            placeholder="| 01012345678"
           />
         </div>
 
         {/* 이메일 입력 */}
         <div className="signup-form">
           <label>이메일 주소</label>
-          <input name="email" value={form.email} onChange={handleChange} />
+          <input name="email" value={form.email} onChange={handleChange} 
+          placeholder="|"/>
         </div>
 
         {/* 이름 입력 */}
         <div className="signup-form">
           <label>이름</label>
-          <input name="name" value={form.name} onChange={handleChange} />
+          <input name="name" value={form.name} onChange={handleChange} 
+          placeholder="|"/>
         </div>
 
         {/* 생년월일 입력 */}
