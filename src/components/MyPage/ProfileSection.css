@@ -84,6 +84,10 @@
   margin: 35px; /* 이미지 위치와 맞춤 */
 }
 
+.owner-info-container-public {
+  margin: 65px 35px 35px 50px; /* 이미지 위치와 맞춤 */
+}
+
 /* 닉네임 그룹 (닉네임 + 아이콘) */
 .owner-nickname-group {
   display: flex;
