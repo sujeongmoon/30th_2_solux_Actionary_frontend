@@ -1,0 +1,296 @@
+/* ===== Page Base ===== */
+.studyDetailPage {
+  min-height: calc(100vh - 64px);
+  padding: 28px 18px 40px;
+  background: #f6f4f2;
+  color: #111;
+}
+
+/* ===== Top Bar ===== */
+.detailTop {
+  max-width: 980px;
+  margin: 0 auto 18px;
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+}
+
+.detailTop h1 {
+  margin: 0;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.backBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: rgba(255,255,255,0.9);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.backBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(0,0,0,0.10);
+}
+
+/* ===== Common Card ===== */
+.card {
+  max-width: 980px;
+  margin: 0 auto 16px;
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 22px;
+  box-shadow: 0 18px 45px rgba(0,0,0,0.08);
+  padding: 18px;
+}
+
+/* ===== Header Card (Top Big Card) ===== */
+.headerCard {
+  display: grid;
+  grid-template-columns: 230px 1fr;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.cover {
+  border-radius: 18px;
+  overflow: hidden;
+  background: #eee;
+  min-height: 170px;
+}
+
+.headerInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 6px 6px 6px 2px;
+}
+
+.chipRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: rgba(255,255,255,0.92);
+}
+
+.headerInfo h2 {
+  margin: 2px 0 0;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.headerInfo p {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(0,0,0,0.55);
+}
+
+/* CTA button inside header */
+.headerInfo .primaryBtn {
+  align-self: flex-start;
+  margin-top: 8px;
+}
+
+/* ===== Summary Row ===== */
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 14px 18px;
+}
+
+.summaryItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-radius: 16px;
+  background: rgba(0,0,0,0.02);
+  border: 1px solid rgba(0,0,0,0.05);
+  padding: 14px;
+}
+
+.summaryItem span {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(0,0,0,0.55);
+}
+
+/* ===== Section Titles ===== */
+.card h3 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+/* ===== Bottom Actions ===== */
+.actions {
+  max-width: 980px;
+  margin: 18px auto 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.ghostBtn,
+.primaryBtn {
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.10);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+}
+
+.ghostBtn {
+  background: rgba(255,255,255,0.92);
+}
+
+.primaryBtn {
+  border: 0;
+  color: #fff;
+  background: linear-gradient(90deg, #f08b63 0%, #f04b78 55%, #9a3cff 120%);
+  box-shadow: 0 16px 40px rgba(240, 75, 120, 0.25);
+}
+
+.ghostBtn:hover,
+.primaryBtn:hover {
+  transform: translateY(-1px);
+}
+
+.ghostBtn:disabled,
+.primaryBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.hint {
+  max-width: 980px;
+  margin: 10px auto 0;
+  font-size: 12px;
+  color: rgba(0,0,0,0.55);
+}
+
+/* ===== State / Error ===== */
+.state {
+  max-width: 980px;
+  margin: 0 auto;
+  border-radius: 18px;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: rgba(255,255,255,0.90);
+  padding: 14px 16px;
+  box-shadow: 0 14px 35px rgba(0,0,0,0.06);
+  font-weight: 800;
+}
+
+.state.error {
+  color: #d93b5a;
+  border-color: rgba(217, 59, 90, 0.18);
+  background: rgba(217, 59, 90, 0.06);
+}
+
+/* ===== Skeleton System ===== */
+.skeleton,
+.skeletonLine,
+.skeletonBlock,
+.skeletonChip {
+  position: relative;
+  overflow: hidden;
+  background: rgba(0,0,0,0.06);
+  border-radius: 12px;
+}
+
+.skeleton::after,
+.skeletonLine::after,
+.skeletonBlock::after,
+.skeletonChip::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-60%);
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.55) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  animation: shimmer 1.2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-60%); }
+  100% { transform: translateX(60%); }
+}
+
+/* sizes */
+.skeletonLine {
+  height: 14px;
+  width: 62%;
+}
+
+.skeletonLine.short {
+  width: 38%;
+}
+
+.skeletonBlock {
+  height: 78px;
+  border-radius: 16px;
+}
+
+.skeletonChip {
+  width: 72px;
+  height: 28px;
+  border-radius: 999px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 820px) {
+  .headerCard {
+    grid-template-columns: 1fr;
+  }
+  .cover {
+    min-height: 180px;
+  }
+  .headerInfo .primaryBtn {
+    width: 100%;
+    justify-content: center;
+  }
+  .summary {
+    grid-template-columns: 1fr;
+  }
+  .actions {
+    justify-content: stretch;
+  }
+  .ghostBtn,
+  .primaryBtn {
+    width: 100%;
+  }
+}

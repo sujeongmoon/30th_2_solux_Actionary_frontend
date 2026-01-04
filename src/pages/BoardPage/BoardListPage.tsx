@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import './BoardListPage.css';
 import Pagination from '../../components/Pagination/Pagination';
 import '../../pages/HomePage/HomePage.css';
-import { type PopularPostItem } from '../../types/MainPagePostType';
 import DropdownIcon from '../../assets/Board/Dropdown.svg';
 import MagePen from '../../assets/Board/mage_pen.svg';
-import { getPopularPosts, getLatestPosts } from '../../api/boardPost';
+//import { getPopularPosts, getLatestPosts } from '../../api/boardPost';
+import { useNavigate } from 'react-router-dom';
+import { usePosts, type Post } from '../../context/PostContext';
+
 
 const BoardListPage: React.FC = () => {
   /** ======================
@@ -16,9 +18,11 @@ const BoardListPage: React.FC = () => {
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('말머리');
-
-  const [posts, setPosts] = useState<PopularPostItem[]>([]);
+  const { posts } = usePosts();
+  const [displayPosts, setDisplayPosts] = useState<Post[]>([]);
   const [totalPages, setTotalPages] = useState(0);
+  const navigate = useNavigate();
+
 
   /** ======================
    * API 연동
@@ -26,6 +30,7 @@ const BoardListPage: React.FC = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
+        {/*
         const apiPage = currentPage - 1; // 백엔드 0부터 시작
 
         const params: { page: number; type?: string } = { page: apiPage };
@@ -40,13 +45,34 @@ const BoardListPage: React.FC = () => {
 
         setPosts(data.posts);
         setTotalPages(data.pageInfo.totalPages);
+      */}
+
+      // ================= MockData 사용 =================
+      let filteredPosts = posts;
+
+      if (selectedCategory !== '말머리' && selectedCategory !== '전체') {
+        filteredPosts = filteredPosts.filter((p) => p.type === selectedCategory);
+      }
+
+      if (selectedSort === 'popular') {
+        filteredPosts = [...filteredPosts].sort((a, b) => (b.comment_count || 0) - (a.comment_count || 0));
+      } else {
+        filteredPosts = [...filteredPosts].sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+      }
+
+      setDisplayPosts(filteredPosts);
+      setTotalPages(1);
+
+    // =======================================================// 
       } catch (error) {
         console.error('게시글 조회 실패', error);
       }
     };
 
     fetchPosts();
-  }, [currentPage, selectedSort, selectedCategory]);
+  }, [posts, currentPage, selectedSort, selectedCategory]);
 
   /** ======================
    * 핸들러
@@ -131,19 +157,19 @@ const BoardListPage: React.FC = () => {
 
                     {isCategoryOpen && (
                       <div className="header-dropdown-menu">
-                        <div className="dropdown-item" onClick={() => handleCategoryChange('전체')}>
+                        <div className="dropdown-item-board" onClick={() => handleCategoryChange('전체')}>
                           말머리
                         </div>
                         <div className="dropdown-divider" />
-                        <div className="dropdown-item" onClick={() => handleCategoryChange('소통')}>
+                        <div className="dropdown-item-board" onClick={() => handleCategoryChange('소통')}>
                           소통
                         </div>
                         <div className="dropdown-divider" />
-                        <div className="dropdown-item" onClick={() => handleCategoryChange('인증')}>
+                        <div className="dropdown-item-board" onClick={() => handleCategoryChange('인증')}>
                           인증
                         </div>
                         <div className="dropdown-divider" />
-                        <div className="dropdown-item" onClick={() => handleCategoryChange('질문')}>
+                        <div className="dropdown-item-board" onClick={() => handleCategoryChange('질문')}>
                           질문
                         </div>
                       </div>
@@ -158,8 +184,8 @@ const BoardListPage: React.FC = () => {
             </thead>
 
             <tbody>
-              {posts.map((item) => (
-                <tr key={item.postId}>
+              {displayPosts.map((item) => (
+                <tr key={item.postId} onClick={() => navigate(`/board/${item.postId}`)} style={{ cursor: 'pointer' }}>
                   <td>
                     <div className="badge">
                       <span>{item.type}</span>
@@ -177,7 +203,8 @@ const BoardListPage: React.FC = () => {
 
         {/* 하단 섹션 */}
         <div className="bottom-section">
-          <button className="btn-write">
+          <button className="btn-write"
+            onClick={() => navigate('write')}>
             <img src={MagePen} alt="게시글 작성하기" className="mage-pen" />
             게시글 작성하기
           </button>

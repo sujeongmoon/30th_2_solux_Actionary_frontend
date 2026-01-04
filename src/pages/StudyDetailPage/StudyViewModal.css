@@ -1,0 +1,353 @@
+.svmOverlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 28px;
+}
+
+.svmWrap{
+  position: relative;
+  width: min(1100px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+}
+
+.svmHeroTitle{
+  margin-bottom: 14px;
+  color: #fff;
+}
+.svmHeroBig{
+  font-size: 64px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+.svmHeroSmall{
+  margin-top: 8px;
+  opacity: .8;
+  letter-spacing: 1px;
+}
+
+.svmBody{
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 18px;
+  align-items: start;
+}
+
+.svmCard{
+  position: relative;
+  background: #f7f6f4;
+  border-radius: 34px;
+  padding: 28px;
+  box-shadow: 0 20px 55px rgba(0,0,0,.25);
+}
+
+.svmKebab{
+  position:absolute;
+  right: 22px;
+  top: 18px;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  cursor: pointer;
+  opacity: .75;
+}
+.svmKebab:hover{ opacity: 1; }
+
+.svmTop{
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 22px;
+}
+
+.svmCover{
+  width: 300px;
+  height: 240px;
+  border-radius: 26px;
+  overflow: hidden;
+  background: #ddd;
+}
+.svmCover img{
+  width:100%;
+  height:100%;
+  object-fit: cover;
+  display:block;
+}
+.svmCoverFallback{
+  width: 100%;
+  height: 100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: #111;
+}
+.svmCoverFallback img{
+  width: 140px;
+  height: auto;
+  opacity: .9;
+}
+
+.svmInfo{ padding-top: 6px; }
+
+.svmChips{
+  display:flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.svmChip{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,.18);
+  font-weight: 700;
+  background: #fff;
+  color: #222;
+}
+.svmChip.on{
+  background: #111;
+  border-color: #111;
+  color: #fff;
+}
+.svmChip.ghost{
+  background: transparent;
+  color: #777;
+}
+
+.svmTitle{
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+.svmDesc{
+  color: #777;
+  line-height: 1.35;
+  min-height: 38px;
+  margin-bottom: 14px;
+  white-space: pre-wrap;
+}
+
+.svmRow{
+  display:flex;
+  align-items:center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.svmPill{
+  height: 42px;
+  padding: 0 18px;
+  border-radius: 999px;
+  font-weight: 900;
+  border: 2px solid #111;
+  background: #111;
+  color: #fff;
+}
+.svmPill.no{
+  background: #e9e9e9;
+  border-color: #cfcfcf;
+  color: #555;
+}
+.svmPill.ok{
+  background: #111;
+  border-color: #111;
+  color: #fff;
+}
+
+.svmCount{
+  display:flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.svmCountLabel{
+  font-size: 13px;
+  color: #666;
+}
+.svmCountValue{
+  font-size: 16px;
+  color: #111;
+}
+.svmCountValue b:last-child{
+  color: #e25c61;
+}
+
+.svmActionsRow{
+  display:flex;
+  align-items:center;
+  gap: 12px;
+}
+.svmEnterBtn{
+  height: 46px;
+  min-width: 220px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(90deg, #f28a63, #e74a62);
+}
+.svmEnterBtn:hover{ filter: brightness(.98); }
+
+.svmHeart{
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  font-size: 26px;
+  cursor:pointer;
+  opacity: .8;
+}
+.svmHeart.active{
+  opacity: 1;
+  transform: scale(1.02);
+}
+
+.svmRankBox{
+  margin-top: 18px;
+  border-radius: 28px;
+  border: 1.5px solid rgba(231, 74, 98, .7);
+  padding: 18px 18px 14px;
+  background: #fbfbfb;
+}
+
+.svmRankHeader{
+  position: relative;
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.svmRankTitlePill{
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: -24px;
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f28a63, #e74a62);
+  color: #fff;
+  font-weight: 900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow: 0 8px 22px rgba(0,0,0,.18);
+}
+
+.svmRankTab{ color:#999; font-size: 13px; }
+.svmTabBtn{ border:none; background: transparent; color:#aaa; font-weight: 800; }
+
+.svmTable{
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+}
+.svmTable thead th{
+  font-size: 13px;
+  color: #fff;
+  background: #1e1e1e;
+  padding: 12px 14px;
+}
+.svmTable thead th:first-child{ border-top-left-radius: 999px; border-bottom-left-radius: 999px; }
+.svmTable thead th:last-child{ border-top-right-radius: 999px; border-bottom-right-radius: 999px; }
+
+.svmTable tbody tr td{
+  padding: 10px 14px;
+  border-bottom: 1px solid #ddd;
+  font-size: 14px;
+  color: #222;
+}
+.svmRankNum{
+  color: #e74a62;
+  font-weight: 900;
+}
+
+.svmMiniToggle{
+  display:flex;
+  gap: 10px;
+  justify-content:flex-end;
+  margin-top: 10px;
+}
+.svmMiniBtn{
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,.15);
+  background:#fff;
+  font-weight: 800;
+  cursor:pointer;
+  color:#666;
+}
+.svmMiniBtn.active{
+  background:#111;
+  color:#fff;
+  border-color:#111;
+}
+
+.svmSide{ position: relative; }
+.svmSideBox{
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 16px 40px rgba(0,0,0,.25);
+  position: sticky;
+  top: 18px;
+}
+.svmSideTitle{
+  font-weight: 900;
+  color:#444;
+  margin-bottom: 10px;
+}
+.svmSideMenu{
+  background:#1e1e1e;
+  border-radius: 18px;
+  padding: 10px;
+  display:flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.svmSideBtn{
+  height: 44px;
+  border-radius: 14px;
+  border:none;
+  background: transparent;
+  color:#fff;
+  font-weight: 900;
+  cursor:pointer;
+}
+.svmSideBtn:hover{ background: rgba(255,255,255,.08); }
+.svmSideBtn.danger{ color: #ff6b78; }
+.svmLine{ height: 1px; background: rgba(255,255,255,.2); }
+
+.svmClose{
+  position:absolute;
+  right: -4px;
+  top: -4px;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border:none;
+  cursor:pointer;
+  font-size: 18px;
+  background: rgba(255,255,255,.2);
+  color:#fff;
+}
+.svmClose:hover{ background: rgba(255,255,255,.3); }
+
+@media (max-width: 980px){
+  .svmBody{ grid-template-columns: 1fr; }
+  .svmSide{ display:none; }
+  .svmTop{ grid-template-columns: 1fr; }
+  .svmCover{ width: 100%; height: 220px; }
+  .svmHeroBig{ font-size: 44px; }
+}

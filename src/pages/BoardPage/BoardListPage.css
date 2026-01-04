@@ -43,7 +43,7 @@
   border: 1px solid #eeeeee;
 }
 
-.dropdown-item {
+.dropdown-item-board {
   color: #333333;
   padding: 12px 0;
   text-align: center;
@@ -51,7 +51,7 @@
   font-size: 14px;
 }
 
-.dropdown-item:hover {
+.dropdown-item-board:hover {
   background-color: #f5f5f5;
 }
 
@@ -94,11 +94,11 @@
   border: 1px solid #333333;
 }
 
-.sort-section .dropdown-item {
+.sort-section .dropdown-item-board {
   color: #ffffff;
 }
 
-.sort-section .dropdown-item:hover {
+.sort-section .dropdown-item-board:hover {
   background-color: #333333;
 }
 

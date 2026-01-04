@@ -1,8 +1,7 @@
 import React from "react";
 import { useNavigate} from "react-router-dom";
-import ".Navbar.css";
+import './Navbar.css';
 import Searchbar from "./Searchbar";
-
 import Nlogo from '../../assets/navbar/Nlogo.svg';
 import ProfileCircle from '../../assets/navbar/ProfileCircle.svg';
 import ProfilePerson from '../../assets/navbar/ProfilePerson.svg';
@@ -11,7 +10,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   
   //나중에 auth 상태로 교체
-  const inLoggedIn = false; 
+  const isLoggedIn = false; 
 
   return (
     <nav className="navbar">
