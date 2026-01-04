@@ -5,6 +5,8 @@ import EmptyLayout from "./layouts/EmptyLayout";
 import MyPageOwner from "./pages/MyPage/MyPageOwner";
 import StudyPage from "./pages/StudyPage/StudyPage";
 import StudyCreatePage from "./pages/StudyCreatePage/StudyCreatePage";
+import StudyDetailPage from "./pages/StudyDetailPage/StudyDetailPage";
+import MyStudiesPage from "./pages/MyStudiesPage/MyStudiesPage";
 import BoardListPage from "./pages/BoardPage/BoardListPage";
 import Login from "./pages/Login/Login";
 
@@ -19,6 +21,8 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/studies" element={<StudyPage />} /> 
           <Route path="/studies/new" element={<StudyCreatePage />} />
+          <Route path="/studies/:studyId" element={<StudyDetailPage />} />
+          <Route path="/studies/my" element={<MyStudiesPage />} />
           <Route path= "/board" element={<BoardListPage />} />
         </Route>
 

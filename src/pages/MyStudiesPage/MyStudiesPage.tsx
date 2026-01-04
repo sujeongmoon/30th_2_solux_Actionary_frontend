@@ -1,0 +1,302 @@
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "./MyStudiesPage.css";
+
+type MyScope = "ALL" | "OWNER" | "PARTICIPATING" | "FAVORITE"; // 전체 / 개설 / 참여 / 즐겨찾기
+type VisibilityFilter = "ALL" | "PUBLIC" | "PRIVATE";
+
+type StudyCard = {
+  studyId: number;
+  studyName: string;
+  coverImage?: string | null;
+  categoryLabel?: string; // "공무원" 같은 한글 라벨
+  isPublic?: boolean; // 공개/비공개
+  isFavorite?: boolean;
+  isOwner?: boolean;
+  isParticipating?: boolean;
+};
+
+// ===== mock =====
+const MOCK: StudyCard[] = [
+  {
+    studyId: 1,
+    studyName: "같이 공부해요",
+    coverImage: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200",
+    categoryLabel: "기타",
+    isPublic: true,
+    isFavorite: false,
+    isOwner: true,
+    isParticipating: true,
+  },
+  {
+    studyId: 2,
+    studyName: "공무원 한국사",
+    coverImage: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1200",
+    categoryLabel: "공무원",
+    isPublic: true,
+    isFavorite: true,
+    isOwner: true,
+    isParticipating: true,
+  },
+  {
+    studyId: 3,
+    studyName: "임용 준비반",
+    coverImage: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200",
+    categoryLabel: "임용",
+    isPublic: false,
+    isFavorite: false,
+    isOwner: true,
+    isParticipating: false,
+  },
+  {
+    studyId: 11,
+    studyName: "자격증 스터디",
+    coverImage: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1200",
+    categoryLabel: "자격증",
+    isPublic: true,
+    isFavorite: false,
+    isOwner: false,
+    isParticipating: true,
+  },
+  {
+    studyId: 12,
+    studyName: "어학 스피킹",
+    coverImage: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200",
+    categoryLabel: "어학",
+    isPublic: true,
+    isFavorite: true,
+    isOwner: false,
+    isParticipating: true,
+  },
+  {
+    studyId: 13,
+    studyName: "토익 900+",
+    coverImage: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200",
+    categoryLabel: "어학",
+    isPublic: true,
+    isFavorite: false,
+    isOwner: false,
+    isParticipating: false,
+  },
+  {
+    studyId: 14,
+    studyName: "자격증 스터디",
+    coverImage: null,
+    categoryLabel: "자격증",
+    isPublic: true,
+    isFavorite: false,
+    isOwner: false,
+    isParticipating: false,
+  },
+];
+
+const PAGE_SIZE = 8;
+
+export default function MyStudiesPage() {
+  const navigate = useNavigate();
+
+  // 상단(나만의 스터디) 필터: 전체/개설/참여/즐겨찾기
+  const [scope, setScope] = useState<MyScope>("ALL");
+
+  // 아래(전체 카드) 공개/비공개 탭
+  const [visibility, setVisibility] = useState<VisibilityFilter>("ALL");
+
+  // 캐러셀 인덱스
+  const [carouselIndex, setCarouselIndex] = useState(0);
+
+  // 페이지네이션
+  const [page, setPage] = useState(1);
+
+  // ===== 상단 "나만의 스터디" 후보 리스트 (scope에 따라) =====
+  const myList = useMemo(() => {
+    const base = MOCK.filter((s) => s.isOwner || s.isParticipating || s.isFavorite);
+    if (scope === "ALL") return base;
+    if (scope === "OWNER") return base.filter((s) => s.isOwner);
+    if (scope === "PARTICIPATING") return base.filter((s) => s.isParticipating);
+    return base.filter((s) => s.isFavorite);
+  }, [scope]);
+
+  // 캐러셀은 3장씩 보여주기
+  const carouselPageSize = 3;
+  const carouselMaxIndex = Math.max(0, Math.ceil(myList.length / carouselPageSize) - 1);
+  const carouselSlice = useMemo(() => {
+    const start = carouselIndex * carouselPageSize;
+    return myList.slice(start, start + carouselPageSize);
+  }, [myList, carouselIndex]);
+
+  // ===== 아래 그리드(전체 목록 느낌) =====
+  const gridList = useMemo(() => {
+    let result = [...MOCK];
+
+    // 공개/비공개
+    if (visibility === "PUBLIC") result = result.filter((s) => s.isPublic);
+    if (visibility === "PRIVATE") result = result.filter((s) => !s.isPublic);
+
+    return result;
+  }, [visibility]);
+
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(gridList.length / PAGE_SIZE)), [gridList.length]);
+
+  const paged = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return gridList.slice(start, start + PAGE_SIZE);
+  }, [gridList, page]);
+
+  // 필터 바뀌면 page 리셋
+  const onChangeVisibility = (v: VisibilityFilter) => {
+    setVisibility(v);
+    setPage(1);
+  };
+
+  const onChangeScope = (s: MyScope) => {
+    setScope(s);
+    setCarouselIndex(0);
+  };
+
+  return (
+    <div className="myWrap">
+      {/* ===== 상단: 나만의 스터디 영역 ===== */}
+      <section className="myHero">
+        <div className="myHeroTop">
+          <div className="myHeroTitle">나만의 스터디</div>
+
+          <div className="myHeroFilters">
+            <button className={`check ${scope === "ALL" ? "on" : ""}`} onClick={() => onChangeScope("ALL")} type="button">
+              전체
+            </button>
+            <button className={`check ${scope === "OWNER" ? "on" : ""}`} onClick={() => onChangeScope("OWNER")} type="button">
+              개설한 스터디
+            </button>
+            <button
+              className={`check ${scope === "PARTICIPATING" ? "on" : ""}`}
+              onClick={() => onChangeScope("PARTICIPATING")}
+              type="button"
+            >
+              참여한 스터디
+            </button>
+            <button className={`check ${scope === "FAVORITE" ? "on" : ""}`} onClick={() => onChangeScope("FAVORITE")} type="button">
+              즐겨찾기
+            </button>
+          </div>
+        </div>
+
+        <div className="carousel">
+          <button
+            type="button"
+            className="arrow left"
+            onClick={() => setCarouselIndex((i) => Math.max(0, i - 1))}
+            disabled={carouselIndex <= 0}
+            aria-label="prev"
+          >
+            ‹
+          </button>
+
+          <div className="carouselTrack">
+            {carouselSlice.length === 0 ? (
+              <div className="carouselEmpty">
+                아직 스터디가 없어요.
+                <button className="createBtn" type="button" onClick={() => navigate("/studies/new")}>
+                  스터디 만들기
+                </button>
+              </div>
+            ) : (
+              <div className="carouselRow">
+                {carouselSlice.map((s) => (
+                  <article
+                    key={s.studyId}
+                    className="miniCard"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navigate(`/studies/${s.studyId}`)}
+                  >
+                    <div className="miniThumb">
+                      {s.coverImage ? <img src={s.coverImage} alt="" /> : <div className="miniFallback" />}
+                    </div>
+                    <div className="miniLabel">{s.studyName}</div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <button
+            type="button"
+            className="arrow right"
+            onClick={() => setCarouselIndex((i) => Math.min(carouselMaxIndex, i + 1))}
+            disabled={carouselIndex >= carouselMaxIndex}
+            aria-label="next"
+          >
+            ›
+          </button>
+        </div>
+      </section>
+
+      {/* ===== 아래: 그리드(전체) ===== */}
+      <section className="myGridArea">
+        <div className="gridTop">
+          <div className="visTabs">
+            <button type="button" className={`visTab ${visibility === "PUBLIC" ? "on" : ""}`} onClick={() => onChangeVisibility("PUBLIC")}>
+              공개
+            </button>
+            <span className="visBar">|</span>
+            <button type="button" className={`visTab ${visibility === "PRIVATE" ? "on" : ""}`} onClick={() => onChangeVisibility("PRIVATE")}>
+              비공개
+            </button>
+          </div>
+
+          <div className="gridMeta">
+            <div className="totalText">총 {gridList.length}개 스터디</div>
+            <div className="catLine">
+              <span className="catOn">전체</span>
+              <span>· 수능</span>
+              <span>· 공무원</span>
+              <span>· 임용</span>
+              <span>· 자격증</span>
+              <span>· 어학</span>
+              <span>· 취업</span>
+              <span>· 기타</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="cardGrid">
+          {paged.map((s) => (
+            <article
+              key={s.studyId}
+              className="gridCard"
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate(`/studies/${s.studyId}`)} // 나중에 "팝업"으로 바꾸면 여기만 바꾸면 됨
+            >
+              <div className="gridThumb">
+                {s.coverImage ? <img src={s.coverImage} alt="" /> : <div className="gridFallback" />}
+              </div>
+              <div className="gridTitlePill">{s.studyName}</div>
+            </article>
+          ))}
+        </div>
+
+        <div className="pagerRow">
+          <button className="pgBtn" type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>
+            ‹
+          </button>
+
+          <div className="pgNums">
+            {Array.from({ length: totalPages }).slice(0, 5).map((_, idx) => {
+              const p = idx + 1;
+              return (
+                <button key={p} className={`pgNum ${p === page ? "on" : ""}`} type="button" onClick={() => setPage(p)}>
+                  {p}
+                </button>
+              );
+            })}
+          </div>
+
+          <button className="pgBtn" type="button" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>
+            ›
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}

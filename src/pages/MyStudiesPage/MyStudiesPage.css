@@ -1,0 +1,345 @@
+.myWrap {
+  padding: 22px 28px 40px;
+}
+
+/* ===== 상단: 나만의 스터디 영역 ===== */
+.myHero {
+  background: linear-gradient(90deg, rgba(255, 208, 214, 0.35), rgba(255, 214, 226, 0.18));
+  border-radius: 18px;
+  padding: 22px 22px 26px;
+  margin-bottom: 18px;
+}
+
+.myHeroTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.myHeroTitle {
+  font-size: 22px;
+  font-weight: 800;
+  color: #111;
+}
+
+.myHeroFilters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.check {
+  border: none;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 6px 6px;
+  position: relative;
+}
+
+.check.on {
+  color: #111;
+  font-weight: 700;
+}
+
+.check.on::before {
+  content: "✓";
+  display: inline-block;
+  margin-right: 6px;
+  color: #ff4d6d;
+  font-weight: 900;
+}
+
+/* 캐러셀 */
+.carousel {
+  position: relative;
+  display: grid;
+  grid-template-columns: 54px 1fr 54px;
+  align-items: center;
+  gap: 12px;
+}
+
+.arrow {
+  width: 54px;
+  height: 54px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 44px;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+}
+
+.arrow:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.carouselTrack {
+  background: transparent;
+}
+
+.carouselRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  align-items: center;
+}
+
+.miniCard {
+  border-radius: 18px;
+  background: #bdbdbd;
+  height: 180px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+.miniThumb {
+  position: absolute;
+  inset: 0;
+}
+
+.miniThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.miniFallback {
+  width: 100%;
+  height: 100%;
+  background: #bdbdbd;
+}
+
+.miniLabel {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  height: 44px;
+  border-radius: 999px;
+  background: #1f1f1f;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  font-weight: 800;
+  font-size: 14px;
+  border: 2px solid rgba(255, 77, 109, 0.22);
+}
+
+.carouselEmpty {
+  display: grid;
+  place-items: center;
+  height: 180px;
+  color: rgba(0, 0, 0, 0.6);
+  gap: 12px;
+}
+
+.createBtn {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: linear-gradient(90deg, #ff7a59, #ff4d6d);
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+/* ===== 아래: 공개/비공개 + 그리드 ===== */
+.myGridArea {
+  padding-top: 10px;
+}
+
+.gridTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 10px 0 12px;
+}
+
+.visTabs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+}
+
+.visTab {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  color: rgba(0, 0, 0, 0.35);
+  padding: 6px 0;
+}
+
+.visTab.on {
+  color: #111;
+}
+
+.visBar {
+  color: rgba(0, 0, 0, 0.2);
+}
+
+.gridMeta {
+  text-align: right;
+}
+
+.totalText {
+  font-size: 18px;
+  font-weight: 900;
+  color: #111;
+  margin-bottom: 6px;
+}
+
+.catLine {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  color: rgba(0, 0, 0, 0.35);
+  font-size: 12px;
+}
+
+.catOn {
+  color: #111;
+  font-weight: 800;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 10px;
+}
+
+.gridCard {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #cfcfcf;
+  aspect-ratio: 4 / 3;
+  cursor: pointer;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.08);
+}
+
+.gridThumb {
+  position: absolute;
+  inset: 0;
+}
+
+.gridThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gridFallback {
+  width: 100%;
+  height: 100%;
+  background: #bdbdbd;
+}
+
+.gridTitlePill {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  height: 46px;
+  border-radius: 999px;
+  background: #1f1f1f;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  font-weight: 900;
+  border: 2px solid rgba(255, 77, 109, 0.25);
+}
+
+/* ===== pagination ===== */
+.pagerRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.pgBtn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 22px;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.pgBtn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.pgNums {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pgNum {
+  min-width: 30px;
+  height: 22px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.35);
+}
+
+.pgNum.on {
+  background: linear-gradient(90deg, #ff7a59, #ff4d6d);
+  color: #fff;
+  font-weight: 900;
+  padding: 0 10px;
+}
+
+/* 반응형 */
+@media (max-width: 1100px) {
+  .cardGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .carouselRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .myWrap {
+    padding: 16px 14px 30px;
+  }
+  .cardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .carousel {
+    grid-template-columns: 40px 1fr 40px;
+  }
+  .arrow {
+    width: 40px;
+    height: 40px;
+    font-size: 34px;
+  }
+  .carouselRow {
+    grid-template-columns: 1fr;
+  }
+}
