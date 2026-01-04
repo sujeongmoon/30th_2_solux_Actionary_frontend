@@ -44,8 +44,6 @@ const BookmarkModal = ({ isOpen, onClose, onAdd }: BookmarkModalProps) => {
           <img src={Union} alt="북마크 추가 아이콘"></img> {/* 핑크색 아이콘 */}
           <div className='bookmark-title'>북마크 추가</div>
         </div>
-
-        <div className="modal-content">
           <div className="input-field">
             <div className='modal-secname'>이름</div>
             <div className='input-wrapper'>
@@ -71,7 +69,6 @@ const BookmarkModal = ({ isOpen, onClose, onAdd }: BookmarkModalProps) => {
             />     
             </div>
           </div>
-        </div>
 
         <div className="modal-actions">
           <button className="btn-cancel" onClick={handleCancel}>

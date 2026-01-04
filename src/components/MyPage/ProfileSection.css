@@ -1,0 +1,147 @@
+.owner-profile-container{
+    display: flex;
+}
+
+.owner-avatar-container {
+  position: relative;
+  width: 90px;  /* 원하는 크기로 조절 */
+  height: 90px; /* 원하는 크기로 조절 */
+  margin-bottom: 20px; /* 테스트용 여백 */
+  padding: 30px 0px 0px 50px;
+}
+
+.owner-avatar-white-circle {
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* 이미지가 원을 넘지 않게 함 */
+}
+
+.owner-profile-img {
+    width: 35px;
+}
+
+.owner-avatar-img-full {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 플러스 버튼 본체 (검은색 원) */
+.owner-avatar-plus {
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  width: 22px;
+  height: 22px;
+  background-color: #333333; /* 이미지와 같은 어두운 회색/검정 */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.hidden-input {
+    display: none;
+}
+
+/* 플러스 모양 만들기 (가로 선) */
+.owner-avatar-plus::before {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 2px;
+  background-color: white;
+  border-radius: 1px;
+}
+
+/* 플러스 모양 만들기 (세로 선) */
+.owner-avatar-plus::after {
+  content: "";
+  position: absolute;
+  width: 2px;
+  height: 12px;
+  background-color: white;
+  border-radius: 1px;
+}
+
+
+/* 프로필 전체 행 정렬 */
+.owner-profile-row {
+  display: flex;
+  align-items: flex-start; /* 상단 기준 정렬 */
+  gap: 30px; /* 이미지와 텍스트 사이 간격 */
+  position: relative;
+}
+
+/* 닉네임 및 정보 컨테이너 */
+.owner-info-container {
+  margin: 35px; /* 이미지 위치와 맞춤 */
+}
+
+/* 닉네임 그룹 (닉네임 + 아이콘) */
+.owner-nickname-group {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  margin-bottom: 15px;
+}
+
+.owner-nickname-wrapper {
+  display: inline-block;
+}
+
+.owner-nickname {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* 닉네임 밑줄 */
+.owner-nickname-underline {
+  width: 200%;
+  height: 1px;
+  background-color: white;
+  margin-top: 4px;
+}
+
+/* 간단한 수정(연필) 아이콘 모양 (라이브러리 미사용) */
+.owner-edit-icon {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+/* 상세 정보 (생일, 번호) */
+.owner-details-group {
+  display: flex;
+  gap: 30px;
+  font-size: 14px;
+  font-weight: 400;
+  margin-top: 38px;
+}
+
+/* 탈퇴하기 버튼 위치 및 스타일 */
+.owner-withdraw-wrapper {
+  margin-left: auto; /* 오른쪽 끝으로 밀기 */
+  margin-top: 40px;
+}
+
+.owner-withdraw-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.owner-withdraw-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}

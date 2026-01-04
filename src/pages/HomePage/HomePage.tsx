@@ -1,24 +1,56 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, /*useEffect*/ } from "react";
 import "./HomePage.css";
 import MainPageLogo from '../../assets/homepage/MainPageLogo.svg';
 import SearchIcon from '../../assets/homepage/SearchIcon.svg';
 import PlusButton from '../../assets/homepage/PlusButton.svg';
 import GradientArrow from '../../assets/homepage/Gradient_Arrow.svg';
 import BlackArrow from '../../assets/homepage/BlackArrow.svg';
-import { mockBoardList } from '../../types/MainPagePostType';
+import { mockPopularPosts } from '../../types/MainPagePostType';
 import CommentIcon from '../../assets/homepage/HomePageCommentIcon.svg'
 import BookmarkSection from "../../components/Bookmark/BookmarkSection";
+//import { getPopularStudies } from "../../api/HomePage/getPopularStudies";
+import { useNavigate } from "react-router-dom";
 
 const studyList = [
-  { id: 1, title: "같이 시험 공부 해요", desc: " 설명 설명설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명 설명설명 설명 설명 설명 설명 설명 설명 설명 설명설명 설명 설명 설명 설명 설명 설명", count: 239503, img: "https://images.unsplash.com/photo-1513258496099-48168024aec0", bg: "study-dark" },
-  { id: 2, title: "A+ 가자", desc: "설명 설명 설명 설명 설명 설명 설명", count: 239503, img: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f", bg: "study-gradient" },
-  { id: 3, title: "cpa 뿌시자", count: 239503, img: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f", bg: "study-gray" },
-  { id: 4, title: "너무졸려", count: 233, bg: "study-dark" },
-  { id: 5, title: "React 스터디", count: 500, bg: "study-gradient" },
-  { id: 6, title: "JavaScript 마스터", count: 320, bg: "study-gray" }
+  {
+    studyId: 1,
+    name: "자바 공부방",
+    coverImage: "https://images.unsplash.com/photo-1513258496099-48168024aec0",
+    description: "자바를 공부하는 방입니다.",
+    count: 256
+  },
+  {
+    studyId: 2,
+    name: "A+ 가자",
+    coverImage: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f",
+    description: "시험 공부를 함께 하며 목표 달성!",
+    count: 198
+  },
+  {
+    studyId: 3,
+    name: "CPA 뿌시자",
+    coverImage: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f",
+    description: "회계 공부 집중 스터디",
+    count: 342
+  },
+  {
+    studyId: 4,
+    name: "React 스터디",
+    coverImage: "",
+    description: "React 기초부터 심화까지",
+    count: 289
+  },
+  {
+    studyId: 5,
+    name: "토익 900점 목표방",
+    coverImage: "",
+    description: "토익900점 가자아아앗",
+    count: 150
+  }
 ];
 
-const boardList = mockBoardList;
+
+const boardList = mockPopularPosts;
 const HomePage: React.FC = () => {
 
   //임시로 mockData 사용
@@ -27,10 +59,33 @@ const HomePage: React.FC = () => {
 
 
   // 스터디 페이지네이션
-  const [studyPage, setStudyPage] = useState(0);
   const studiesPerPage = 3;
   const studyPageCount = Math.ceil(studyList.length / studiesPerPage);
 
+  // 스터디 불러오기
+  //const [studyList, setStudyList] = useState([]);
+  const [studyPage, setStudyPage] = useState(0);
+  //const [studyPageCount, setStudyPageCount] = useState(0);
+
+  {/*연동 시 주석 풀기*/}
+  {/*useEffect(() => {
+    const fetchPopularStudies = async () => {
+      try {
+        const res = await getPopularStudies(studyPage);
+        if (res.success) {
+          setStudyList(res.data.studies);
+          setStudyPageCount(res.data.totalPages);
+        } else {
+          console.error('인기 스터디 조회 실패:', res.message);
+        }
+      } catch (error) {
+        console.error('인기 스터디 조회 중 오류 발생:', error);
+      }
+  };
+fetchPopularStudies();
+}, [studyPage]); */}
+
+const bgClasses = ['study-dark', 'study-gradient', 'study-gray'];
   
 
   const handlePlusClick = () => setIsMenuOpen(prev => !prev);
@@ -48,6 +103,8 @@ const HomePage: React.FC = () => {
     studyPage * studiesPerPage + studiesPerPage
   );
 
+  const navigate = useNavigate();
+
   return (
     <div className="homepage-content-wrapper">
 
@@ -55,7 +112,7 @@ const HomePage: React.FC = () => {
       <nav className="sub-navigation">
         <a href="/" className="nav-link-home-link">홈</a>
         <span className="nav-divider">|</span>
-        <a href="/study" className="nav-link">스터디</a>
+        <a href="/studies" className="nav-link">스터디</a>
         <span className="nav-divider">|</span>
         <a href="/board" className="nav-link">게시판</a>
       </nav>
@@ -96,7 +153,7 @@ const HomePage: React.FC = () => {
               </>
             )}
 
-            <input type="file" ref={fileInputRef} style={{display: "none"}} />
+            <input type="file" ref={fileInputRef} style={{display: "none"}}/>
           </div>
         </div>
       </div>
@@ -112,25 +169,28 @@ const HomePage: React.FC = () => {
         </div>
 
         <div className="popular-study-grid">
-          {paginatedStudies.map((item) => (
-            <div key={item.id} className={`study-card ${item.bg}`}>
-              {item.img && <img src={item.img} alt="" className="study-card-img" />}
-              <div className="study-card-content">
-                <h3 className="study-card-title">{item.title}</h3>
-                {item.desc && <p className="study-card-desc">{item.desc}</p>}
-                <div className="study-card-footer">
-                  <span className="study-card-count">{item.count.toLocaleString()} 명</span>
-                  <div className="study-card-arrow">
-                    {item.bg === 'study-dark' ? (
+          {paginatedStudies.map((item, index) => {
+            const bgClass = bgClasses[index % bgClasses.length];
+            return (
+              <div key={item.studyId} className={`study-card ${bgClass}`}>
+                {item.coverImage && <img src={item.coverImage} alt="" className="study-card-img" />}
+                <div className="study-card-content">
+                  <h3 className="study-card-title">{item.name}</h3>
+                    {item.description && <p className="study-card-desc">{item.description}</p>}
+                    <div className="study-card-footer">
+                      <span className="study-card-count">{item.count.toLocaleString()} 명</span>
+                      <div className="study-card-arrow">
+                      {bgClass === 'study-dark' ? (
                       <img src={GradientArrow} alt="gradient arrow" />
-                    ) : (
-                      <img src={BlackArrow} alt="black arrow" />
-                    )}
+                      ) : (
+                        <img src={BlackArrow} alt="black arrow" />
+                      )}
                   </div>
                 </div>
               </div>
             </div>
-          ))}
+          )
+          })}
         </div>
 
         {/* 스터디 페이지네이션 DOT */}
@@ -150,7 +210,9 @@ const HomePage: React.FC = () => {
       <div className="popular-board-container">
         <div className="popular-board-header">
           <h2 className="popular-board-title">인기 게시글</h2>
-          <button className="popular-board-more">더보기</button>
+          <button
+            className="popular-board-more"
+            onClick={() => navigate('/board')}>더보기</button>
         </div>
           <div className="popular-board-grid">
             {boardList.map(item => (
@@ -163,7 +225,7 @@ const HomePage: React.FC = () => {
                 <p className="board-content">{item.title}</p>
                 <span className="board-likes">
                   <img src = {CommentIcon} alt="댓글 아이콘" className="comment-icon-img"/>
-                  <span className="likes-count">{item.commentCount}</span>
+                  <span className="likes-count">{item.comment_count}</span>
                 </span>
               </div>
             ))}
