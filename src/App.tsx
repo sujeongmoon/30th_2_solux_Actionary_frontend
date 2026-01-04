@@ -7,6 +7,7 @@ import StudyPage from "./pages/StudyPage/StudyPage";
 import StudyCreatePage from "./pages/StudyCreatePage/StudyCreatePage";
 import StudyDetailPage from "./pages/StudyDetailPage/StudyDetailPage";
 import MyStudiesPage from "./pages/MyStudiesPage/MyStudiesPage";
+import StudyRoomPage from "./pages/StudyRoom/StudyRoomPage";
 import BoardListPage from "./pages/BoardPage/BoardListPage";
 import MyPagePublic from "./pages/MyPage/MyPagePulic";
 import BoardDetailPage from "./pages/BoardPage/BoardDetailPage";
@@ -16,6 +17,7 @@ import BoardEditPage from './pages/BoardPage/BoardEditPage';
 import { PostProvider } from './context/PostContext';
 import StudyTime from './pages/StudyTime/StudyTime';
 import RightSidebar from "./components/Sidebar/Sidebar";
+
 
 function App() {
   return (
@@ -33,6 +35,7 @@ function App() {
           <Route path="/studies/new" element={<StudyCreatePage />} />
           <Route path="/studies/:studyId" element={<StudyDetailPage />} />
           <Route path="/studies/my" element={<MyStudiesPage />} />
+          <Route path="/study-room/:studyId" element={<StudyRoomPage />} />
           <Route path= "/board" element={<BoardListPage />} />
           <Route path= "/board/:postId" element={<BoardDetailPage />} />
           <Route path= "/board/write" element={<BoardCreatePage />} />
