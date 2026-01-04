@@ -1,167 +1,399 @@
-:root{
-  --bg:#F8F8F6;
-  --white:#fff;
-  --black:#1A1A1A;
-  --n90:#E6E6E6;
-  --point1:#FA785B;
-  --point2:#FF3D7A;
-  --grad: linear-gradient(90deg, var(--point1), var(--point2));
-  --shadow: 0 10px 30px rgba(0,0,0,.08);
-}
-
 .studyPage{
-  background: var(--bg);
-  min-height: 100vh;
-  padding: 24px;
-  color: var(--black);
+  padding: 22px 24px 40px;
 }
 
-.studyTitle{
-  font-size: 22px;
-  font-weight: 800;
-  margin: 0 0 14px;
-}
-
-.hero{
-  height: 96px;
-  background: var(--grad);
-  border-radius: 24px;
-  box-shadow: var(--shadow);
+/* ===== Hero ===== */
+.studyHero{ margin-bottom: 18px; }
+.studyHeroCard{
+  border-radius: 18px;
+  padding: 22px 22px;
   display:flex;
-  flex-direction:column;
   align-items:center;
-  justify-content:center;
-  gap: 10px;
+  justify-content:space-between;
+  gap: 18px;
+  background: linear-gradient(90deg, #ff8a66, #f24678);
+  box-shadow: 0 18px 40px rgba(0,0,0,.12);
+  color: #fff;
 }
+.studyHeroKicker{ font-weight: 800; opacity: .95; }
+.studyHeroTitle{ font-size: 20px; font-weight: 900; margin-top: 6px; }
+.studyHeroSub{ opacity: .9; margin-top: 6px; }
 
-.heroPlus{
-  width: 44px; height: 44px;
-  border-radius: 50%;
-  border: none;
+.studyHeroPlus{
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  border: 0;
   background: rgba(255,255,255,.92);
+  color: #111;
   font-size: 26px;
+  font-weight: 900;
   cursor: pointer;
+  box-shadow: 0 10px 25px rgba(0,0,0,.18);
 }
+.studyHeroPlus:hover{ transform: translateY(-1px); }
 
-.heroText{
-  color: rgba(255,255,255,.9);
-  font-size: 13px;
+/* ===== Filters ===== */
+.studyFilters{ display:flex; flex-direction:column; gap: 10px; margin: 18px 0 14px; }
+
+.pillRow{ display:flex; gap: 10px; flex-wrap: wrap; }
+.pillRow.scroll{
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  padding-bottom: 6px;
 }
-
 .pill{
   border-radius: 999px;
-  padding: 9px 14px;
-  border: 1px solid var(--n90);
-  background: var(--white);
-  font-weight: 600;
-  font-size: 13px;
-  cursor:pointer;
+  padding: 10px 14px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: #fff;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
 }
-
 .pill.active{
-  background: var(--black);
-  color: var(--white);
-  border-color: transparent;
+  background:#111;
+  color:#fff;
+  border-color:#111;
 }
 
-.toolbar{
-  margin-top: 14px;
-  display:flex;
-  justify-content:space-between;
-  gap: 10px;
-  align-items:center;
+/* ===== Content ===== */
+.studyContent{ margin-top: 10px; }
+
+.state{
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,.08);
+  background: #fff;
+  padding: 16px;
+  font-weight: 700;
 }
+.state.error{ color: #e54848; }
+.state.empty{ color: rgba(0,0,0,.55); }
 
-.count{ font-size: 14px; opacity: .8; }
-.vis{ display:flex; gap: 8px; flex-wrap: wrap; }
-
-.cats{
-  margin-top: 10px;
-  display:flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.grid{
-  margin-top: 16px;
+/* ===== Grid ===== */
+.studyGrid{
   display:grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
 }
 
-.card{
+@media (max-width: 1200px){
+  .studyGrid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 900px){
+  .studyGrid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px){
+  .studyGrid{ grid-template-columns: repeat(1, minmax(0, 1fr)); }
+}
+
+/* ===== Card ===== */
+.studyCard{
   border-radius: 18px;
-  overflow:hidden;
-  background: var(--white);
-  box-shadow: var(--shadow);
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.08);
+  box-shadow: 0 14px 30px rgba(0,0,0,.08);
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+  min-height: 220px;
 }
+.studyCard:hover{ transform: translateY(-2px); }
 
-.thumb{
+/* image area */
+.studyThumb{
   position: relative;
   aspect-ratio: 1 / 1;
-  background: #EEE;
+  background: #eee;
 }
-
-.thumb img{
+.studyThumb img{
   width:100%;
   height:100%;
   object-fit: cover;
   display:block;
 }
-
-.ph{ width:100%; height:100%; background: #D9D9D9; }
-
-.overlay{
+.thumbFallback{
+  width:100%;
+  height:100%;
+  background: linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.12));
+}
+.thumbDim{
   position:absolute;
-  left: 10px; right: 10px; bottom: 10px;
-  background: rgba(26,26,26,.9);
-  color:#fff;
-  border-radius: 12px;
-  padding: 10px 12px;
-  font-weight: 800;
-  font-size: 14px;
+  inset:0;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,.35));
+}
+.thumbChips{
+  position:absolute;
+  left: 10px;
+  bottom: 10px;
+  display:flex;
+  gap: 8px;
 }
 
-.state{ margin-top: 18px; opacity:.7; }
+/* chips */
+.chip{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 12px;
+  line-height: 1;
+  border: 1px solid rgba(255,255,255,.35);
+  color: #fff;
+  background: rgba(0,0,0,.5);
+  backdrop-filter: blur(6px);
+}
+.chipPublic{ background: rgba(0,0,0,.72); }
+.chipPrivate{ background: rgba(0,0,0,.72); }
+.chipGhost{ background: rgba(255,255,255,.22); }
 
+/* bottom title bar (시안 느낌의 검은 라벨) */
+.studyBottomBar{
+  background: #111;
+  color: #fff;
+  padding: 12px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.studyName{
+  font-weight: 900;
+  font-size: 14px;
+  overflow:hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===== Pager ===== */
 .pager{
   margin-top: 18px;
   display:flex;
-  justify-content:center;
   align-items:center;
+  justify-content:center;
   gap: 10px;
 }
-
 .pageBtn{
-  width: 34px; height: 34px;
-  border-radius: 10px;
-  border: 1px solid var(--n90);
-  background: var(--white);
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: #fff;
   cursor:pointer;
+  font-weight: 900;
 }
-.pageNum{ font-size: 14px; opacity:.7; }
-
-.studyPage { outline: 6px solid red !important; }
-
-.studyPage .hero {
-  height: 96px !important;
-  background: linear-gradient(90deg, #FA785B, #FF3D7A) !important;
-  border-radius: 24px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  flex-direction: column !important;
-  gap: 10px !important;
+.pageNums{ display:flex; gap: 8px; }
+.pageNumBtn{
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: #fff;
+  cursor:pointer;
+  font-weight: 900;
 }
-
-.studyPage .pill {
-  border-radius: 999px !important;
-  padding: 9px 14px !important;
-  border: 1px solid #E6E6E6 !important;
-  background: #fff !important;
+.pageNumBtn.active{
+  background:#111;
+  color:#fff;
+  border-color:#111;
 }
 
-.studyPage .pill.active {
-  background: #1A1A1A !important;
-  color: #fff !important;
+.footMeta{
+  margin-top: 14px;
+  color: rgba(0,0,0,.6);
+  font-weight: 700;
+  text-align:center;
+}
+
+/* ===== Overlay ===== */
+.svmOverlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+/* ===== Modal box ===== */
+.svmModal{
+  width: min(900px, 92vw);
+  background: #fff;
+  border-radius: 28px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.35);
+  padding: 28px;
+  position: relative;
+}
+
+.svmKebab{
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,.08);
+  background: #fff;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.svmTop{
+  display: grid;
+  grid-template-columns: 240px 1fr auto;
+  gap: 22px;
+  align-items: start;
+}
+
+.svmImg{
+  width: 240px;
+  height: 240px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #eee;
+}
+.svmImg img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.svmImgFallback{ width:100%; height:100%; background:#ddd; }
+
+.svmInfo{ padding-top: 4px; }
+
+.svmChips{
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.svmChip{
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  border: 1px solid rgba(0,0,0,.12);
+}
+.svmChip.dark{
+  background: #222;
+  color: #fff;
+  border-color: #222;
+}
+.svmChip.light{
+  background: #f3f3f3;
+}
+
+.svmTitle{
+  font-size: 22px;
+  font-weight: 800;
+  margin: 6px 0 8px;
+}
+.svmDesc{
+  color: rgba(0,0,0,.55);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.svmStatRow{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.svmPill{
+  background: #222;
+  color: #fff;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-size: 12px;
+}
+.svmStat{ font-size: 13px; color: rgba(0,0,0,.7); }
+.svmStatAccent{ color: #ff5b6b; }
+
+.svmMainBtn{
+  width: 220px;
+  height: 44px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  color: #fff;
+  font-weight: 800;
+  background: linear-gradient(90deg, #f08a62, #f04f7d);
+  box-shadow: 0 12px 24px rgba(240,79,125,.25);
+}
+
+.svmHeart{
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: #fff;
+  cursor: pointer;
+  font-size: 22px;
+  margin-top: 10px;
+}
+
+/* ===== Ranking board ===== */
+.svmBoard{
+  margin-top: 22px;
+  border: 1px solid rgba(240,79,125,.55);
+  border-radius: 24px;
+  padding: 18px 18px 8px;
+}
+
+.svmBoardTitle{
+  width: fit-content;
+  margin: -34px auto 10px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 800;
+  background: linear-gradient(90deg, #f08a62, #f04f7d);
+}
+
+.svmTabs{
+  display: flex;
+  gap: 10px;
+  margin: 8px 0 10px;
+}
+.svmTab{
+  border: none;
+  background: transparent;
+  color: rgba(0,0,0,.45);
+  cursor: pointer;
+  font-weight: 700;
+}
+.svmTab.active{ color: #111; }
+
+.svmTableHead{
+  display: grid;
+  grid-template-columns: 70px 1fr 1fr 1fr;
+  gap: 10px;
+  background: #222;
+  color: #fff;
+  padding: 12px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.svmRow{
+  display: grid;
+  grid-template-columns: 70px 1fr 1fr 1fr;
+  gap: 10px;
+  padding: 14px 14px;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+  font-size: 13px;
+}
+
+.svmRank{ color: #ff5b6b; font-weight: 800; }
+
+/* 반응형 */
+@media (max-width: 820px){
+  .svmTop{ grid-template-columns: 1fr; }
+  .svmImg{ width: 100%; height: 220px; }
+  .svmMainBtn{ width: 100%; }
+  .svmHeart{ justify-self: end; }
 }

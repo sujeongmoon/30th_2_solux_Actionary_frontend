@@ -3,37 +3,24 @@ import "./Login.css";
 
 import Loginvector from '../../assets/login/LoginVector.svg';
 import LoginLogo from '../../assets/login/LoginLogo.svg';
-import LoginButton from '../../assets/login/LoginButton.svg';
-
-/* 더미 데이터 */
-const DUMMY_ACCOUNT = {
-  id: "user1234",
-  password: "password123",
-};
+import { useLogin } from "../../hooks/useLogin";
 
 const Login: React.FC = () => {
   const [loginId, setuserId] = useState("");
   const [password, setPassword] = useState("");
   const [focusedInput, setFocusedInput] = useState<"id" | "password" | null>(null);
   
-  /* 에러 메시지 상태 */
-  const [errorMessage, setErrorMessage] = useState("");
+  const { login, isLoading, errorMessage} = useLogin();
 
-  /* 로그인 더미 테스트 로직 */
-  const handleLogin = () => {
-    if (!loginId || !password) {
-      setErrorMessage("아이디와 비밀번호를  입력해주세요.");
-      return;
+  const handleLogin = async () => {
+    if (!loginId || !password) return;
+
+    try {
+      const data = await login({ loginId, password });
+      console.log("로그인 성공:", data);
+    } catch (err) {
+      console.log("로그인 실패", err);
     }
-
-    if (loginId === DUMMY_ACCOUNT.id && password === DUMMY_ACCOUNT.password) {
-      setErrorMessage("");
-      alert("로그인 성공!");
-    } else {
-      setErrorMessage("아이디 또는 비밀번호가 틀렸습니다.");
-    }
-
-    
   };
 
   return (
@@ -78,10 +65,11 @@ const Login: React.FC = () => {
           </div>
 
           {/* 로그인 버튼 */}
-          <div className="login-button-wrapper" onClick={handleLogin}>
-            <img src={LoginButton} alt="로그인 버튼" />
-            <span>로그인</span>
-          </div>
+          <button className="login-button" onClick={handleLogin} disabled={isLoading}> 
+            로그인 </button>
+
+          {/* 로그인 진행 메시지*/}
+          {isLoading && <p className="loading-message"> 로그인 진행 중입니다 </p>}
 
           {/* 에러 메시지 */}
           {errorMessage && (<p className="error-message">{errorMessage}</p>)}
