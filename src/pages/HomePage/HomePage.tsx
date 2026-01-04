@@ -84,15 +84,24 @@ const HomePage: React.FC = () => {
   };
 fetchPopularStudies();
 }, [studyPage]); */}
-
+const [selectedFileName, setSelectedFileName] = useState<string>("");
 const bgClasses = ['study-dark', 'study-gradient', 'study-gray'];
-  
+const handlePlusClick = () => setIsMenuOpen(prev => !prev);
+const handleCloseMenu = () => setIsMenuOpen(false);
 
-  const handlePlusClick = () => setIsMenuOpen(prev => !prev);
-  const handleCloseMenu = () => setIsMenuOpen(false);
   const handleOpenFilePicker = () => {
-    if (fileInputRef.current) fileInputRef.current.click();
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
     handleCloseMenu();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setSelectedFileName(e.target.files[0].name);
+    } else {
+      setSelectedFileName("");
+    }
   };
 
   const handleStudyPageClick = (pageIndex: number) => setStudyPage(pageIndex);
@@ -139,7 +148,7 @@ const bgClasses = ['study-dark', 'study-gradient', 'study-gray'];
 
           <div className="ai-input-box">
             <div className="plus-button" onClick={handlePlusClick}>+</div>
-            <input className="ai-input" placeholder="| ex) 파일을 요약해줘" />
+            <input className="ai-input" placeholder="| ex) 파일을 요약해줘" value={selectedFileName} readOnly />
             <button className="search-button">
               <img src={SearchIcon} alt="search" />
             </button>
@@ -153,7 +162,7 @@ const bgClasses = ['study-dark', 'study-gradient', 'study-gray'];
               </>
             )}
 
-            <input type="file" ref={fileInputRef} style={{display: "none"}}/>
+            <input type="file" ref={fileInputRef} style={{display: "none"}} onChange={handleFileChange}/>
           </div>
         </div>
       </div>
