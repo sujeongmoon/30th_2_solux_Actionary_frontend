@@ -17,6 +17,7 @@ import BoardEditPage from './pages/BoardPage/BoardEditPage';
 import { PostProvider } from './context/PostContext';
 import StudyTime from './pages/StudyTime/StudyTime';
 import RightSidebar from "./components/Sidebar/Sidebar";
+import ChatRoom from './pages/ChatRoom/ChatRoom';
 
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
           <Route path= "/board/write" element={<BoardCreatePage />} />
           <Route path= "/board/edit/:postId" element={<BoardEditPage />} />
           <Route path = "/studyTime" element={<StudyTime />} />
+          <Route path = "/chatroom" element={<ChatRoom />} />
         </Route>
 
         {/* Navbar 없는 레이아웃 */}
