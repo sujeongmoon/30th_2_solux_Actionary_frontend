@@ -1,5 +1,5 @@
 import { api } from '../client';
-
+import { type SummaryListResponse } from '../../types/aiSummary';
 /* ================= 타입 ================= */
 
 export type SummaryStatus =
@@ -68,3 +68,16 @@ export const summarizeUrl = (sourceUrl: string) => {
 export const getSummaryJob = (jobId: string) => {
   return api.get<SummaryJobResponse>(`/api/ai-summary/${jobId}`);
 };
+
+// 목록 조회
+export const getSummaryList = (params?: {
+  page?: number;
+  size?: number;
+  status?: string;
+  sourceType?: string;
+}) => {
+  return api.get<SummaryListResponse>('/api/ai-summary', {
+    params,
+  });
+};
+

@@ -8,7 +8,9 @@ import {
   summarizeFile,
   summarizeUrl,
   getSummaryJob,
+  getSummaryList,
 } from '../../api/ai/aiSummaryApi';
+import type { SummaryListItem } from '../../types/aiSummary';
 
 type Message = {
   id: string;
@@ -17,22 +19,17 @@ type Message = {
 };
 
 const ChatBotUI = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    { id: crypto.randomUUID(), text: '이거 파일 요약 좀 해줘', type: 'user' },
-    { id: crypto.randomUUID(), text: '파일을 요약해드립니다.', type: 'bot' },
-  ]);
-
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [showFileMenu, setShowFileMenu] = useState(false);
-  const [selectedChapter, setSelectedChapter] = useState<number | null>(null);
+  const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
+  const [summaryList, setSummaryList] = useState<SummaryListItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pollingRef = useRef<number | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
-
-  const chapters = Array(12).fill('족보 풀이 요청');
 
   /* -------------------- 자동 스크롤 -------------------- */
   useEffect(() => {
@@ -40,43 +37,47 @@ const ChatBotUI = () => {
   }, [messages]);
 
   /* -------------------- 폴링 -------------------- */
-  
   const startPolling = (jobId: string) => {
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-    }
+    if (pollingRef.current) clearInterval(pollingRef.current);
 
     pollingRef.current = window.setInterval(async () => {
       try {
         const res = await getSummaryJob(jobId);
-        const status = res.data.data.status;
+        const data = res.data.data;
 
-        if (status === 'SUCCEEDED') {
+        if (data.status === 'SUCCEEDED') {
           clearInterval(pollingRef.current!);
           setIsLoading(false);
-
           setMessages(prev => [
             ...prev,
-            {
-              id: crypto.randomUUID(),
-              text: res.data.data.summary,
-              type: 'bot',
-            },
+            { id: crypto.randomUUID(), text: data.summary, type: 'bot' },
           ]);
-        }
-
-        if (status === 'FAILED') {
+        } else if (data.status === 'FAILED') {
           clearInterval(pollingRef.current!);
           setIsLoading(false);
-
           setMessages(prev => [
             ...prev,
-            {
-              id: crypto.randomUUID(),
-              text: '요약에 실패했습니다.',
-              type: 'bot',
-            },
+            { id: crypto.randomUUID(), text: data.error.message, type: 'bot' },
           ]);
+        } else if (data.status === 'PENDING' || data.status === 'RUNNING') {
+          // 이미 "문서를 요약 중입니다..."가 있으면 업데이트
+          setMessages(prev => {
+            const lastMessage = prev[prev.length - 1];
+            if (lastMessage?.text.startsWith('문서를 요약 중입니다...')) {
+              const newMessages = [...prev];
+              newMessages[newMessages.length - 1] = {
+                ...lastMessage,
+                text: `문서를 요약 중입니다... (${data.status})`,
+                type: 'bot',
+              };
+              return newMessages;
+            } else {
+              return [
+                ...prev,
+                { id: crypto.randomUUID(), text: `문서를 요약 중입니다... (${data.status})`, type: 'bot' },
+              ];
+            }
+          });
         }
       } catch {
         clearInterval(pollingRef.current!);
@@ -99,64 +100,49 @@ const ChatBotUI = () => {
     const file = selectedFile;
     const text = inputText;
 
-    setMessages(prev => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        text: file ? file.name : text,
-        type: 'user',
-      },
-    ]);
+    // 유저 메시지 한 번만 추가
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      text: file ? file.name : text,
+      type: 'user',
+    };
+    setMessages(prev => [...prev, userMessage]);
 
     setInputText('');
     setSelectedFile(null);
     setIsLoading(true);
 
     try {
-      const res = file
-        ? await summarizeFile(file)
-        : await summarizeUrl(text);
+      const res = file ? await summarizeFile(file) : await summarizeUrl(text);
+      const data = res.data.data;
 
-      if (res.status === 200) {
+      if (res.status === 200 && data.status === 'SUCCEEDED') {
+        const botMessage: Message = {
+          id: crypto.randomUUID(),
+          text: data.summary,
+          type: 'bot',
+        };
+        setMessages(prev => [...prev, botMessage]);
         setIsLoading(false);
-        setMessages(prev => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            text: res.data.data.summary,
-            type: 'bot',
-          },
-        ]);
-      }
-
-      if (res.status === 202) {
-        setMessages(prev => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            text: '문서를 요약 중입니다...',
-            type: 'bot',
-          },
-        ]);
-
-        startPolling(res.data.data.jobId);
+      } else if (res.status === 202) {
+        const pendingMessage: Message = {
+          id: crypto.randomUUID(),
+          text: '문서를 요약 중입니다...',
+          type: 'bot',
+        };
+        setMessages(prev => [...prev, pendingMessage]);
+        startPolling(data.jobId);
       }
     } catch (err: unknown) {
-        let errorMessage = "요약 중 오류가 발생했습니다.";
-
-        if (err instanceof Error) {
-            errorMessage = err.message;
-        }
-
+      let errorMessage = '요약 중 오류가 발생했습니다.';
+      if (err instanceof Error) errorMessage = err.message;
+      const botMessage: Message = {
+        id: crypto.randomUUID(),
+        text: errorMessage,
+        type: 'bot',
+      };
+      setMessages(prev => [...prev, botMessage]);
       setIsLoading(false);
-      setMessages(prev => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          text: errorMessage,
-          type: 'bot',
-        },
-      ]);
     }
   };
 
@@ -164,7 +150,6 @@ const ChatBotUI = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setSelectedFile(file);
     setShowFileMenu(false);
     e.target.value = '';
@@ -175,26 +160,73 @@ const ChatBotUI = () => {
     setShowFileMenu(false);
   };
 
+  /* -------------------- 요약 목록 -------------------- */
+  useEffect(() => {
+    const fetchSummaryList = async () => {
+      try {
+        const res = await getSummaryList();
+        setSummaryList(res.data.data.content);
+      } catch (e) {
+        console.error('요약 목록 조회 실패', e);
+      }
+    };
+    fetchSummaryList();
+  }, []);
+
+  /* -------------------- 상세 조회 -------------------- */
+  const handleSelectChapter = async (jobId: string) => {
+    setSelectedChapter(jobId);
+    setIsLoading(true);
+    try {
+      const res = await getSummaryJob(jobId);
+      const data = res.data.data;
+
+      if (data.status === 'SUCCEEDED') {
+        setMessages([{ id: crypto.randomUUID(), text: data.summary, type: 'bot' }]);
+      } else if (data.status === 'FAILED') {
+        setMessages([{ id: crypto.randomUUID(), text: data.error.message, type: 'bot' }]);
+      }
+    } catch (e) {
+      console.error('요약 상세 조회 실패', e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /* -------------------- 새로운 대화 -------------------- */
+  const handleNewConversation = () => {
+    setMessages([]);
+    setSelectedChapter(null);
+    setSelectedFile(null);
+    setInputText('');
+  };
+
   /* -------------------- UI -------------------- */
   return (
     <div className="chatbot-wrapper">
       {/* 사이드바 */}
       <div className="chatbot-sidebar">
         <div className="chat-sidebar-header">
-          <img src={chatPencil} alt="연필" className="chat-pencil" />
+          <img
+            src={chatPencil}
+            alt="연필"
+            className="chat-pencil"
+            onClick={handleNewConversation}
+          />
           <span>채팅 요약</span>
         </div>
 
         <div className="chapter-list">
-          {chapters.map((chapter, idx) => (
+          {summaryList.map(item => (
             <div
-              key={idx}
-              className={`chapter-item ${
-                selectedChapter === idx ? 'selected' : ''
-              }`}
-              onClick={() => setSelectedChapter(idx)}
+              key={item.jobId}
+              className={`chapter-item ${selectedChapter === item.jobId ? 'selected' : ''}`}
+              onClick={() => handleSelectChapter(item.jobId)}
             >
-              {chapter}
+              <div className="chapter-title">{item.title}</div>
+              <div className={`chapter-status ${item.status.toLowerCase()}`}>
+                {item.status}
+              </div>
             </div>
           ))}
         </div>
@@ -204,17 +236,10 @@ const ChatBotUI = () => {
       <div className="chatbot-main">
         <div className="chat-messages">
           {messages.map(msg => (
-            <div
-              key={msg.id}
-              className={`message-wrapper ${msg.type}-message`}
-            >
-              {msg.type === 'bot' && (
-                <img src={bot} alt="bot" className="bot-avatar" />
-              )}
+            <div key={msg.id} className={`message-wrapper ${msg.type}-message`}>
+              {msg.type === 'bot' && <img src={bot} alt="bot" className="bot-avatar" />}
               <div className="message-bubble">{msg.text}</div>
-              {msg.type === 'user' && (
-                <img src={user} alt="user" className="user-avatar" />
-              )}
+              {msg.type === 'user' && <img src={user} alt="user" className="user-avatar" />}
             </div>
           ))}
           <div ref={bottomRef} />
@@ -234,56 +259,33 @@ const ChatBotUI = () => {
               <input
                 type="text"
                 value={selectedFile ? selectedFile.name : inputText}
-                onChange={e =>
-                  !selectedFile && setInputText(e.target.value)
-                }
-                placeholder={
-                  selectedFile
-                    ? '📄 파일 요약 모드'
-                    : '| 요약할 URL을 입력하세요'
-                }
+                onChange={e => !selectedFile && setInputText(e.target.value)}
+                placeholder={selectedFile ? '📄 파일 요약 모드' : '| 요약할 URL을 입력하세요'}
                 className="chat-text-input"
                 readOnly={!!selectedFile}
                 onKeyDown={e => e.key === 'Enter' && handleSend()}
               />
 
               {selectedFile && (
-                <button
-                  className="clear-file-btn"
-                  onClick={() => setSelectedFile(null)}
-                >
+                <button className="clear-file-btn" onClick={() => setSelectedFile(null)}>
                   ✕
                 </button>
               )}
 
-              <button
-                className="chat-send-button"
-                onClick={handleSend}
-                disabled={isLoading}
-              >
-                <img src={gradientArrow} alt="send" />
+              <button className="chat-send-button" onClick={handleSend} disabled={isLoading}>
+                <img src={gradientArrow} alt="chat-send-arrow" className="chat-send-arrow" />
               </button>
 
               {showFileMenu && (
                 <>
-                  <div
-                    className="chat-file-menu-overlay"
-                    onClick={() => setShowFileMenu(false)}
-                  />
+                  <div className="chat-file-menu-overlay" onClick={() => setShowFileMenu(false)} />
                   <div className="chat-file-menu">
-                    <button onClick={openFilePicker}>
-                      사진 및 파일 추가
-                    </button>
+                    <button onClick={openFilePicker}>사진 및 파일 추가</button>
                   </div>
                 </>
               )}
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="chat-hidden-input"
-                onChange={handleFileChange}
-              />
+              <input ref={fileInputRef} type="file" className="chat-hidden-input" onChange={handleFileChange} />
             </div>
           </div>
         </div>
