@@ -11,12 +11,12 @@ const Signup: React.FC = () => {
   const { signupUser, isLoading, errorMessage} = useSignup();
   const navigate = useNavigate();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-
+  /* 프로필 이미지 */
   const [profileFile, setProfileFile] = useState<File | null>(null);
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
-
+  /* 폼 데이터 */
   const [form, setForm] = useState({
-    profile_image_url: "",
+    
     loginId: "",
     password: "",
     phoneNumber: "",
@@ -25,37 +25,46 @@ const Signup: React.FC = () => {
     birthday: "",
   });
 
+  /* 입력값 변경 */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value}));
   };
 
+    /* 프로필 이미지 업로드 */
   const handleProfileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (profilePreview) {
+      URL.revokeObjectURL(profilePreview);
+    }
     
     setProfileFile(file);
-    const previewUrl = URL.createObjectURL(file);
-
-    // 실제 서버 전송용 (지금은 URL로 처리)
-    setProfilePreview(previewUrl);
-    setForm ({
-      ...form,
-      profile_image_url: previewUrl,
-    });
-  }; 
+    setProfilePreview(URL.createObjectURL(file));
+  };
 
   /* 회원가입 */
-  const handleSginup = async () => {
+  const handleSignup = async () => {
     try {
       const formData = new FormData();
       if (profileFile) {
         formData.append("profile_image", profileFile);
       }
 
-      await signupUser(form);
+      formData.append("loginId", form.loginId);
+      formData.append("password", form.password);
+      formData.append("phoneNumber", form.phoneNumber);
+      formData.append("email", form.email);
+      formData.append("name", form.name);
+      formData.append("birthday", form.birthday);
+
+      await signupUser(formData);
 
       navigate("/signup-complete");
-    } catch {}
+    } catch (error) {
+      console.error("회원가입 실패:", error);
+    }
   };
 
   return (
@@ -82,7 +91,7 @@ const Signup: React.FC = () => {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/"
+            accept="image/*"
             hidden
             onChange={handleProfileUpload}
           />
@@ -145,7 +154,7 @@ const Signup: React.FC = () => {
         </div>
 
         {/* 회원가입 버튼 */}
-        <button className="signup-button" onClick={handleSginup} disabled={isLoading}>
+        <button className="signup-button" onClick={handleSignup} disabled={isLoading}>
           회원가입
         </button>
 

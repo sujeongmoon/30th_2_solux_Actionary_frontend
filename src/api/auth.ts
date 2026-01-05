@@ -32,9 +32,14 @@ export interface SignupResponse {
 
 /* 회원가입 */
 export const signup = async (
-  body: SignupRequest
+  body: FormData
 ): Promise<SignupResponse> => {
-  const response = await api.post<SignupResponse>("/auth/signup", body);
-  return response.data;
+  const response = await api.post<SignupResponse>(
+    "/auth/signup", body,
+    { headers: { "Content-Type": "multipart/form-data"},
+  }
+  );
+  return response.data
 };
+
 
