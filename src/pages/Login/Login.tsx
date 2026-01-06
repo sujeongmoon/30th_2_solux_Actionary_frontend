@@ -4,6 +4,7 @@ import "./Login.css";
 import Loginvector from '../../assets/login/LoginVector.svg';
 import LoginLogo from '../../assets/login/LoginLogo.svg';
 import { useLogin } from "../../hooks/useLogin";
+import { useNavigate } from "react-router-dom";
 
 const Login: React.FC = () => {
   const [loginId, setuserId] = useState("");
@@ -11,6 +12,8 @@ const Login: React.FC = () => {
   const [focusedInput, setFocusedInput] = useState<"id" | "password" | null>(null);
   
   const { login, isLoading, errorMessage} = useLogin();
+
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     if (!loginId || !password) return;
@@ -75,7 +78,8 @@ const Login: React.FC = () => {
           {errorMessage && (<p className="error-message">{errorMessage}</p>)}
 
           {/* 회원가입 텍스트 버튼*/}
-          <p className="signup-text">회원가입</p>
+          <p className="signup-text" 
+          onClick={() => navigate("/signup")}>회원가입</p>
         </div>
       </div>
     </div>

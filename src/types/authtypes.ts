@@ -4,9 +4,9 @@ export interface LoginRequest {
 }
 
 export interface AuthResponseData {
-  memberId: string;
+  memberId: number;
   nickname: string;
-  profileImageUrl: string;
+  profileImageUrl?: string;
   accessToken: string;
   refreshToken: string;
 }

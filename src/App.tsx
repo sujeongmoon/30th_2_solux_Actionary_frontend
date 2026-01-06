@@ -17,6 +17,8 @@ import BoardEditPage from './pages/BoardPage/BoardEditPage';
 import { PostProvider } from './context/PostContext';
 import StudyTime from './pages/StudyTime/StudyTime';
 import RightSidebar from "./components/Sidebar/Sidebar";
+import Signup from "./pages/Siginup/Signup";
+import SignupComplete from "./pages/Siginup/SignupComplete";
 
 
 function App() {
@@ -47,6 +49,8 @@ function App() {
         <Route element = {<EmptyLayout />}>
           {/*로그인, 회원가입 등 상단바 없으면 이쪽에 넣으시면 됩니다.*/}
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/signup/complete" element={<SignupComplete />} />
         </Route>
       </Routes>
 
