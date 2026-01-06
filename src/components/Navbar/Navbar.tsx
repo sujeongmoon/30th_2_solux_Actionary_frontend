@@ -2,15 +2,23 @@ import React from "react";
 import { useNavigate} from "react-router-dom";
 import './Navbar.css';
 import Searchbar from "./Searchbar";
+
 import Nlogo from '../../assets/navbar/Nlogo.svg';
-import ProfileCircle from '../../assets/navbar/ProfileCircle.svg';
 import ProfilePerson from '../../assets/navbar/ProfilePerson.svg';
 
 const Navbar = () => {
   const navigate = useNavigate();
   
-  //나중에 auth 상태로 교체
-  const isLoggedIn = false; 
+  const isLoggedIn = Boolean(localStorage.getItem("accessToken"));
+  const profileImageUrl: string | null = null;
+  //const profileImageUrl = user?.profileImageUrl ?? null;
+
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("profileImageUrl");
+    navigate("/");
+  }
 
   return (
     <nav className="navbar">
@@ -24,16 +32,26 @@ const Navbar = () => {
       <div className="navbar-actions">
         {!isLoggedIn ? (
           <>
-            <button onClick={() => navigate("/login")}>로그인</button>
-            <button onClick={() => navigate("/signup")}>회원가입</button>
+            <button className="nav-btn" onClick={() => navigate("/login")}>로그인</button>
+            <button className="nav-btn" onClick={() => navigate("/signup")}>회원가입</button>
           </>
         ) : (
-          <button> 로그아웃</button>
+          <button className="nav-btn" onClick={handleLogout}> 로그아웃</button>
         )}
 
         {/* 프로필 */}
-        <div className="navbar-profile" onClick={() => navigate("/mypage")}>
-          <img src={ProfilePerson} alt="프로필 아이콘" className="profile-person" />
+        <div 
+          className={`profile-circle ${
+            profileImageUrl ? "has-image" : ""
+          }`}
+          onClick={() => navigate("/mypage")}>
+            {profileImageUrl ? (
+              <img src={profileImageUrl} alt="프로필" className="profile-image"/>
+            ):(
+              <div className="profile-default">
+                <img src={ProfilePerson} alt="프로필 아이콘" className="profile-person" />
+              </div>
+            )}
         </div>
       </div>
     </nav>
