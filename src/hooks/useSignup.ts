@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { signup } from "../api/auth.ts";
+import { signup } from "../api/auth";
+import type { SignupResponse } from "../api/auth";
+
 
 export const useSignup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const signupUser = async (body: FormData) => {
+  const signupUser = async (body: FormData) : Promise<SignupResponse> => {
     try {
       setIsLoading(true);
       setErrorMessage(null);

@@ -36,13 +36,13 @@ const Signup: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (profilePreview) {
-      URL.revokeObjectURL(profilePreview);
-    }
+    if (profilePreview) URL.revokeObjectURL(profilePreview);
+    
     
     setProfileFile(file);
     setProfilePreview(URL.createObjectURL(file));
-  };
+  }; 
+  
 
   /* 회원가입 */
   const handleSignup = async () => {
@@ -60,7 +60,7 @@ const Signup: React.FC = () => {
       formData.append("birthday", form.birthday);
 
       await signupUser(formData);
-
+      
       navigate("/signup-complete");
     } catch (error) {
       console.error("회원가입 실패:", error);

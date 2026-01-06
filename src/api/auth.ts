@@ -1,10 +1,24 @@
-import api from "axios";
+import api from "../api/client"
 import  type { LoginRequest, AuthResponse } from "../types/authtypes";
 
 /* 로그인 */
 export const loginApi = async (body: LoginRequest) : Promise<AuthResponse> => {
   const response = await api.post<AuthResponse>("/auth/login", body);
   return response.data;
+}; 
+
+/* refresh 응답 타입 */
+export interface RefreshResponse {
+  success: boolean;
+  message: string;
+  data: {
+    accessToken: string;
+  };
+}
+
+/* 토큰 재발급 */
+export const refreshTokenApi = (refresh: string) => {
+  return api.post<RefreshResponse>("/auth/refresh", { refresh });
 };
 
 /* ==== 회원가입 ====*/
@@ -41,5 +55,3 @@ export const signup = async (
   );
   return response.data
 };
-
-
