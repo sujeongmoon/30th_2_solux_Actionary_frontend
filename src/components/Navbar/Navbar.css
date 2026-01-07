@@ -49,8 +49,24 @@
 
 /* 프로필 */
 .navbar-profile {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  overflow: hidden;
 }
+
+/* 프로필 동그라미 */
+.nav-proifle-circle {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+
+}
+
 
 /* 검정 동그라미 */
 .profile-default {
