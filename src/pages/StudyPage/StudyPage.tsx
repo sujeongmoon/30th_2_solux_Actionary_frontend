@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getStudies } from "../../api/studies";
 import "./StudyPage.css";
-import StudyViewModal, { type StudyViewData } from "../StudyDetailPage/StudyViewModal";
+import StudyViewModal from "../StudyDetailPage/StudyViewModal";
 
 /** ===== 명세 기준(추후 API 연동) =====
  * GET /api/studies?visibility={public/private}&category={category}&page={pageNumber}
@@ -35,6 +35,7 @@ type StudyListItem = {
   studyId: number;
   studyName: string;
   coverImage?: string | null;
+  isPublic: boolean;
 };
 
 type StudiesListResponse = {
@@ -59,19 +60,19 @@ function buildPageNumbers(current: number, totalPages: number, maxButtons = 5) {
   return pages;
 }
 
-/** ✅ API 아직이면 이거 true로 두면 됨 */
+/** API 아직이면 이거 true로 두면 됨 */
 const USE_MOCK = true;
 
 /** 목업 데이터(이미지는 아무 url 써도 됨 / 없으면 회색 박스) */
 const MOCK_ITEMS: StudyListItem[] = [
-  { studyId: 1, studyName: "같이 공부해요", coverImage: "https://picsum.photos/seed/study1/600/600" },
-  { studyId: 2, studyName: "공무원 한국사", coverImage: "https://picsum.photos/seed/study2/600/600" },
-  { studyId: 3, studyName: "토익 900+", coverImage: "https://picsum.photos/seed/study3/600/600" },
-  { studyId: 4, studyName: "자격증 스터디", coverImage: null },
-  { studyId: 5, studyName: "임용 오전반", coverImage: "https://picsum.photos/seed/study5/600/600" },
-  { studyId: 6, studyName: "취업 코테", coverImage: "https://picsum.photos/seed/study6/600/600" },
-  { studyId: 7, studyName: "수능 국어", coverImage: null },
-  { studyId: 8, studyName: "기타 모임", coverImage: "https://picsum.photos/seed/study8/600/600" },
+  { studyId: 1, studyName: "같이 공부해요", coverImage: "https://picsum.photos/seed/study1/600/600",isPublic: true, },
+  { studyId: 2, studyName: "공무원 한국사", coverImage: "https://picsum.photos/seed/study2/600/600",isPublic: true, },
+  { studyId: 3, studyName: "토익 900+", coverImage: "https://picsum.photos/seed/study3/600/600",isPublic: true, },
+  { studyId: 4, studyName: "자격증 스터디", coverImage: null,isPublic: true, },
+  { studyId: 5, studyName: "임용 오전반", coverImage: "https://picsum.photos/seed/study5/600/600",isPublic: false, },
+  { studyId: 6, studyName: "취업 코테", coverImage: "https://picsum.photos/seed/study6/600/600", isPublic: false, },
+  { studyId: 7, studyName: "수능 국어", coverImage: null, isPublic: false, },
+  { studyId: 8, studyName: "기타 모임", coverImage: "https://picsum.photos/seed/study8/600/600",isPublic: false,},
 ];
 
 export default function StudyPage() {
@@ -81,7 +82,9 @@ export default function StudyPage() {
   const [visibility, setVisibility] = useState<VisibilityParam>("public");
   const [categoryLabel, setCategoryLabel] = useState<string>("전체");
   const [category, setCategory] = useState<CategoryEnum | undefined>(undefined);
-  const [selected, setSelected] = useState<StudyListItem | null>(null);
+
+  // 모달은 studyId만 넘김
+  const [selectedStudyId, setSelectedStudyId] = useState<number | null>(null);
 
   // UI는 1-based
   const [page, setPage] = useState(1);
@@ -112,21 +115,25 @@ export default function StudyPage() {
     setLoading(true);
     setErrorMsg(null);
 
-    // ✅ 목업이면 API 안 타고 UI만 확인
+    // 목업이면 API 안 타고 UI만 확인
     if (USE_MOCK) {
+      const filtered = MOCK_ITEMS.filter((item) =>
+        visibility === "public" ? item.isPublic : !item.isPublic
+      );
+    
       const fakeSize = 8;
-      const fakeTotalElements = MOCK_ITEMS.length;
+      const fakeTotalElements = filtered.length;
       const fakeTotalPages = Math.max(1, Math.ceil(fakeTotalElements / fakeSize));
       const start = (page - 1) * fakeSize;
-      const sliced = MOCK_ITEMS.slice(start, start + fakeSize);
-
-      setItems(sliced);
+    
+      setItems(filtered.slice(start, start + fakeSize));
       setTotalElements(fakeTotalElements);
       setTotalPages(fakeTotalPages);
       setSize(fakeSize);
       setLoading(false);
-      return () => {};
+      return;
     }
+    
 
     const params: { visibility: VisibilityParam; category?: CategoryEnum; page: number } = {
       visibility,
@@ -175,7 +182,12 @@ export default function StudyPage() {
             <div className="studyHeroSub">관심 있는 분야의 스터디를 찾아 참여할 수도 있어요.</div>
           </div>
 
-          <button className="studyHeroPlus" type="button" onClick={() => navigate("/studies/new")} aria-label="스터디 만들기">
+          <button
+            className="studyHeroPlus"
+            type="button"
+            onClick={() => navigate("/studies/new")}
+            aria-label="스터디 만들기"
+          >
             +
           </button>
         </div>
@@ -226,7 +238,7 @@ export default function StudyPage() {
               <article
                 key={s.studyId}
                 className="studyCard"
-                onClick={() => setSelected(s)}
+                onClick={() => setSelectedStudyId(s.studyId)}
                 role="button"
                 tabIndex={0}
               >
@@ -234,9 +246,9 @@ export default function StudyPage() {
                   {s.coverImage ? <img src={s.coverImage} alt="" /> : <div className="thumbFallback" />}
                   <div className="thumbDim" />
                   <div className="thumbChips">
-                    <span className={`chip ${visibility === "private" ? "chipPrivate" : "chipPublic"}`}>
-                      {visibility === "public" ? "공개" : "비공개"}
-                    </span>
+                  <span className={`chip ${s.isPublic ? "chipPublic" : "chipPrivate"}`}>
+                    {s.isPublic ? "공개" : "비공개"}
+                </span>
                     <span className="chip chipGhost">{categoryLabel}</span>
                   </div>
                 </div>
@@ -253,7 +265,12 @@ export default function StudyPage() {
 
       {/* 페이지네이션 */}
       <div className="pager">
-        <button className="pageBtn" type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1 || loading}>
+        <button
+          className="pageBtn"
+          type="button"
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          disabled={page <= 1 || loading}
+        >
           ‹
         </button>
 
@@ -276,37 +293,16 @@ export default function StudyPage() {
         </button>
       </div>
 
-      <div className="footMeta">
-        총 {totalElements}개 · pageSize {size}
-      </div>
-      {selected && (
-  <StudyViewModal
-    open={!!selected}
-    onClose={() => setSelected(null)}
-    data={{
-      studyId: selected.studyId,
-      studyName: selected.studyName,
-      coverImage: selected.coverImage ?? null,
+      <div className="footMeta">총 {totalElements}개 · pageSize {size}</div>
 
-      // ✅ 일단 목업으로 (API 붙이면 여기 데이터만 바꾸면 됨)
-      categoryLabel,
-      isPublic: visibility === "public",
-
-      liveCount: 5,     // 예: 실시간 참여 인원
-      memberLimit: 15,  // 예: 제한 인원
-      liked: false,
-      description: "설명설명설명설명설명설명설명",
-      rankingDaily: [
-        { rank: 1, nickname: "눈송이", time: "—시간:—분" },
-        { rank: 2, nickname: "눈송이", time: "—시간:—분" },
-      ],
-      rankingTotal: [
-        { rank: 1, nickname: "눈송이", time: "—시간:—분" },
-        { rank: 2, nickname: "눈송이", time: "—시간:—분" },
-      ],
-    }}
-  />
-)}
+      {/* 모달: studyId만 넘김 */}
+      {selectedStudyId !== null && (
+        <StudyViewModal
+          open={selectedStudyId !== null}
+          onClose={() => setSelectedStudyId(null)}
+          studyId={selectedStudyId}
+        />
+      )}
     </div>
   );
 }
