@@ -1,9 +1,10 @@
-import React, { useState} from "react";
+import React, { useState } from "react";
 import './Searchbar.css';
 
-import SerchIcon from '../../assets/navbar/SearchIcon.svg';
+import SearchIcon from '../../assets/navbar/SearchIcon.svg';
+import Dropdown from '../../assets/Navbar/dropdown.svg';
 
-type Category = "전체" | "게시글" | "스터디";
+type Category = "전체" | "게시물" | "스터디";
 
 const Searchbar = () => {
   const [category, setCategory] = useState<Category>("전체");
@@ -12,19 +13,22 @@ const Searchbar = () => {
 
   return (
     <div className="searchbar">
-      {/* 카테고리 선택 */}
-      <div className="serch-category" onClick={() => setOpen(!open)}>
-        <button onClick={() => setOpen(!open)}>
-          {category} ▼
+      {/* 카테고리 */}
+      <div className="search-category">
+        <button 
+          className={`search-category-btn ${open ? "open" : ""}`}
+          onClick={() => setOpen(!open)}> 
+          <span>{category}</span>
+          <img src={Dropdown} alt="화살표" className="dropdown-icon" />
         </button>
 
         {open && (
           <ul className="search-dropdown">
-            {["전체", "게시글", "스터디"].map((item) => (
+            {(["전체", "게시글", "스터디"] as Category[]).map((item) => (
               <li
                 key={item}
                 onClick={() => {
-                  setCategory(item as Category);
+                  setCategory(item);
                   setOpen(false);
                 }}
               >
@@ -37,14 +41,16 @@ const Searchbar = () => {
 
       {/* 검색 입력 */}
       <input
-      value={keyword}
-      onChange={(e) => setKeyword(e.target.value)}
-      type="text"
+        className="search-input"
+        value={keyword}
+        onChange={(e) => setKeyword(e.target.value)}
+        type="text"
+        placeholder="| 검색어를 입력하세요"
       />
 
       {/* 검색 아이콘 */}
       <button className={"search-button"}>
-        <img src={SerchIcon} alt="검색" />
+        <img src={SearchIcon} alt="검색" />
       </button>
     </div>
   );

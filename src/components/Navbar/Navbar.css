@@ -1,0 +1,71 @@
+/* 전체 네비게이션 바 */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 90px;
+  padding: 0 30px;
+  border-bottom: 2px;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+
+/* 로고 */
+.navbar-logo {
+  width: 200px;
+  height: auto;
+  cursor: pointer;
+}
+
+/* 버튼 */
+.nav-btn {
+  width: 100px;
+  height: 45px;
+  background-color: #b3b3b3;
+  border: none;
+  padding: 0px 30px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 999px;
+  color: #ffffff;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.nav-btn:hover,
+.nav-btn:active {
+  background-color: #262623;
+  color: #ffffff;
+}
+
+/* 프로필 */
+.navbar-profile {
+  cursor: pointer;
+}
+
+/* 검정 동그라미 */
+.profile-default {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background-color: #212228;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* 사람 아이콘 */
+.profile-person {
+  width: 30px;
+  height: 30px;
+}
