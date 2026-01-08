@@ -46,7 +46,7 @@ function App() {
           <Route path= "/board/write" element={<BoardCreatePage />} />
           <Route path= "/board/edit/:postId" element={<BoardEditPage />} />
           <Route path = "/studyTime" element={<StudyTime />} />
-
+          <Route path = "/todolistpage" element={<TodoListPage />} />
 
           <Route path = "/chatroom" element={<ChatRoom />} />
 
