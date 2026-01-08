@@ -1,4 +1,40 @@
 /* NickNameModal.css의 overlay 스타일을 공유하거나 복사해서 사용하세요 */
+/* 1. 배경 오버레이 */
+.wt-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6); /* 뒷배경 어둡게 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-title-icon {
+  display: block;
+  align-items: center;
+
+}
+/* 2. 모달 본체 */
+.wt-modal-content {
+  background-color: #212228; /* 다크 테마 배경 */
+  width: 350px;
+  padding: 40px;
+  border-radius: 50px; /* 아주 둥근 모서리 */
+  color: #FFFFFF;
+  box-shadow: 0px 2px 15px 5px #0000001A;
+}
+
+.wt-modal-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  margin: 0px;
+}
 
 .withdraw-modal {
   width: 550px !important; /* 이미지에 명시된 너비 */
@@ -6,6 +42,12 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+}
+
+.wt-modal-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 .withdraw-body {
@@ -27,30 +69,35 @@
   gap: 8px;
 }
 
-.bold-white {
+.wt-bold-white {
   width: 200px;
   color: #FFFFFF;
 }
 
-.highlight-red {
+.wt-highlight-red {
   color: #FF3761;
   font-weight: 700;
 }
 
-.btn-withdraw {
-    background:
-    linear-gradient(
-      86.58deg,
-      #FA785B 20.5%,
-      #FF3761 89.45%
-    ) padding-box,
-    linear-gradient(
-      152.27deg,
-      #FFFFFF 35.45%,
-      rgba(255, 255, 255, 0) 127.61%
-    ) border-box;
+.wt-btn-cancel {
+  padding: 10px 35px;
+  min-width: 50px;
+  border-radius: 25px;
+  border: 2px solid #FFFFFF;
+  background-color: #B3B3B3;
+  color: #FFFFFF;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 500;
+}
 
-  border: 2px solid transparent;
-  border-radius: 30px;
-  color: white;
+.btn-withdraw {
+  padding: 10px 25px;
+  border-radius: 25px;
+  border: 2px solid #FFFFFF;
+  background: linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+  color: #FFFFFF;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
 }

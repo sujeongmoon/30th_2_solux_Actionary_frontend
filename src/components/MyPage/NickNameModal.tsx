@@ -21,15 +21,15 @@ const NickNameModal: FC<NickNameModalProps> = ({ isOpen, onClose, onSave }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="nk-modal-overlay" onClick={onClose}>
       {/* stopPropagation을 통해 모달 내부 클릭 시 닫히지 않게 설정 */}
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <img src={Union} alt='물방울 무늬' className="modal-title-icon"></img> {/* 빨간 물방울 아이콘 부분 */}
+      <div className="nk-modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="nk-modal-header">
+          <img src={Union} alt='물방울 무늬' className="nk-modal-title-icon"></img> {/* 빨간 물방울 아이콘 부분 */}
           <h3>닉네임 수정</h3>
         </div>
         
-        <div className="modal-input-group">
+        <div className="nk-modal-input-group">
           <label>새 닉네임</label>
           <input
             autoFocus
@@ -40,9 +40,9 @@ const NickNameModal: FC<NickNameModalProps> = ({ isOpen, onClose, onSave }) => {
           />
         </div>
 
-        <div className="modal-buttons">
-          <button className="btn-cancel" onClick={onClose}>취소</button>
-          <button className="btn-save" onClick={() => onSave(input)}>수정하기</button>
+        <div className="nk-modal-buttons">
+          <button className="nk-btn-cancel" onClick={onClose}>취소</button>
+          <button className="nk-btn-save" onClick={() => onSave(input)}>수정하기</button>
         </div>
       </div>
     </div>

@@ -3,7 +3,7 @@
 .board-container {
   width: 100%;
   margin: 0px auto;
-  padding: 20px 40px;
+  padding: 0px 40px 20px 40px;
   background-color: #F8F8F6;
   box-sizing: border-box;
 }
