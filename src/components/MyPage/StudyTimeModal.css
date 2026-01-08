@@ -1,0 +1,201 @@
+/* ===============================
+   모달 배경 및 컨테이너
+================================ */
+.add-calendar-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.add-calendar-container {
+  background-color: #212228;
+  padding: 20px;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* ===============================
+   헤더
+================================ */
+.add-calendar-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.add-calendar-title-icon {
+  width: 10px;
+  height: 10px;
+  background-color: #FF6B6B;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.add-calendar-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: #FFFFFF;
+
+}
+
+/* ===============================
+   캘린더 영역
+================================ */
+.add-calendar-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.add-custom-calendar {
+  width: 100%;
+  border: none;
+  padding: 0;
+  background: #fff;
+  font-family: sans-serif;
+}
+
+/* 네비게이션 */
+.add-custom-calendar .react-calendar__navigation {
+  margin-bottom: 6px;
+}
+
+.add-custom-calendar .react-calendar__navigation button {
+  min-width: 32px;
+  background: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* ===============================
+   요일 (월화수목금토일)
+================================ */
+.add-custom-calendar .react-calendar__month-view__weekdays {
+  margin-bottom: 4px;
+}
+
+.add-custom-calendar
+.react-calendar__month-view__weekdays__weekday {
+  padding: 4px 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+}
+
+/* ===============================
+   ⭐ 날짜 영역 핵심 (7칸 유지)
+================================ */
+
+/* 주 단위 */
+.add-custom-calendar .react-calendar__month-view__week {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+/* 날짜 타일 */
+.add-custom-calendar .react-calendar__tile {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  font-size: 11px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 주말 */
+.add-custom-calendar
+.react-calendar__month-view__days__day--weekend {
+  color: #FF6B6B;
+}
+
+/* 오늘 */
+.add-custom-calendar .react-calendar__tile--now {
+  background: none;
+  color: #333;
+}
+
+/* hover */
+.add-custom-calendar .react-calendar__tile:enabled:hover {
+  background-color: #f0f0f0;
+}
+
+/* 선택된 날짜 */
+.add-custom-calendar .react-calendar__tile--active {
+  background-color: #333;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ===============================
+   시간 입력
+================================ */
+.time-input-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.time-input-group {
+  display: flex;
+  align-items: center;
+  margin: 0 8px;
+}
+
+.time-select {
+  width: 70px;
+  padding: 8px 0;
+  border-radius: 16px;
+  border: 1px solid #ddd;
+  background: #f0f0f0;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+}
+
+.time-unit {
+  margin-left: 6px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ===============================
+   버튼
+================================ */
+.modal-button-group {
+  display: flex;
+  gap: 10px;
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 22px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background-color: #E0E0E0;
+  color: #555;
+}
+
+.save-btn {
+  background: linear-gradient(90deg, #FF8E53 0%, #FF6B6B 100%);
+  color: #fff;
+}
