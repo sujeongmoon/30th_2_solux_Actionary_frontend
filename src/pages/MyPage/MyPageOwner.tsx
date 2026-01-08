@@ -6,6 +6,7 @@ import ProfileSection from '../../components/MyPage/ProfileSection';
 import AchievementSection from '../../components/MyPage/AchievementSection';
 import StudyTimeCheckIcon from '../../assets/MyPage/StudyTimeCheck.svg';
 import { useNavigate } from 'react-router-dom';
+import StudyTimeModal from '../../components/MyPage/StudyTimeModal';
 //import { getTodosByDate, TodoItem } from '../../api/Todos/todosApi';
 
 const MyPageOwner: React.FC = () => {
@@ -98,6 +99,8 @@ useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
     fetchStudyData(activeTab, today);
 }, []);
+
+const [isModalOpen, setIsModalOpen] = useState(false);
 
 
 // 오늘 투두만 불러오기
@@ -233,10 +236,12 @@ useEffect(() => {
                 {studyData[activeTab]}
             </div>
             
-            <button className='owner-manual-add-btn'>
+            <button className='owner-manual-add-btn' onClick={() => setIsModalOpen(true)}>
                 수동으로 추가하기 <span className='owner-plus-circle'>+</span>
             </button>
             </div>
+
+            <StudyTimeModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </div>
       </div>
     </div>

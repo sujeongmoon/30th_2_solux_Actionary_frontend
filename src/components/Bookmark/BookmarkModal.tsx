@@ -35,18 +35,18 @@ const BookmarkModal = ({ isOpen, onClose, onAdd }: BookmarkModalProps) => {
   }
 
   return (
-    <div className="modal-root">
+    <div className="bk-modal-root">
       {/* 배경 50% 어둡게 처리 */}
-      <div className="modal-overlay" onClick={handleCancel} />
+      <div className="bk-modal-overlay" onClick={handleCancel} />
       
-      <div className="modal-container">
-        <div className="modal-header">
+      <div className="bk-modal-container">
+        <div className="bk-modal-header">
           <img src={Union} alt="북마크 추가 아이콘"></img> {/* 핑크색 아이콘 */}
           <div className='bookmark-title'>북마크 추가</div>
         </div>
-          <div className="input-field">
-            <div className='modal-secname'>이름</div>
-            <div className='input-wrapper'>
+          <div className="bk-input-field">
+            <div className='bk-modal-secname'>이름</div>
+            <div className='bk-input-wrapper'>
              <input
               type="text"
               placeholder="북마크 추가 이름"
@@ -56,9 +56,9 @@ const BookmarkModal = ({ isOpen, onClose, onAdd }: BookmarkModalProps) => {
             </div>
           </div>
 
-          <div className="input-field">
-            <div className='modal-secname'>URL</div>
-            <div className = {`input-wrapper ${isUrlDisabled ? 'disabled' : 'active'}`}>
+          <div className="bk-input-field">
+            <div className='bk-modal-secname'>URL</div>
+            <div className = {`bk-input-wrapper ${isUrlDisabled ? 'disabled' : 'active'}`}>
                 <input
                 title="북마크 추가 모달"
                 type="text"
@@ -70,11 +70,11 @@ const BookmarkModal = ({ isOpen, onClose, onAdd }: BookmarkModalProps) => {
             </div>
           </div>
 
-        <div className="modal-actions">
-          <button className="btn-cancel" onClick={handleCancel}>
+        <div className="bk-modal-actions">
+          <button className="bk-btn-cancel" onClick={handleCancel}>
             취소
           </button>
-          <button className="btn-submit" onClick={handleSubmit}>
+          <button className="bk-btn-submit" onClick={handleSubmit}>
             추가하기
           </button>
         </div>
