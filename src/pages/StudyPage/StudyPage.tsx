@@ -65,7 +65,7 @@ const USE_MOCK = true;
 
 /** 목업 데이터(이미지는 아무 url 써도 됨 / 없으면 회색 박스) */
 const MOCK_ITEMS: StudyListItem[] = [
-  { studyId: 1, studyName: "같이 공부해요", coverImage: "https://picsum.photos/seed/study1/600/600",isPublic: true, },
+  { studyId: 1, studyName: "같이 공부해요", coverImage: "https://picsum.photos/seed1/600/600",isPublic: true, },
   { studyId: 2, studyName: "공무원 한국사", coverImage: "https://picsum.photos/seed/study2/600/600",isPublic: true, },
   { studyId: 3, studyName: "토익 900+", coverImage: "https://picsum.photos/seed/study3/600/600",isPublic: true, },
   { studyId: 4, studyName: "자격증 스터디", coverImage: null,isPublic: true, },

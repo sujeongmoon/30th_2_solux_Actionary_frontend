@@ -3,16 +3,27 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useWebRTCRoom } from "./useWebRTCRoom";
 import "./StudyRoomPage.css";
 
+import lampIcon from "../../assets/icons/hugeicons_study-lamp.svg";
+import cameraIcon from "../../assets/icons/majesticons_camera-line.svg";
+import moonIcon from "../../assets/icons/solar_moon-sleep-linear.svg";
+import micIcon from "../../assets/icons/stash_mic-solid.svg";
+import avatarIcon from "../../assets/icons/Vector.svg";
+
 type Participant = {
-  id: string; 
+  id: string;
   nickname: string;
   badge?: string;
-  bubble: string; 
 };
 
 type Mode = "STUDY" | "REST";
 
-/** hh:mm:ss */
+type ChatMsg = {
+  id: string;
+  mine: boolean;
+  nickname: string;
+  text: string;
+};
+
 function formatHMS(sec: number) {
   const s = Math.max(0, Math.floor(sec));
   const hh = String(Math.floor(s / 3600)).padStart(2, "0");
@@ -30,15 +41,112 @@ function Video({ stream, muted }: { stream: MediaStream | null; muted?: boolean 
   }, [stream]);
 
   if (!stream) return null;
+  return <video ref={ref} autoPlay playsInline muted={!!muted} className="srVideoEl" />;
+}
+
+function PomoRing({
+  remainSec,
+  totalSec,
+}: {
+  remainSec: number;
+  totalSec: number;
+}) {
+  const size = 360;
+  const cx = size / 2;
+  const cy = size / 2;
+
+  const r = 130;
+  const stroke = 18;
+  const C = 2 * Math.PI * r;
+  const visible = C * 0.82; // 보이는 길이(82%)
+  const p = totalSec <= 0 ? 0 : Math.max(0, Math.min(1, remainSec / totalSec));
+  const dashoffset = visible * (1 - p);
+
+  // 중앙 시간: 00:50:01 형태 그대로 원하면 formatHMS(remainSec) 사용
+  const centerText = formatHMS(remainSec);
+
+  // 0~55, 5분 단위 숫자
+  const ticks = useMemo(() => {
+    const arr = [];
+    for (let m = 0; m <= 55; m += 5) arr.push(m);
+    return arr;
+  }, []);
+
+  const tickR = r + 28;
+
+  // 0이 위(12시), 30이 아래(6시)로 오도록 -90도 시작
+  const pos = (idx: number, len: number) => {
+    const deg = -90 + (360 * idx) / len;
+    const rad = (deg * Math.PI) / 180;
+    return {
+      x: cx + tickR * Math.cos(rad),
+      y: cy + tickR * Math.sin(rad),
+    };
+  };
 
   return (
-    <video
-      ref={ref}
-      autoPlay
-      playsInline
-      muted={!!muted}
-      className="srVideoEl"
-    />
+    <div className="srPomoRingWrap">
+      <div className="srPomoTopPill" />
+
+      <div className="srPomoCardBox">
+        <svg className="srPomoSvg" viewBox={`0 0 ${size} ${size}`} aria-label="pomodoro">
+          {/* ticks */}
+          {ticks.map((m, i) => {
+            const { x, y } = pos(i, ticks.length);
+            return (
+              <text
+                key={m}
+                className="srPomoTick"
+                x={x}
+                y={y}
+                textAnchor="middle"
+                dominantBaseline="middle"
+              >
+                {m}
+              </text>
+            );
+          })}
+
+          {/* track */}
+          <circle
+            className="srPomoTrack"
+            cx={cx}
+            cy={cy}
+            r={r}
+            fill="none"
+            strokeWidth={stroke}
+          />
+
+          {/* progress */}
+          <circle
+            className="srPomoProgress"
+            cx={cx}
+            cy={cy}
+            r={r}
+            fill="none"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            strokeDasharray={C}
+            strokeDashoffset={dashoffset}
+            style={{
+              transform: "rotate(-90deg) scaleX(-1)",   
+              transformOrigin: `${cx}px ${cy}px`,
+            }}
+          />
+
+          {/* center time */}
+          <text
+            className="srPomoTimeText"
+            x={cx}
+            y={cy + 10}
+            textAnchor="middle"
+            dominantBaseline="middle"
+          >
+            {centerText}
+          </text>
+        </svg>
+      </div>
+    </div>
   );
 }
 
@@ -46,10 +154,14 @@ export default function StudyRoomPage() {
   const navigate = useNavigate();
   const { studyId } = useParams();
 
-  // ===== WebRTC (진짜 줌 화면) =====
+  const numericStudyId = useMemo(() => {
+    const n = Number(studyId);
+    return Number.isFinite(n) ? n : null;
+  }, [studyId]);
+
+  /** WebRTC */
   const roomId = String(studyId ?? "unknown-room");
-  const SIGNALING_URL =
-    import.meta.env.VITE_SIGNALING_URL ?? "http://localhost:3000";
+  const SIGNALING_URL = import.meta.env.VITE_SIGNALING_URL ?? "http://localhost:3000";
 
   const {
     myPeerId,
@@ -68,88 +180,51 @@ export default function StudyRoomPage() {
     enableAudio: true,
   });
 
-  // ====== 명세: 기본 4명, 5명 이상이면 넘김(화살표) ======
-  const gridSize = 4;
-  const [gridPage, setGridPage] = useState(0);
+  /** 패널 */
+  const [panelOpen, setPanelOpen] = useState(true);
 
-  // 참가자 목록: (나 + remote들)
+  /** participants */
   const participants: Participant[] = useMemo(() => {
     const list: Participant[] = [];
-  
-    //소켓(myPeerId) 없어도 "나"는 항상 렌더되게
     const meId = myPeerId || "me";
-  
-    list.push({
-      id: meId,
-      nickname: "나",
-      badge: "👑",
-      bubble: "",
-    });
-  
-    // 상대들(소켓 연결 성공 + remote stream 들어오면 생김)
+    list.push({ id: meId, nickname: "나", badge: "0" });
+
     for (const rid of remoteIds) {
       list.push({
         id: rid,
         nickname: `사용자-${rid.slice(0, 4)}`,
-        badge: "🏷️",
-        bubble: "",
+        badge: "0",
       });
     }
-  
     return list;
   }, [myPeerId, remoteIds]);
+  const gridCols = panelOpen ? 2 : 3;
+
+  const gridSize = panelOpen ? 4 : 6;
+  const [gridPage, setGridPage] = useState(0);
 
   const gridMaxPage = useMemo(
     () => Math.max(0, Math.ceil(participants.length / gridSize) - 1),
-    [participants.length]
+    [participants.length, gridSize]
   );
 
   useEffect(() => {
-    // 인원 줄어서 현재 페이지가 범위를 벗어나면 보정
     setGridPage((p) => Math.min(p, gridMaxPage));
   }, [gridMaxPage]);
 
   const gridSlice = useMemo(() => {
     const start = gridPage * gridSize;
     return participants.slice(start, start + gridSize);
-  }, [participants, gridPage]);
+  }, [participants, gridPage, gridSize]);
 
-  // ====== 채팅창 토글 ======
-  const [chatOpen, setChatOpen] = useState(true);
-
-  // ====== 뽀모도로(UI만 자리) ======
-  const [pomoEnabled] = useState(true);
-  const [pomoRemainSec] = useState(25 * 60);
-
-  // ====== 재생/멈춤(공부/휴식 시간 측정) ======
-  const [mode, setMode] = useState<Mode>("REST");
-  const [studySec, setStudySec] = useState(0);
-  const [restSec, setRestSec] = useState(0);
-  const tickRef = useRef<number | null>(null);
-
-  const running = mode === "STUDY";
-
-  useEffect(() => {
-    if (tickRef.current) window.clearInterval(tickRef.current);
-
-    tickRef.current = window.setInterval(() => {
-      if (mode === "STUDY") setStudySec((v) => v + 1);
-      else setRestSec((v) => v + 1);
-    }, 1000);
-
-    return () => {
-      if (tickRef.current) window.clearInterval(tickRef.current);
-    };
-  }, [mode]);
-
-  // ====== 말풍선 (participants는 memo라 별도 map으로 관리) ======
+  /** 말풍선 */
   const [editingBubbleId, setEditingBubbleId] = useState<string | null>(null);
   const [bubbleDraft, setBubbleDraft] = useState("");
   const [bubbleMap, setBubbleMap] = useState<Record<string, string>>({});
 
-  const startEditBubble = (p: Participant) => {
-    setEditingBubbleId(p.id);
-    setBubbleDraft(bubbleMap[p.id] ?? "");
+  const startEditBubble = (id: string) => {
+    setEditingBubbleId(id);
+    setBubbleDraft(bubbleMap[id] ?? "");
   };
 
   const commitBubble = () => {
@@ -158,96 +233,140 @@ export default function StudyRoomPage() {
     setEditingBubbleId(null);
   };
 
-  const leaveRoom = () => {
-    navigate("/studies");
+
+  const POMO_TOTAL = 50 * 60;
+  const [pomoRunning, setPomoRunning] = useState(false);
+  const [pomoRemainSec, setPomoRemainSec] = useState(POMO_TOTAL);
+  const timerRef = useRef<number | null>(null);
+
+  const togglePomo = () => setPomoRunning((v) => !v);
+  const resetPomo = () => {
+    setPomoRunning(false);
+    setPomoRemainSec(POMO_TOTAL);
   };
+
+  useEffect(() => {
+    if (!pomoRunning) {
+      if (timerRef.current) window.clearInterval(timerRef.current);
+      timerRef.current = null;
+      return;
+    }
+    timerRef.current = window.setInterval(() => {
+      setPomoRemainSec((s) => Math.max(0, s - 1));
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) window.clearInterval(timerRef.current);
+      timerRef.current = null;
+    };
+  }, [pomoRunning]);
+
+  useEffect(() => {
+    if (!pomoRunning) return;
+    if (pomoRemainSec > 0) return;
+    setPomoRunning(false);
+  }, [pomoRemainSec, pomoRunning]);
+
+  /** 공부/휴식 시간 */
+  const [mode, setMode] = useState<Mode>("REST");
+  const [studySec, setStudySec] = useState(0);
+  const [restSec, setRestSec] = useState(0);
+
+  useEffect(() => {
+    const t = window.setInterval(() => {
+      if (mode === "STUDY") setStudySec((v) => v + 1);
+      else setRestSec((v) => v + 1);
+    }, 1000);
+    return () => window.clearInterval(t);
+  }, [mode]);
+
+  /** Chat mock */
+  const [chatInput, setChatInput] = useState("");
+  const [chatMessages, setChatMessages] = useState<ChatMsg[]>([
+    { id: "m0", mine: false, nickname: "user-1234", text: "안녕!" },
+  ]);
+
+  const chatBodyRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = chatBodyRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [chatMessages.length]);
+
+  const sendMockChat = () => {
+    const text = chatInput.trim();
+    if (!text) return;
+    setChatMessages((prev) => [
+      ...prev,
+      { id: `m-${Date.now()}`, mine: true, nickname: "나", text },
+    ]);
+    setChatInput("");
+  };
+
+  const leaveRoom = () => navigate("/studies");
 
   return (
     <div className="srWrap">
-      {/* 상단 우측: 나가기 + 채팅 토글 */}
+      {/* Top */}
       <div className="srTopBar">
-        <div className="srTopLeft">
-          <div className="srRoomTitle"></div>
-          <div className="srRoomSub">studyId: {studyId ?? "-"}</div>
-        </div>
-
-        <div className="srTopRight">
-          <button
-            type="button"
-            className="srChatToggle"
-            onClick={() => setChatOpen((v) => !v)}
-            aria-label={chatOpen ? "채팅창 닫기" : "채팅창 열기"}
-            title={chatOpen ? "채팅창 닫기" : "채팅창 열기"}
-          >
-            {chatOpen ? "›" : "‹"}
-          </button>
-
-          <button type="button" className="srLeaveBtn" onClick={leaveRoom}>
-            나가기
-          </button>
-        </div>
+        <div className="srRoomSub">studyId: {numericStudyId ?? "-"}</div>
+        <button type="button" className="srLeaveBtn" onClick={leaveRoom}>
+          나가기
+        </button>
       </div>
 
-      {/* 본문: 좌(캠그리드) + 우(채팅/뽀모도로) */}
-      <div className={`srMain ${chatOpen ? "" : "chatClosed"}`}>
-        {/* ====== 캠 그리드 ====== */}
+      {/* Content */}
+      <div className={`srContent ${panelOpen ? "panelOpen" : "panelClosed"}`}>
+        {/* Grid */}
         <section className="srGridSection">
-          <div className="srGridNav">
-            <button
-              type="button"
-              className="srArrow"
-              onClick={() => setGridPage((p) => Math.max(0, p - 1))}
-              disabled={gridPage <= 0}
-            >
-              ‹
-            </button>
+          {participants.length > gridSize && (
+            <div className="srGridNav">
+              <button
+                type="button"
+                className="srArrow"
+                onClick={() => setGridPage((p) => Math.max(0, p - 1))}
+                disabled={gridPage <= 0}
+              >
+                ‹
+              </button>
 
-            <div className="srGridHint">
-              {participants.length <= 4
-                ? "기본 4명 표시"
-                : `페이지 ${gridPage + 1} / ${gridMaxPage + 1}`}
+              <div className="srGridHint">{`페이지 ${gridPage + 1} / ${gridMaxPage + 1}`}</div>
+
+              <button
+                type="button"
+                className="srArrow"
+                onClick={() => setGridPage((p) => Math.min(gridMaxPage, p + 1))}
+                disabled={gridPage >= gridMaxPage}
+              >
+                ›
+              </button>
             </div>
+          )}
 
-            <button
-              type="button"
-              className="srArrow"
-              onClick={() => setGridPage((p) => Math.min(gridMaxPage, p + 1))}
-              disabled={gridPage >= gridMaxPage}
-            >
-              ›
-            </button>
-          </div>
-
-          <div className="srGrid">
+          <div className="srGrid" style={{ ["--cols" as any]: gridCols }}>
             {gridSlice.map((p) => {
-              const isMe = p.id === myPeerId;
+              const isMe = p.id === (myPeerId || "me");
               const stream = isMe ? localStream : remoteStreams[p.id] ?? null;
-
-              // 내 카메라 상태는 camOn, 상대는 stream 유무로 표시(최소 구현)
               const cameraOn = isMe ? camOn : !!stream;
-
               const bubbleText = bubbleMap[p.id] ?? "";
 
               return (
                 <div key={p.id} className="srTile">
-                  {/* 캠 영역 */}
                   <div className="srVideo">
                     {cameraOn ? (
                       <Video stream={stream} muted={isMe} />
                     ) : (
                       <div className="srAvatar" aria-label="camera off">
-                        <div className="srAvatarIcon">👤</div>
+                        <img className="srAvatarImg" src={avatarIcon} alt="avatar" />
                       </div>
                     )}
 
-                    {/* 닉네임/뱃지 */}
                     <div className="srNamePill">
-                      <span className="srBadge">{p.badge ?? "🏷️"}</span>
-                      <span className="srNick">{p.nickname}</span>
+                      <span className="srNameBadge">{p.badge ?? "0"}</span>
+                      <span className="srNameNick">{p.nickname}</span>
                     </div>
                   </div>
 
-                  {/* 말풍선 */}
                   <div className="srBubbleWrap">
                     {editingBubbleId === p.id ? (
                       <input
@@ -260,16 +379,15 @@ export default function StudyRoomPage() {
                           if (e.key === "Escape") setEditingBubbleId(null);
                         }}
                         autoFocus
-                        placeholder="메시지 입력…"
+                        placeholder=""
                       />
                     ) : (
                       <button
                         type="button"
-                        className={`srBubble ${bubbleText ? "filled" : "empty"}`}
-                        onClick={() => startEditBubble(p)}
-                        title="클릭해서 입력"
+                        className={`srBubble ${bubbleText ? "filled" : ""}`}
+                        onClick={() => startEditBubble(p.id)}
                       >
-                        {bubbleText ? bubbleText : " "}
+                        {bubbleText || " "}
                       </button>
                     )}
                   </div>
@@ -277,95 +395,111 @@ export default function StudyRoomPage() {
               );
             })}
           </div>
-
-          {/* 하단 컨트롤바 */}
-          <div className="srDock">
-            <div className="srTimePill">
-              <span className="srTimeLabel">쉬는 시간</span>
-              <span className="srTimeValue">{formatHMS(restSec)}</span>
-            </div>
-
-            <div className="srTimePill">
-              <span className="srTimeLabel">공부 시간</span>
-              <span className="srTimeValue">{formatHMS(studySec)}</span>
-            </div>
-
-            <div className="srControls">
-              <button
-                type="button"
-                className={`srCtlBtn ${running ? "off" : "on"}`}
-                onClick={() => setMode("STUDY")}
-                aria-label="재생"
-                title="재생(공부 시작)"
-              >
-                ▶
-              </button>
-
-              <button
-                type="button"
-                className={`srCtlBtn ${running ? "on" : "off"}`}
-                onClick={() => setMode("REST")}
-                aria-label="멈춤"
-                title="멈춤(휴식 시작)"
-              >
-                ❚❚
-              </button>
-
-              <button
-                type="button"
-                className={`srCtlMini ${camOn ? "on" : "off"}`}
-                onClick={() => setCamOn((v) => !v)}
-                title="카메라"
-              >
-                📷
-              </button>
-
-              <button
-                type="button"
-                className={`srCtlMini ${micOn ? "on" : "off"}`}
-                onClick={() => setMicOn((v) => !v)}
-                title="마이크"
-              >
-                🎙
-              </button>
-            </div>
-          </div>
         </section>
 
-        {/* ====== 채팅/뽀모도로 패널 ====== */}
-        {chatOpen && (
+        {/* Side panel */}
+        {panelOpen && (
           <aside className="srSide">
-            {pomoEnabled && (
-              <div className="srPomoCard">
-                <div className="srPomoTitle">뽀모도로</div>
-                <div className="srPomoCircle" aria-label="pomodoro">
-                  <div className="srPomoTime">{formatHMS(pomoRemainSec)}</div>
+            {/* Pomodoro */}
+            <div className="srPomoCard">
+              <div className="srPomoHeader">
+                <div className="srPomoTitleRow">
+                  <div className="srPomoTitle"> </div>
+                  <div className="srPomoSub"> </div>
                 </div>
-                <div className="srPomoHint">※ 뽀모도로는 후순위(지금은 UI만)</div>
-              </div>
-            )}
 
+                <div className="srPomoBtns">
+                  <button type="button" className="srMiniBtn" onClick={togglePomo}>
+                    {pomoRunning ? "일시정지" : "시작"}
+                  </button>
+                  <button type="button" className="srMiniBtn" onClick={resetPomo}>
+                    리셋
+                  </button>
+                </div>
+              </div>
+
+              <PomoRing remainSec={pomoRemainSec} totalSec={POMO_TOTAL} />
+            </div>
+
+            {/* Chat */}
             <div className="srChatCard">
               <div className="srChatTitle">채팅</div>
 
-              <div className="srChatBody">
-                <div className="srChatMsg">
-                  <span className="srChatNick">시스템</span>
-                  <span className="srChatText">WebRTC 연결 중…</span>
-                </div>
+              <div className="srChatBody" ref={chatBodyRef}>
+                {chatMessages.map((m) => (
+                  <div key={m.id} className={`srChatLine ${m.mine ? "mine" : "other"}`}>
+                    {!m.mine && <div className="srChatAvatar" />}
+                    <div className="srChatBubble">
+                      {!m.mine && <div className="srChatNick">{m.nickname}</div>}
+                      <div className="srChatText">{m.text}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               <div className="srChatInputRow">
-                <input className="srChatInput" placeholder="메시지 입력…" />
-                <button className="srChatSend" type="button">
+                <input
+                  className="srChatInput"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") sendMockChat();
+                  }}
+                  placeholder="채팅을 입력하세요"
+                />
+                <button type="button" className="srChatSend" onClick={sendMockChat}>
                   ↗
                 </button>
               </div>
-
-              <div className="srChatHint">※채팅은 UI Mock</div>
             </div>
           </aside>
         )}
+      </div>
+
+      {/* panel toggle */}
+      <button
+        type="button"
+        className="srPanelToggle"
+        onClick={() => setPanelOpen((v) => !v)}
+        aria-label={panelOpen ? "패널 닫기" : "패널 열기"}
+      >
+        {panelOpen ? "›" : "‹"}
+      </button>
+
+      {/* Bottom Dock */}
+      <div className="srDock">
+        <div className="srDockInner">
+          <div className="srTimePill">
+            <img className="srPillIcon" src={moonIcon} alt="" />
+            <span className="srPillLabel">쉬는 시간</span>
+            <span className="srPillTime">{formatHMS(restSec)}</span>
+          </div>
+
+          <div className="srTimePill">
+            <img className="srPillIcon" src={lampIcon} alt="" />
+            <span className="srPillLabel">공부 시간</span>
+            <span className="srPillTime">{formatHMS(studySec)}</span>
+          </div>
+
+          <div className="srDockCenter">
+            <button type="button" className="srCtlMain" onClick={() => setMode("STUDY")} aria-label="공부 시작">
+              ▶
+            </button>
+            <button type="button" className="srCtlMain" onClick={() => setMode("REST")} aria-label="휴식">
+              ❚❚
+            </button>
+          </div>
+
+          <div className="srDockRight">
+            <button type="button" className="srCtlIcon" onClick={() => setCamOn((v) => !v)} aria-label="camera">
+              <img src={cameraIcon} alt="camera" />
+            </button>
+
+            <button type="button" className="srCtlIcon" onClick={() => setMicOn((v) => !v)} aria-label="mic">
+              <img src={micIcon} alt="mic" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

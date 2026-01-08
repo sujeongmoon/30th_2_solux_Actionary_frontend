@@ -54,7 +54,7 @@ function toHM(sec: number) {
   return `${h}시간_${m}분`;
 }
 
-// ✅ 목업 상세 데이터 (studyId별)
+// 목업 상세 데이터 (studyId별)
 const MOCK_DETAIL: Record<number, StudyDetail> = {
   1: {
     studyId: 1,
@@ -76,8 +76,8 @@ const MOCK_DETAIL: Record<number, StudyDetail> = {
     description: "공무원 한국사 같이 달려요",
     memberNow: 3,
     memberLimit: 10,
-    isPublic: false, // ✅ 비공개 예시
-    isStudyLike: false,
+    isPublic: true, 
+    isStudyLike: true,
     isStudyOwner: false,
   },
   3: {
@@ -100,7 +100,7 @@ const MOCK_DETAIL: Record<number, StudyDetail> = {
     description: "이 스터디는 비공개입니다. 비밀번호가 필요합니다.",
     memberNow: 3,
     memberLimit: 10,
-    isPublic: false,        // 🔴 핵심
+    isPublic: false,        
     isStudyLike: false,
     isStudyOwner: false,
   },
@@ -110,6 +110,17 @@ const MOCK_PRIVATE_PASSWORD: Record<number, string> = {
   6: "000000",
 };
 
+const MOCK_RANKINGS: Record<number, RankingRow[]> = {
+  1: [
+    { userId: 1, userNickname: "민지", todayDurationSeconds: 3600, totalDurationSeconds: 12800 },
+    { userId: 2, userNickname: "수아", todayDurationSeconds: 2400, totalDurationSeconds: 9900 },
+    { userId: 3, userNickname: "지후", todayDurationSeconds: 1800, totalDurationSeconds: 8500 },
+  ],
+  6: [
+    { userId: 10, userNickname: "비공개킹", todayDurationSeconds: 4200, totalDurationSeconds: 22100 },
+    { userId: 11, userNickname: "새벽공부", todayDurationSeconds: 3000, totalDurationSeconds: 17000 },
+  ],
+};
 
 export default function StudyViewModal({ open, onClose, studyId }: Props) {
   const USE_MOCK = true;
@@ -159,7 +170,7 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
     setPwModalOpen(false);
     setPwError(null);
   }, [open]);
-/** ✅ 상세 로드 */
+
 useEffect(() => {
   if (!open || !studyId) return;
 
@@ -209,6 +220,44 @@ useEffect(() => {
   };
 }, [open, studyId]);
 
+useEffect(() => {
+  if (!open || studyId == null) return;
+
+  if (USE_MOCK) {
+    setRankLoading(false);
+    setRankError(null);
+    setRankRows(MOCK_RANKINGS[studyId] ?? []);
+    return;
+  }
+
+  let mounted = true;
+
+  (async () => {
+    try {
+      setRankLoading(true);
+      setRankError(null);
+
+      const data = await getStudyRankings(studyId, rankTab === "today");
+
+      if (mounted) {
+        setRankRows(data.rankingBoards ?? []);
+      }
+    } catch (e: any) {
+      if (mounted) {
+        setRankError(
+          e?.response?.data?.message ?? "랭킹 데이터를 불러오지 못했습니다."
+        );
+        setRankRows([]);
+      }
+    } finally {
+      if (mounted) setRankLoading(false);
+    }
+  })();
+
+  return () => {
+    mounted = false;
+  };
+}, [open, studyId, rankTab]);
   const isOwner = detail?.isStudyOwner ?? false;
   const isLiked = detail?.isStudyLike ?? false;
   const canJoin = useMemo(() => {
@@ -218,7 +267,8 @@ useEffect(() => {
 
   if (!open) return null;
 
-  /** ✅ 좋아요 토글 */
+  console.log("RANK MOCK:", open, studyId, MOCK_RANKINGS[studyId]);
+  /**좋아요 토글 */
   const onToggleLike = async () => {
     if (!studyId || likeLoading) return;
     setLikeLoading(true);
@@ -233,7 +283,7 @@ useEffect(() => {
     }
   };
 
-  /** ✅ 입장하기 */
+  /** 입장하기 */
   const goStudyRoom = (id: number) => {
     navigate(`/study-room/${id}`);
   };
@@ -245,18 +295,18 @@ useEffect(() => {
     if (detail.memberNow >= detail.memberLimit) return;
   
     if (detail.isPublic) {
-      // ✅ 공개: 바로 이동 (나중에 enterPublicStudy 붙일 자리)
+      // 공개: 바로 이동 (나중에 enterPublicStudy 붙일 자리)
       onClose();
       navigate(`/study-room/${detail.studyId}`);
       return;
     }
   
-    // ✅ 비공개: 비번 모달
+    // 비공개: 비번 모달
     setPwError(null);
     setPassword("");
     setPwModalOpen(true);
   };
-    /** ✅ 비공개 비번 확인 */
+    /** 비공개 비번 확인 */
 const onConfirmPassword = async () => {
   if (!detail || !studyId) return;
 
@@ -265,7 +315,7 @@ const onConfirmPassword = async () => {
     return;
   }
 
-  // ✅ 목업 검증
+  // 목업 검증
   if (USE_MOCK) {
     const correct = MOCK_PRIVATE_PASSWORD[studyId] ?? "001122";
 
@@ -274,14 +324,14 @@ const onConfirmPassword = async () => {
       return;
     }
 
-    // ✅ 비밀번호 맞으면 이동
+    // 비밀번호 맞으면 이동
     setPwModalOpen(false);
     onClose();
     navigate(`/study-room/${studyId}`);
     return;
   }
 
-  // ✅ 나중에 실제 API 붙일 자리
+  // 나중에 실제 API 붙일 자리
   try {
     setPwLoading(true);
     setPwError(null);
@@ -298,7 +348,7 @@ const onConfirmPassword = async () => {
   }
 };
 
-  /** ✅ 수정/삭제: 일단 UI만 (API는 마지막에 붙이자) */
+  /** 수정/삭제: 일단 UI만 (API는 마지막에 붙이자) */
   const onEdit = () => {
     if (!studyId) return;
     onClose();

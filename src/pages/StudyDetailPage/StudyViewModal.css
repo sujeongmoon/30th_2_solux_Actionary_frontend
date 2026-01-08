@@ -455,3 +455,34 @@
   gap: 24px;
   align-items: flex-start;
 }
+
+/* ====== Modal Overlay (FIX) ====== */
+.svmOverlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+}
+
+/* modal frame */
+.svmWrap{
+  position: relative;
+  width: min(1100px, calc(100vw - 48px));
+  max-height: calc(100vh - 80px);
+}
+
+/* body layout: 카드 + 사이드 (kebab 메뉴) */
+.svmBody{
+  display: grid;
+  grid-template-columns: 1fr 180px; /* 오른쪽 메뉴 영역 */
+  gap: 24px;
+  align-items: start;
+}
+
+/* 모바일에서는 사이드 숨김 */
+@media (max-width: 980px){
+  .svmBody{ grid-template-columns: 1fr; }
+  .svmSide{ display:none; }
+}
