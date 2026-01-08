@@ -36,8 +36,7 @@
   justify-content: space-between;
   background-color: #2F2F2F; /* 어두운 배경색 */
   color: white;
-  height: 35px;
-  padding: 12px 8px;
+  padding: 8px 8px;
   border-radius: 51.5px; /* 둥근 모서리 */
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   width: 370px;
