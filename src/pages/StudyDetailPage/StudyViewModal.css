@@ -1,20 +1,4 @@
-.svmOverlay{
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.55);
-  z-index: 9999;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding: 28px;
-}
 
-.svmWrap{
-  position: relative;
-  width: min(1100px, 100%);
-  max-height: 92vh;
-  overflow: auto;
-}
 
 .svmHeroTitle{
   margin-bottom: 14px;
@@ -32,12 +16,6 @@
   letter-spacing: 1px;
 }
 
-.svmBody{
-  display: grid;
-  grid-template-columns: 1fr 220px;
-  gap: 18px;
-  align-items: start;
-}
 
 .svmCard{
   position: relative;
@@ -296,12 +274,10 @@
 
 .svmSide{ position: relative; }
 .svmSideBox{
-  background: #fff;
-  border-radius: 14px;
-  padding: 14px;
-  box-shadow: 0 16px 40px rgba(0,0,0,.25);
-  position: sticky;
-  top: 18px;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
 }
 .svmSideTitle{
   font-weight: 900;
@@ -350,4 +326,132 @@
   .svmTop{ grid-template-columns: 1fr; }
   .svmCover{ width: 100%; height: 220px; }
   .svmHeroBig{ font-size: 44px; }
+}
+
+/* ===== 비번 모달 최소 스타일 ===== */
+.svpOverlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index: 9999;
+}
+.svpModal{
+  width: 560px;
+  border-radius: 20px;
+  background: #1f2023;
+  color: #fff;
+  padding: 22px 26px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.35);
+}
+.svpTitleRow{ display:flex; align-items:center; gap:10px; margin-bottom: 10px; }
+.svpDot{ width:10px; height:10px; border-radius:999px; background:#ff4d6d; }
+.svpTitle{ font-weight: 800; }
+.svpLabel{ opacity:.85; margin: 8px 0 10px; }
+.svpInput{
+  width: 100%;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.22);
+  background: #fff;
+  color:#111;
+  padding: 0 14px;
+  outline: none;
+}
+.svpError{ margin-top: 10px; color:#ff6b6b; font-size: 13px; }
+.svpBtnRow{ display:flex; gap: 10px; justify-content:flex-end; margin-top: 18px; }
+.svpBtnCancel, .svpBtnOk{
+  height: 40px;
+  min-width: 92px;
+  border-radius: 999px;
+  border: none;
+  font-weight: 800;
+  cursor:pointer;
+}
+.svpBtnCancel{ background:#d9d9d9; color:#222; }
+.svpBtnOk{ background: linear-gradient(90deg, #ff7a59, #ff3d6e); color:#fff; }
+.svpBtnOk:disabled{ opacity:.5; cursor:not-allowed; }
+
+.pwOverlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index: 9999;
+}
+
+.pwModal{
+  width: 720px;
+  max-width: calc(100vw - 40px);
+  border-radius: 26px;
+  background: #1f2126;
+  color: #fff;
+  padding: 22px 26px;
+  box-shadow: 0 24px 70px rgba(0,0,0,.45);
+}
+
+.pwHeader{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  font-weight: 800;
+  margin-bottom: 18px;
+}
+.pwDot{ width: 12px; height: 12px; border-radius: 999px; background: #ff4d6d; }
+
+.pwSub{ opacity: .85; margin-bottom: 14px; }
+
+.pwInput{
+  width: 100%;
+  height: 52px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 90, 130, .6);
+  background: #fff;
+  color: #111;
+  padding: 0 18px;
+  outline: none;
+  font-size: 16px;
+}
+
+.pwBtns{
+  display:flex;
+  justify-content:flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.pwCancel, .pwOk{
+  width: 132px;
+  height: 46px;
+  border-radius: 999px;
+  border: none;
+  font-weight: 800;
+  cursor:pointer;
+}
+
+.pwCancel{ background: #d8d8d8; color:#222; }
+.pwOk{ background: linear-gradient(90deg, #ff7a59, #ff3d6e); color:#fff; }
+
+.pwError{ margin-top: 10px; color: #ff6b6b; font-size: 13px; }
+
+.svmOverlay{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.svmWrap{
+  position: relative;
+  width: min(1100px, 92vw);
+  max-height: 90vh;
+}
+
+.svmBody{
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
 }

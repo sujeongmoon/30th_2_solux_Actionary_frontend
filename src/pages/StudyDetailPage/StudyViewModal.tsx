@@ -2,76 +2,146 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import "./StudyViewModal.css";
+import {
+  getStudyDetail,
+  toggleStudyLike,
+  getStudyRankings,
+  enterPublicStudy,
+  enterPrivateStudy,
+} from "../../api/studies";
 
-// ===== 타입(목업용) =====
-export type RankRow = {
-  rank: number;
-  nickname: string;
-  dailyMinutes?: number | null; // 당일 미참여면 null 가능
-  totalMinutes: number;
-};
-
-export type StudyViewData = {
+/** ====== 타입: API 응답 기반(필요 최소) ====== */
+type StudyDetail = {
   studyId: number;
   studyName: string;
-  description?: string | null;
-  guide?: string | null; // 안내(선택)
-  coverImage?: string | null;
-
-  categoryLabel?: string; // "공무원" 등
-  isPublic?: boolean;
-
-  liveCount: number; // 실시간 참여자 수
-  limit: number; // 제한 인원
-
-  rankingDaily: RankRow[];
-  rankingTotal: RankRow[];
+  coverImage: string;
+  categoryLabel: string;
+  description: string;
+  memberNow: number;
+  memberLimit: number;
+  isPublic: boolean;
+  isStudyLike: boolean;
+  isStudyOwner: boolean;
 };
 
+type RankingRow = {
+  userId: number;
+  userNickname: string;
+  todayDurationSeconds: number;
+  totalDurationSeconds: number;
+};
+
+type RankingsResponse = {
+  studyId: number;
+  isToday: boolean;
+  rankingBoards: RankingRow[];
+};
+
+/** ====== Props ====== */
 type Props = {
   open: boolean;
   onClose: () => void;
-  data: StudyViewData | null;
+
+  /** StudyPage에서 카드 클릭 시 넘겨줄 id */
+  studyId: number | null;
 };
 
-// ✅ 로고 경로(임의): 나중에 파일만 넣으면 됨
-// 예: public/actionary-logo.png 로 두면 "/actionary-logo.png" 로 바꾸는 게 제일 편해
-const FALLBACK_LOGO_SRC = "/actionary-logo.png";
 
-const FAVORITE_KEY = "favoriteStudyIds";
-
-function getFavorites(): number[] {
-  try {
-    const raw = localStorage.getItem(FAVORITE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter((n) => typeof n === "number") : [];
-  } catch {
-    return [];
-  }
-}
-function setFavorites(ids: number[]) {
-  localStorage.setItem(FAVORITE_KEY, JSON.stringify(ids));
+/** ====== 유틸 ====== */
+function toHM(sec: number) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  return `${h}시간_${m}분`;
 }
 
-function mmToHourMin(mins: number) {
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  if (h <= 0) return `${m}분`;
-  return `${h}시간 ${m}분`;
-}
+// ✅ 목업 상세 데이터 (studyId별)
+const MOCK_DETAIL: Record<number, StudyDetail> = {
+  1: {
+    studyId: 1,
+    studyName: "같이 공부해요",
+    coverImage: "https://picsum.photos/seed/study1/600/600",
+    categoryLabel: "기타",
+    description: "설명설명설명설명설명설명설명",
+    memberNow: 5,
+    memberLimit: 15,
+    isPublic: true,
+    isStudyLike: false,
+    isStudyOwner: true,
+  },
+  2: {
+    studyId: 2,
+    studyName: "공무원 한국사",
+    coverImage: "https://picsum.photos/seed/study2/600/600",
+    categoryLabel: "공무원",
+    description: "공무원 한국사 같이 달려요",
+    memberNow: 3,
+    memberLimit: 10,
+    isPublic: false, // ✅ 비공개 예시
+    isStudyLike: false,
+    isStudyOwner: false,
+  },
+  3: {
+    studyId: 3,
+    studyName: "토익 900+",
+    coverImage: "https://picsum.photos/seed/study3/600/600",
+    categoryLabel: "어학",
+    description: "토익 점수 올리기",
+    memberNow: 8,
+    memberLimit: 20,
+    isPublic: true,
+    isStudyLike: true,
+    isStudyOwner: false,
+  },
+  6: {
+    studyId: 6,
+    studyName: "비공개 스터디입니다",
+    coverImage: "https://picsum.photos/seed/private/600/600",
+    categoryLabel: "임용",
+    description: "이 스터디는 비공개입니다. 비밀번호가 필요합니다.",
+    memberNow: 3,
+    memberLimit: 10,
+    isPublic: false,        // 🔴 핵심
+    isStudyLike: false,
+    isStudyOwner: false,
+  },
+};
 
-export default function StudyViewModal({ open, onClose, data }: Props) {
+const MOCK_PRIVATE_PASSWORD: Record<number, string> = {
+  6: "000000",
+};
+
+
+export default function StudyViewModal({ open, onClose, studyId }: Props) {
+  const USE_MOCK = true;
   const navigate = useNavigate();
+
+  /** UI 상태 */
   const [menuOpen, setMenuOpen] = useState(false);
-  const [tab, setTab] = useState<"daily" | "total">("daily");
-  const [favIds, setFavIds] = useState<number[]>(() => getFavorites());
+  const [rankTab, setRankTab] = useState<"today" | "total">("today");
 
-  const isFav = useMemo(() => {
-    if (!data) return false;
-    return favIds.includes(data.studyId);
-  }, [favIds, data]);
+  /** 상세 데이터 */
+  const [detail, setDetail] = useState<StudyDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState<string | null>(null);
 
+  /** 랭킹 */
+  const [rankRows, setRankRows] = useState<RankingRow[]>([]);
+  const [rankLoading, setRankLoading] = useState(false);
+  const [rankError, setRankError] = useState<string | null>(null);
+
+  /** 좋아요 토글 로딩 */
+  const [likeLoading, setLikeLoading] = useState(false);
+
+  /** 비공개 비번 모달 */
+  const [pwModalOpen, setPwModalOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [pwError, setPwError] = useState<string | null>(null);
+  const [pwLoading, setPwLoading] = useState(false);
+
+  /** 입장 로딩 */
+  const [enterLoading, setEnterLoading] = useState(false);
+
+  /** ESC 닫기 */
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (e: KeyboardEvent) => {
@@ -81,193 +151,410 @@ export default function StudyViewModal({ open, onClose, data }: Props) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, onClose]);
 
+  /** 모달 열릴 때 상태 초기화 */
   useEffect(() => {
     if (!open) return;
     setMenuOpen(false);
-    setTab("daily");
+    setRankTab("today");
+    setPwModalOpen(false);
+    setPwError(null);
   }, [open]);
+/** ✅ 상세 로드 */
+useEffect(() => {
+  if (!open || !studyId) return;
 
-  if (!open || !data) return null;
+  // 목업 모드: studyId별로 detail 주입
+  if (USE_MOCK) {
+    setDetailLoading(false);
+    setDetailError(null);
 
-  const canJoin = data.liveCount < data.limit;
-  const rows = tab === "daily" ? data.rankingDaily : data.rankingTotal;
+    const picked = MOCK_DETAIL[studyId];
+    setDetail(
+      picked ?? {
+        studyId,
+        studyName: `스터디 #${studyId}`,
+        coverImage: "https://picsum.photos/seed/fallback/600/600",
+        categoryLabel: "기타",
+        description: "목업 상세 데이터가 없습니다.",
+        memberNow: 0,
+        memberLimit: 10,
+        isPublic: true,
+        isStudyLike: false,
+        isStudyOwner: false,
+      }
+    );
+    return;
+  }
 
-  const onToggleFav = () => {
-    const next = isFav ? favIds.filter((id) => id !== data.studyId) : [...favIds, data.studyId];
-    setFavIds(next);
-    setFavorites(next);
+  let mounted = true;
+
+  (async () => {
+    setDetailLoading(true);
+    setDetailError(null);
+    try {
+      const data = await getStudyDetail(studyId);
+      if (mounted) setDetail(data);
+    } catch (e: any) {
+      if (mounted) {
+        setDetailError(e?.response?.data?.message ?? "스터디 정보를 불러오지 못했습니다.");
+        setDetail(null);
+      }
+    } finally {
+      if (mounted) setDetailLoading(false);
+    }
+  })();
+
+  return () => {
+    mounted = false;
   };
+}, [open, studyId]);
 
-  // ✅ 경로는 가정: 입장 페이지
-  const onEnter = () => {
-    navigate(`/studies/${data.studyId}/enter`);
-    onClose();
-  };
+  const isOwner = detail?.isStudyOwner ?? false;
+  const isLiked = detail?.isStudyLike ?? false;
+  const canJoin = useMemo(() => {
+    if (!detail) return false;
+    return detail.memberNow < detail.memberLimit;
+  }, [detail]);
 
-  // ✅ 경로는 가정: 수정 페이지
-  const onEdit = () => {
-    navigate(`/studies/${data.studyId}/edit`);
-    onClose();
-  };
+  if (!open) return null;
 
-  const onDelete = () => {
-    const ok = window.confirm("정말 삭제할까요? (지금은 API 미연동이라 실제 삭제는 안돼요)");
-    if (ok) {
-      setMenuOpen(false);
-      alert("삭제 요청(목업) 처리!");
+  /** ✅ 좋아요 토글 */
+  const onToggleLike = async () => {
+    if (!studyId || likeLoading) return;
+    setLikeLoading(true);
+    try {
+      await toggleStudyLike(studyId);
+      // 토글 반영(프론트 낙관 업데이트)
+      setDetail((prev) => (prev ? { ...prev, isStudyLike: !prev.isStudyLike } : prev));
+    } catch (e: any) {
+      alert(e?.response?.data?.message ?? "즐겨찾기 변경 실패");
+    } finally {
+      setLikeLoading(false);
     }
   };
 
+  /** ✅ 입장하기 */
+  const goStudyRoom = (id: number) => {
+    navigate(`/study-room/${id}`);
+  };
+
+  const onEnterClick = async () => {
+    if (!detail || enterLoading) return;
+  
+    // 인원 초과면 막기
+    if (detail.memberNow >= detail.memberLimit) return;
+  
+    if (detail.isPublic) {
+      // ✅ 공개: 바로 이동 (나중에 enterPublicStudy 붙일 자리)
+      onClose();
+      navigate(`/study-room/${detail.studyId}`);
+      return;
+    }
+  
+    // ✅ 비공개: 비번 모달
+    setPwError(null);
+    setPassword("");
+    setPwModalOpen(true);
+  };
+    /** ✅ 비공개 비번 확인 */
+const onConfirmPassword = async () => {
+  if (!detail || !studyId) return;
+
+  if (password.length < 6) {
+    setPwError("6자리 비밀번호를 입력해주세요.");
+    return;
+  }
+
+  // ✅ 목업 검증
+  if (USE_MOCK) {
+    const correct = MOCK_PRIVATE_PASSWORD[studyId] ?? "001122";
+
+    if (password !== correct) {
+      setPwError("비밀번호가 틀렸습니다.");
+      return;
+    }
+
+    // ✅ 비밀번호 맞으면 이동
+    setPwModalOpen(false);
+    onClose();
+    navigate(`/study-room/${studyId}`);
+    return;
+  }
+
+  // ✅ 나중에 실제 API 붙일 자리
+  try {
+    setPwLoading(true);
+    setPwError(null);
+
+    await enterPrivateStudy(studyId, password);
+
+    setPwModalOpen(false);
+    onClose();
+    navigate(`/study-room/${studyId}`);
+  } catch (e: any) {
+    setPwError(e?.response?.data?.message ?? "비밀번호 확인 실패");
+  } finally {
+    setPwLoading(false);
+  }
+};
+
+  /** ✅ 수정/삭제: 일단 UI만 (API는 마지막에 붙이자) */
+  const onEdit = () => {
+    if (!studyId) return;
+    onClose();
+    navigate(`/studies/${studyId}/edit`);
+  };
+
+  const onDelete = async () => {
+    alert("삭제 API 아직입니다..");
+  };
+
+  /** ====== 렌더 ====== */
+  return createPortal(
+    <>
+      <div
+        className="svmOverlay"
+        onMouseDown={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+      >
+        <div className="svmWrap">
+          <div className="svmBody">
+            <div className="svmCard">
+              <button
+                className="svmKebab"
+                type="button"
+                aria-label="menu"
+                onClick={() => setMenuOpen((v) => !v)}
+              >
+                ⋮
+              </button>
+
+              {/* ===== 상세 로딩/에러 ===== */}
+              {detailLoading ? (
+                <div className="svmLoading">불러오는 중...</div>
+              ) : detailError ? (
+                <div className="svmErrorBox">{detailError}</div>
+              ) : !detail ? (
+                <div className="svmErrorBox">데이터가 없습니다.</div>
+              ) : (
+                <>
+                  {/* ===== 상단 카드 ===== */}
+                  <div className="svmTop">
+                    <div className="svmCover">
+                      <img src={detail.coverImage} alt="" />
+                    </div>
+
+                    <div className="svmInfo">
+                      <div className="svmChips">
+                        <span className={`svmChip ${detail.isPublic ? "on" : ""}`}>
+                          {detail.isPublic ? "공개" : "비공개"}
+                        </span>
+                        <span className="svmChip ghost">{detail.categoryLabel ?? "기타"}</span>
+                      </div>
+
+                      <div className="svmTitle">{detail.studyName}</div>
+                      <div className="svmDesc">{detail.description}</div>
+
+                      <div className="svmRow">
+                        <span className={`svmPill ${canJoin ? "ok" : "no"}`}>
+                          {canJoin ? "참여가능" : "참여불가능"}
+                        </span>
+
+                        <div className="svmCount">
+                          <div className="svmCountLabel">실시간 참여수</div>
+                          <div className="svmCountValue">
+                            <b>{detail.memberNow}</b>/<b>{detail.memberLimit}</b>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="svmActionsRow">
+                        <button
+                          className="svmEnterBtn"
+                          type="button"
+                          onClick={onEnterClick}
+                          disabled={enterLoading}
+                        >
+                          {enterLoading ? "입장 중..." : "입장하기"}
+                        </button>
+
+                        <button
+                          className={`svmHeart ${isLiked ? "active" : ""}`}
+                          type="button"
+                          onClick={onToggleLike}
+                          disabled={likeLoading}
+                          aria-label="favorite"
+                        >
+                          ♡
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ===== 랭킹 ===== */}
+                  <div className="svmRankBox">
+                    <div className="svmRankHeader">
+                      <div className="svmMiniToggle">
+                        <button
+                          type="button"
+                          className={`svmMiniBtn ${rankTab === "today" ? "active" : ""}`}
+                          onClick={() => setRankTab("today")}
+                        >
+                          일간
+                        </button>
+                        <button
+                          type="button"
+                          className={`svmMiniBtn ${rankTab === "total" ? "active" : ""}`}
+                          onClick={() => setRankTab("total")}
+                        >
+                          누적
+                        </button>
+                      </div>
+
+                      <div className="svmRankTitlePill">스터디 랭킹 보드</div>
+                    </div>
+
+                    <table className="svmTable">
+                      <thead>
+                        <tr>
+                          <th style={{ width: 80 }}>순위</th>
+                          <th>닉네임</th>
+                          <th>일간 참가시간</th>
+                          <th>누적 참가시간</th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        {rankLoading ? (
+                          <tr>
+                            <td colSpan={4} style={{ textAlign: "center", padding: "16px 0" }}>
+                              불러오는 중...
+                            </td>
+                          </tr>
+                        ) : rankError ? (
+                          <tr>
+                            <td colSpan={4} style={{ textAlign: "center", padding: "16px 0" }}>
+                              {rankError}
+                            </td>
+                          </tr>
+                        ) : rankRows.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} style={{ textAlign: "center", padding: "16px 0" }}>
+                              랭킹 데이터가 없습니다.
+                            </td>
+                          </tr>
+                        ) : (
+                          rankRows.map((r, idx) => (
+                            <tr key={r.userId}>
+                              <td className="svmRankNum">{idx + 1}</td>
+                              <td>{r.userNickname}</td>
+                              <td>{toHM(r.todayDurationSeconds)}</td>
+                              <td>{toHM(r.totalDurationSeconds)}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* ===== 오른쪽 수정/삭제 박스: 방장일 때만 ===== */}
+            <div className="svmSide">
+              {menuOpen && isOwner && (
+                <div className="svmSideBox">
+                  <div className="svmSideMenu">
+                    <button type="button" className="svmSideBtn" onClick={onEdit}>
+                      수정
+                    </button>
+                    <div className="svmLine" />
+                    <button type="button" className="svmSideBtn danger" onClick={onDelete}>
+                      삭제
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <button className="svmClose" type="button" onClick={onClose} aria-label="close">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      {/* 비공개 비밀번호 입력 모달 */}
+      <PrivatePasswordModal
+        open={pwModalOpen}
+        password={password}
+        setPassword={setPassword}
+        onClose={() => setPwModalOpen(false)}
+        onConfirm={onConfirmPassword}
+        error={pwError}
+      />
+    </>,
+    document.body
+  );
+}
+
+function PrivatePasswordModal({
+  open,
+  password,
+  setPassword,
+  onClose,
+  onConfirm,
+  error,
+}: {
+  open: boolean;
+  password: string;
+  setPassword: (v: string) => void;
+  onClose: () => void;
+  onConfirm: () => void;
+  error?: string | null;
+}) {
+  if (!open) return null;
+
+
+  
   return createPortal(
     <div
-      className="svmOverlay"
+      className="pwOverlay"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="svmWrap">
-        <div className="svmHeroTitle">
-          <div className="svmHeroBig"></div>
+      <div className="pwModal">
+        <div className="pwHeader">
+          <span className="pwDot" />
+          <div className="pwTitle">비공개 스터디 참여</div>
         </div>
 
-        <div className="svmBody">
-          <div className="svmCard">
-            <button
-              className="svmKebab"
-              type="button"
-              aria-label="menu"
-              onClick={() => setMenuOpen((v) => !v)}
-            >
-              ⋮
-            </button>
+        <div className="pwSub">비밀번호를 입력해주세요.</div>
 
-            <div className="svmTop">
-              <div className="svmCover">
-                {data.coverImage ? (
-                  <img src={data.coverImage} alt="" />
-                ) : (
-                  <div className="svmCoverFallback">
-                    <img src={FALLBACK_LOGO_SRC} alt="logo" />
-                  </div>
-                )}
-              </div>
+        <input
+          className="pwInput"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="6자리 비밀번호를 입력하세요."
+          inputMode="numeric"
+          maxLength={6}
+        />
 
-              <div className="svmInfo">
-                <div className="svmChips">
-                  <span className={`svmChip ${data.isPublic ? "on" : ""}`}>
-                    {data.isPublic ? "공개" : "비공개"}
-                  </span>
-                  <span className="svmChip ghost">{data.categoryLabel ?? "기타"}</span>
-                </div>
+        {error ? <div className="pwError">{error}</div> : null}
 
-                <div className="svmTitle">{data.studyName}</div>
-                <div className="svmDesc">{data.description ?? ""}</div>
-
-                <div className="svmRow">
-                  <span className={`svmPill ${canJoin ? "ok" : "no"}`}>
-                    {canJoin ? "참여가능" : "참여불가능"}
-                  </span>
-
-                  <div className="svmCount">
-                    <div className="svmCountLabel">실시간 참여수</div>
-                    <div className="svmCountValue">
-                      <b>{data.liveCount}</b>/<b>{data.limit}</b>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="svmActionsRow">
-                  <button className="svmEnterBtn" type="button" onClick={onEnter}>
-                    입장하기
-                  </button>
-
-                  <button
-                    className={`svmHeart ${isFav ? "active" : ""}`}
-                    type="button"
-                    onClick={onToggleFav}
-                    aria-label="favorite"
-                  >
-                    ♡
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="svmRankBox">
-              <div className="svmRankHeader">
-                <div className="svmRankTab">
-                  <button className="svmTabBtn" type="button">
-                    일간 / 누적
-                  </button>
-                </div>
-
-                <div className="svmRankTitlePill">스터디 랭킹 보드</div>
-              </div>
-
-              <table className="svmTable">
-                <thead>
-                  <tr>
-                    <th style={{ width: 80 }}>순위</th>
-                    <th>닉네임</th>
-                    <th>일간 참가시간</th>
-                    <th>누적 참가시간</th>
-                  </tr>
-                </thead>
-                const rows = data?.ranking ?? [];
-                <tbody>
-                  {rows.map((r) => (
-                    <tr key={r.rank}>
-                      <td className="svmRankNum">{r.rank}</td>
-                      <td>{r.nickname}</td>
-                      <td>{r.dailyMinutes == null ? "" : mmToHourMin(r.dailyMinutes)}</td>
-                      <td>{mmToHourMin(r.totalMinutes)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              <div className="svmMiniToggle">
-                <button
-                  type="button"
-                  className={`svmMiniBtn ${tab === "daily" ? "active" : ""}`}
-                  onClick={() => setTab("daily")}
-                >
-                  일간
-                </button>
-                <button
-                  type="button"
-                  className={`svmMiniBtn ${tab === "total" ? "active" : ""}`}
-                  onClick={() => setTab("total")}
-                >
-                  누적
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="svmSide">
-            {menuOpen && (
-              <div className="svmSideBox">
-                <div className="svmSideTitle">수정/삭제</div>
-                <div className="svmSideMenu">
-                  <button type="button" className="svmSideBtn" onClick={onEdit}>
-                    수정
-                  </button>
-                  <div className="svmLine" />
-                  <button type="button" className="svmSideBtn danger" onClick={onDelete}>
-                    삭제
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+        <div className="pwBtns">
+          <button className="pwCancel" onClick={onClose}>
+            취소
+          </button>
+          <button className="pwOk" onClick={onConfirm}>
+            확인
+          </button>
         </div>
-
-        <button className="svmClose" type="button" onClick={onClose} aria-label="close">
-          ✕
-        </button>
       </div>
     </div>,
     document.body
   );
 }
+

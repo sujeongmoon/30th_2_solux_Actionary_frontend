@@ -20,4 +20,43 @@ api.interceptors.request.use(
   }
 )
 
+{/* 리스폰스 인터셉터 영역입니다 */}
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config as any;
+
+    //accessToken 만료 (401) + 재시도 안 한 요청
+    if (
+      error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const refreshToken = localStorage.getItem("refreshToken");
+        
+        if (!refreshToken) {
+          throw new Error("refresh token 없음");
+        }
+
+        const refreshResponse = await api.post("/auth/refresh", {
+          refresh: refreshToken,
+        });
+
+        const newAccessToken = refreshResponse.data.data.accessToken;
+
+        localStorage.setItem("accessToken", newAccessToken);
+
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        // refresh 실패 시 완전 로그아웃
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        window.location.href = "/login";
+      }
+    }
+      return Promise.reject(error);
+    
+  }
+);
 export default api;

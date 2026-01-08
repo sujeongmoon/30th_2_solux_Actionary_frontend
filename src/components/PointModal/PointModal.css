@@ -1,0 +1,46 @@
+/* 화면 어둡게 */
+.point-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* 중앙 상자 */
+.point-modal-box {
+  background-color: #262627;
+  padding: 40px;
+  border-radius: 50px;
+  text-align: center;
+  min-width: 300px;
+}
+
+/* 포인트 메시지 */
+.point-modal-text {
+  font-size: 38px;
+  margin-bottom: 50px;
+  color: #ffffff;
+}
+
+/* 확인 버튼 */
+.point-modal-button {
+  padding: 10px 20px;
+  font-size: 21px;
+  border: none;
+  border-radius: 999px;
+  background:linear-gradient(
+    90deg, #FA785B 0%, #FF3761 100%
+  );
+  color: white;
+  cursor: pointer;
+}
+
+.point-modal-button:hover {
+  background-color: #b3b3b3;
+}
