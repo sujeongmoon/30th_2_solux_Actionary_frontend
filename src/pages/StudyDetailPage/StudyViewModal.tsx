@@ -54,7 +54,7 @@ function toHM(sec: number) {
   return `${h}시간_${m}분`;
 }
 
-// ✅ 목업 상세 데이터 (studyId별)
+// 목업 상세 데이터 (studyId별)
 const MOCK_DETAIL: Record<number, StudyDetail> = {
   1: {
     studyId: 1,
@@ -76,8 +76,8 @@ const MOCK_DETAIL: Record<number, StudyDetail> = {
     description: "공무원 한국사 같이 달려요",
     memberNow: 3,
     memberLimit: 10,
-    isPublic: false, // ✅ 비공개 예시
-    isStudyLike: false,
+    isPublic: true, 
+    isStudyLike: true,
     isStudyOwner: false,
   },
   3: {
@@ -159,7 +159,7 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
     setPwModalOpen(false);
     setPwError(null);
   }, [open]);
-/** ✅ 상세 로드 */
+
 useEffect(() => {
   if (!open || !studyId) return;
 
@@ -218,7 +218,7 @@ useEffect(() => {
 
   if (!open) return null;
 
-  /** ✅ 좋아요 토글 */
+  /**좋아요 토글 */
   const onToggleLike = async () => {
     if (!studyId || likeLoading) return;
     setLikeLoading(true);
@@ -233,7 +233,7 @@ useEffect(() => {
     }
   };
 
-  /** ✅ 입장하기 */
+  /** 입장하기 */
   const goStudyRoom = (id: number) => {
     navigate(`/study-room/${id}`);
   };
@@ -245,18 +245,18 @@ useEffect(() => {
     if (detail.memberNow >= detail.memberLimit) return;
   
     if (detail.isPublic) {
-      // ✅ 공개: 바로 이동 (나중에 enterPublicStudy 붙일 자리)
+      // 공개: 바로 이동 (나중에 enterPublicStudy 붙일 자리)
       onClose();
       navigate(`/study-room/${detail.studyId}`);
       return;
     }
   
-    // ✅ 비공개: 비번 모달
+    // 비공개: 비번 모달
     setPwError(null);
     setPassword("");
     setPwModalOpen(true);
   };
-    /** ✅ 비공개 비번 확인 */
+    /** 비공개 비번 확인 */
 const onConfirmPassword = async () => {
   if (!detail || !studyId) return;
 
@@ -265,7 +265,7 @@ const onConfirmPassword = async () => {
     return;
   }
 
-  // ✅ 목업 검증
+  // 목업 검증
   if (USE_MOCK) {
     const correct = MOCK_PRIVATE_PASSWORD[studyId] ?? "001122";
 
@@ -274,14 +274,14 @@ const onConfirmPassword = async () => {
       return;
     }
 
-    // ✅ 비밀번호 맞으면 이동
+    // 비밀번호 맞으면 이동
     setPwModalOpen(false);
     onClose();
     navigate(`/study-room/${studyId}`);
     return;
   }
 
-  // ✅ 나중에 실제 API 붙일 자리
+  // 나중에 실제 API 붙일 자리
   try {
     setPwLoading(true);
     setPwError(null);
@@ -298,7 +298,7 @@ const onConfirmPassword = async () => {
   }
 };
 
-  /** ✅ 수정/삭제: 일단 UI만 (API는 마지막에 붙이자) */
+  /** 수정/삭제: 일단 UI만 (API는 마지막에 붙이자) */
   const onEdit = () => {
     if (!studyId) return;
     onClose();

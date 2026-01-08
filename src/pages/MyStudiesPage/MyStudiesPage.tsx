@@ -94,7 +94,7 @@ const MOCK: StudyCard[] = [
 const PAGE_SIZE = 8;
 
 function toModalData(s: StudyCard): StudyViewData {
-  // ✅ 요구사항 반영(안내는 공백 가능 / 커버 없으면 모달에서 로고로 대체)
+  // 요구사항 반영(안내는 공백 가능 / 커버 없으면 모달에서 로고로 대체)
   const limit = 15;
   const live = Math.min(limit, Math.max(0, (s.studyId * 3) % (limit + 1))); // 임시
 
@@ -140,7 +140,7 @@ export default function MyStudiesPage() {
   // 페이지네이션
   const [page, setPage] = useState(1);
 
-  // ✅ 모달 선택 상태(이것만 있으면 됨)
+  // 모달 선택 상태(이것만 있으면 됨)
   const [selected, setSelected] = useState<StudyViewData | null>(null);
 
   // ===== 상단 "나만의 스터디" 후보 리스트 (scope에 따라) =====
@@ -186,7 +186,7 @@ export default function MyStudiesPage() {
     setCarouselIndex(0);
   };
 
-  // ✅ 카드 클릭 공통: 모달 열기
+  // 카드 클릭 공통: 모달 열기
   const openModal = (e: MouseEvent<HTMLElement>, s: StudyCard) => {
     e.preventDefault();
     e.stopPropagation();
@@ -247,7 +247,7 @@ export default function MyStudiesPage() {
                     className="miniCard"
                     role="button"
                     tabIndex={0}
-                    onClick={(e) => openModal(e, s)} // ✅ 모달
+                    onClick={(e) => openModal(e, s)} // 모달
                   >
                     <div className="miniThumb">
                       {s.coverImage ? <img src={s.coverImage} alt="" /> : <div className="miniFallback" />}
@@ -306,7 +306,7 @@ export default function MyStudiesPage() {
               className="gridCard"
               role="button"
               tabIndex={0}
-              onClick={(e) => openModal(e, s)} // ✅ 모달
+              onClick={(e) => openModal(e, s)} // 모달
             >
               <div className="gridThumb">
                 {s.coverImage ? <img src={s.coverImage} alt="" /> : <div className="gridFallback" />}
@@ -338,14 +338,14 @@ export default function MyStudiesPage() {
         </div>
       </section>
 
-      {/* ✅ 모달(항상 return 안에 존재해야 뜸) */}
+      {/* 모달(항상 return 안에 존재해야 뜸) */}
       <StudyViewModal
         open={!!selected}
         data={
           selected ?? {
             studyId: 0,
             studyName: "",
-            ranking: [], // ✅ map 터짐 방지
+            ranking: [], // map 터짐 방지
           }
         }
         onClose={() => setSelected(null)}
