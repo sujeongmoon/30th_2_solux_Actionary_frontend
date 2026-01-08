@@ -28,7 +28,7 @@ export default function StudyCreatePage() {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<CategoryLabel>("수능");
   const [summary, setSummary] = useState("");
-  const [guide, setGuide] = useState(""); // ✅ 안내는 공백 가능(필수 아님)
+  const [guide, setGuide] = useState(""); // 안내는 공백 가능(필수 아님)
   const [limit, setLimit] = useState<number>(2);
 
   const [visibility, setVisibility] = useState<Visibility>("public");
@@ -85,12 +85,12 @@ export default function StudyCreatePage() {
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) {
-      // ✅ 실패 토스트 + 필드 하이라이트
+      // 실패 토스트 + 필드 하이라이트
       showToast("error", "필수 항목들을 입력해주세요");
       return;
     }
 
-    // ✅ 여기서 실제 API 붙일 예정이면 try/catch로 감싸서 실패 토스트 처리
+    // 여기서 실제 API 붙일 예정이면 try/catch로 감싸서 실패 토스트 처리
     // 지금은 프론트-only 성공 처리
     showToast("success", "성공적으로 스터디가 만들어졌습니다.");
     setSuccessModalOpen(true);
@@ -114,7 +114,7 @@ export default function StudyCreatePage() {
           <div className="successModal">
             <div className="successBrand">ACTIONARY</div>
 
-            {/* ✅ 로고 위치: 피그마 기준(absolute + center) */}
+            {/* 로고 위치: 피그마 기준(absolute + center) */}
             <div className="successLogo" aria-hidden="true" />
 
             <div className="successTitle">성공적으로 스터디가 만들어졌습니다</div>
@@ -125,7 +125,7 @@ export default function StudyCreatePage() {
               className="successBtn"
               onClick={() => {
                 setSuccessModalOpen(false);
-                navigate("/studies"); // ✅ “메인으로” 경로는 팀 규칙에 맞게 바꾸면 됨
+                navigate("/studies"); // “메인으로” 경로는 팀 규칙에 맞게 바꾸면 됨
               }}
             >
               메인으로
