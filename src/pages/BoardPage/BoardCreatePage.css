@@ -1,0 +1,234 @@
+.page-container {
+  min-height: 100vh;
+  background-color: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 50px;
+}
+/* 드롭다운을 위한 컨테이너 위치 설정 */
+.dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* 말머리 버튼 (인증, 소통 등) */
+.category-button {
+  background-color: #2c2c2c; /* 디자인의 검은색 */
+  color: #fff;
+  padding: 8px 18px;
+  border-radius: 25px;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.category-button:hover {
+  background-color: #444;
+}
+
+.icon-sm {
+    margin-left: 10px;
+    transition: transform 0.3s ease;
+}
+
+.icon-sm.open {
+  transform: rotate(180deg);
+}
+
+/* 드롭다운 메뉴 스타일 */
+.category-dropdown {
+  position: absolute;
+  top: 45px;
+  left: 0;
+  background-color: #2c2c2c; 
+  border-radius: 20px;
+  list-style: none;
+  padding: 10px 0;
+  margin: 0;
+  width: 100px;
+  z-index: 100;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown-item {
+  width: 100%;
+  background: none;
+  border: none;
+  color: #FFFFFF;
+  padding: 12px 0;
+  font-size: 1rem;
+  font-weight: 400;
+  text-align: center;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  color: #FFFFFF;
+  background-color: transparent; /* 호버 시 포인트 컬러 */
+}
+
+/* 드롭다운 사이의 구분선 */
+.dropdown-divider {
+  height: 0.5px;
+  background-color: #FFFFFF;
+  width: 70%;
+  margin: 0 auto;
+}
+
+/* 나머지 기존 스타일 유지... */
+.form-container {
+  width: 90%;
+  max-width: 800px;
+  background-color: transparent;
+  margin-top: 30px;
+  padding: 40px;
+  border-radius: 8px;
+}
+
+/* Tiptap 컨테이너 (둥근 테두리) */
+.tiptap-editor-box {
+  border: 1px solid #B3B3B3;
+  border-radius: 30px;
+  overflow: hidden;
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 툴바 그룹화 */
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border-right: 1px solid #555; /* 그룹 간 구분선 */
+  padding-right: 10px;
+  margin-right: 5px;
+}
+
+.toolbar-group:last-child {
+  border-right: none;
+}
+
+.tiptap-toolbar {
+  display: flex;
+  flex-wrap: wrap; /* 버튼이 많으면 다음 줄로 넘어가게 */
+  background-color: #2c2c2c;
+  margin: 15px 15px 0 15px;
+  padding: 8px 15px;
+  border-radius: 20px;
+  gap: 5px;
+}
+
+/* 활성화된 버튼 디자인 강조 */
+.tiptap-toolbar button.is-active {
+  background-color: #ffffff;
+  color: #2c2c2c;
+  border-radius: 6px;
+}
+
+/* 인용구(Blockquote) 스타일 정의 (에디터 내부) */
+.ProseMirror blockquote {
+  border-left: 4px solid #ddd;
+  padding-left: 1rem;
+  margin-left: 0;
+  color: #666;
+  font-style: italic;
+}
+
+/* 리스트 스타일 */
+.ProseMirror ul, .ProseMirror ol {
+  padding: 0 1rem;
+  margin: 1rem 0;
+}
+
+/* 디자인의 검은색 툴바 바 */
+.tiptap-toolbar {
+  background-color: #2c2c2c;
+  margin: 15px 15px 0 15px;
+  padding: 10px 20px;
+  border-radius: 20px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.tiptap-toolbar button {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+.tiptap-toolbar button.is-active {
+  background-color: #555; /* 활성화된 버튼 색상 */
+}
+
+.tiptap-toolbar button:hover {
+  text-decoration: underline;
+}
+
+/* 에디터 본문 입력 영역 */
+.editor-content {
+  flex: 1;
+  padding: 20px 30px;
+}
+
+.ProseMirror {
+  outline: none;
+  min-height: 400px;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Placeholder 스타일 */
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #B3B3B3;
+  pointer-events: none;
+  height: 0;
+}
+
+/* 이미지 스타일 */
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 15px;
+  margin: 10px 0;
+}
+
+/* 제목 및 기타 버튼 스타일 유지 */
+.category-section { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
+.category-button {
+  background-color: #222; color: #fff; padding: 6px 16px; border-radius: 20px;
+  border: none; display: flex; align-items: center; gap: 6px; cursor: pointer;
+}
+.title-section { position: relative; margin-bottom: 30px; }
+.title-input { width: 100%; border: none; border-bottom: 1px solid #B3B3B3; padding-bottom: 12px; font-size: 1.3rem; outline: none; background-color: transparent; font-weight: 600;}
+.title-input::placeholder { color: #262627 }
+.char-count { position: absolute; right: 0; bottom: 12px; color: #B3B3B3; }
+.footer-section { display: flex; justify-content: flex-end; margin-top: 25px; }
+.submit-button {
+  background: linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+  font-size: 16px;
+  color: #ffffff; padding: 12px 35px; border-radius: 30px; border: none;
+  font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer;
+}
+.icon-sm { width: 14px; }
+.icon-md { width: 18px; filter: brightness(0) invert(1); }
+
+
+/* 수정 모드*/
+.image-preview {
+    padding: 20px;
+}

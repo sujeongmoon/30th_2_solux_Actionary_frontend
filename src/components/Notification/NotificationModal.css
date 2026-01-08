@@ -1,0 +1,168 @@
+/* 모달 전체 오버레이 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* 모달 본체 */
+.modal-content {
+  width: 90%;
+  max-width: 1000px;
+  max-height: 85vh;
+  background-color: #f5f5f7;
+  border-radius: 40px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  animation: modalFadeIn 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  margin: 0px;
+  padding: 0px;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* 헤더 */
+.alert-modal-header {
+  background-color: #ffffff;
+  padding: 40px 0;
+  text-align: center;
+  position: relative;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.alert-modal-header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1d1d1f;
+  letter-spacing: -0.5px;
+}
+
+/* 리스트 영역 */
+.alert-modal-body {
+  padding: 50px 40px 40px 40px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+}
+
+/* 개별 알림 카드 */
+.noti-card {
+  background-color: #ffffff;
+  padding: 30px 40px;
+  border-radius: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0px 2px 15px 3px #0000001A;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.noti-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.noti-card-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* 붉은색 포인트 점 */
+.noti-point-dot {
+  width: 18px;
+  height: 18px;
+}
+
+.noti-text {
+  margin: 0;
+  color: #000000;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.noti-card-right {
+  flex-shrink: 0;
+  margin-left: 20px;
+}
+
+.noti-date-text {
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.3px;
+
+  background: linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+  -webkit-background-clip: text; /* 크롬, 사파리용 */
+  -webkit-text-fill-color: transparent; /* 크롬, 사파리용 */
+  background-clip: text; /* Firefox용 */
+  color: transparent; /* Firefox용 */
+}
+
+
+/* 스크롤바 디자인 */
+.alert-modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.alert-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 10px 0;
+}
+
+.alert-modal-body::-webkit-scrollbar-thumb {
+  background-color: #d1d1d6;
+  border-radius: 10px;
+  border: 2px solid #f5f5f7;
+}
+
+.alert-modal-body::-webkit-scrollbar-thumb:hover {
+  background-color: #b8b8bd;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    max-width: none;
+  }
+  
+  .alert-modal-body {
+    padding: 40px 20px 20px 20px;
+  }
+  
+  .noti-card {
+    padding: 20px 25px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .noti-card-right {
+    margin-left: 38px;
+  }
+  
+  .noti-text {
+    white-space: normal;
+  }
+}

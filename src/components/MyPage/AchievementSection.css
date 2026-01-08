@@ -1,0 +1,176 @@
+/* 업적 섹션 전체 */
+.owner-achievement-section {
+  margin-top: 20px;
+}
+
+.owner-achievement-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.owner-achievement-dot {
+  width: 16px;
+  height: 16px;
+}
+
+.owner-achievement-title {
+  font-weight: 600;
+  font-size: 20px;
+}
+
+/* 화이트 박스 레이아웃 */
+.owner-stats-box {
+  padding: 15px 40px 30px 0px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  align-items: stretch;
+}
+
+/* 1. 배지 카드 스타일 */
+.owner-badge-card {
+  background-color: #2C2C2C; /* 어두운 배경 */
+  border-radius: 37px;
+  flex: 0 0 320px;
+  max-width: 300px;
+  width: 100%;
+  height: 270px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.owner-badge-image {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  transform: translateY(-15px);
+}
+
+
+.owner-badge-circle {
+  width: 55px;
+  height: 55px;
+  background: linear-gradient(180deg, #FF6A6A 0%, #FF3761 100%);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.owner-badge-logo {
+  color: white;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.owner-badge-text {
+  font-weight: 600;
+  font-size: 30px;
+  background: linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+
+/* 2. 상세 리스트 스타일 */
+.own-study-icon {
+  width: 18px;
+}
+
+.icon-clock {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.icon-study {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.icon-todo {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.owner-stat-white-box {
+    background-color: #F8F8F6;
+    display: flex;
+    padding: 20px;
+    flex: 1;
+    border-radius: 37px;
+}
+.owner-stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 360px;
+  justify-content: space-between;
+  margin: 0px 20px 0px 0px;
+}
+
+.owner-stat-pill {
+  background-color: #262627;
+  color: white;
+
+  min-height: 30px;
+  padding: 13px 40px 13px 20px;
+
+  border-radius: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.owner-stat-label {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.owner-stat-value {
+  font-weight: 700;
+  font-size: 35px;
+}
+
+/* 3. 총 포인트 스타일 */
+.owner-total-points {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  padding: 50px 70px 70px 150px;
+}
+
+.owner-total-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #000000;
+}
+
+.owner-total-dot {
+  width: 18px;
+}
+
+.total-dot-icon {
+  width: 8px;
+  height: 10px;
+  background-color: #FF5A60;
+  clip-path: ellipse(50% 50% at 50% 50%); /* 물방울 모양 아이콘 */
+}
+
+.owner-total-value {
+  font-size: 50px;
+  font-weight: 600;
+  color: #222;
+}
