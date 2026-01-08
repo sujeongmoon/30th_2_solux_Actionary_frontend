@@ -41,12 +41,12 @@ const Navbar = () => {
 
         {/* 프로필 */}
         <div 
-          className={`profile-circle ${
+          className={`nav-profile-circle ${
             profileImageUrl ? "has-image" : ""
           }`}
           onClick={() => navigate("/mypage")}>
             {profileImageUrl ? (
-              <img src={profileImageUrl} alt="프로필" className="profile-image"/>
+              <img src={profileImageUrl} alt="프로필" className="nav-profile-image"/>
             ):(
               <div className="profile-default">
                 <img src={ProfilePerson} alt="프로필 아이콘" className="profile-person" />
