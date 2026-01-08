@@ -147,7 +147,7 @@ const handleCloseMenu = () => setIsMenuOpen(false);
           </p>
 
           <div className="ai-input-box">
-            <div className="plus-button" onClick={handlePlusClick}>+</div>
+            <div className="home-plus-button" onClick={handlePlusClick}>+</div>
             <input className="ai-input" placeholder="| ex) 파일을 요약해줘" value={selectedFileName} readOnly />
             <button className="search-button">
               <img src={SearchIcon} alt="search" />

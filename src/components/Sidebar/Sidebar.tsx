@@ -134,7 +134,7 @@ const RightSidebar = () => {
               alt='알람 아이콘' 
               className="sidebar-bell"
               onClick={openNotificationModal} />
-            <div className="profile-circle">
+            <div className="side-profile-circle">
               <FiUser size={25} />
             </div>
           </div>
