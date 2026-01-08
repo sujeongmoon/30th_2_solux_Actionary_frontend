@@ -100,7 +100,7 @@ const MOCK_DETAIL: Record<number, StudyDetail> = {
     description: "이 스터디는 비공개입니다. 비밀번호가 필요합니다.",
     memberNow: 3,
     memberLimit: 10,
-    isPublic: false,        // 🔴 핵심
+    isPublic: false,        
     isStudyLike: false,
     isStudyOwner: false,
   },

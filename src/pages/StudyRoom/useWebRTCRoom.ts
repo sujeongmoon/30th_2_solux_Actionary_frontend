@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
+console.log("useWebRTCRoom.ts LOADED");
 
-console.log("useWebRTCRoom.ts LOADED ✅");
 type PeerId = string;
 type RemoteStreamMap = Record<PeerId, MediaStream>;
 

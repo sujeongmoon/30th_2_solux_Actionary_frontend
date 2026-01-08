@@ -247,7 +247,7 @@ export default function MyStudiesPage() {
                     className="miniCard"
                     role="button"
                     tabIndex={0}
-                    onClick={(e) => openModal(e, s)} // 모달
+                    onClick={(e) => openModal(e, s)} 
                   >
                     <div className="miniThumb">
                       {s.coverImage ? <img src={s.coverImage} alt="" /> : <div className="miniFallback" />}
@@ -306,7 +306,7 @@ export default function MyStudiesPage() {
               className="gridCard"
               role="button"
               tabIndex={0}
-              onClick={(e) => openModal(e, s)} // 모달
+              onClick={(e) => openModal(e, s)} 
             >
               <div className="gridThumb">
                 {s.coverImage ? <img src={s.coverImage} alt="" /> : <div className="gridFallback" />}

@@ -40,7 +40,7 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
     if (!studyId) return;
 
     const client = new Client({
-      webSocketFactory: () => new SockJS(`${wsBaseUrl}/ws`), // ✅ 도메인주소/ws
+      webSocketFactory: () => new SockJS(`${wsBaseUrl}/ws`), // 도메인주소/ws
       reconnectDelay: 2000,
       debug: () => {},
 
