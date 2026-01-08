@@ -110,6 +110,17 @@ const MOCK_PRIVATE_PASSWORD: Record<number, string> = {
   6: "000000",
 };
 
+const MOCK_RANKINGS: Record<number, RankingRow[]> = {
+  1: [
+    { userId: 1, userNickname: "민지", todayDurationSeconds: 3600, totalDurationSeconds: 12800 },
+    { userId: 2, userNickname: "수아", todayDurationSeconds: 2400, totalDurationSeconds: 9900 },
+    { userId: 3, userNickname: "지후", todayDurationSeconds: 1800, totalDurationSeconds: 8500 },
+  ],
+  6: [
+    { userId: 10, userNickname: "비공개킹", todayDurationSeconds: 4200, totalDurationSeconds: 22100 },
+    { userId: 11, userNickname: "새벽공부", todayDurationSeconds: 3000, totalDurationSeconds: 17000 },
+  ],
+};
 
 export default function StudyViewModal({ open, onClose, studyId }: Props) {
   const USE_MOCK = true;
@@ -209,6 +220,44 @@ useEffect(() => {
   };
 }, [open, studyId]);
 
+useEffect(() => {
+  if (!open || studyId == null) return;
+
+  if (USE_MOCK) {
+    setRankLoading(false);
+    setRankError(null);
+    setRankRows(MOCK_RANKINGS[studyId] ?? []);
+    return;
+  }
+
+  let mounted = true;
+
+  (async () => {
+    try {
+      setRankLoading(true);
+      setRankError(null);
+
+      const data = await getStudyRankings(studyId, rankTab === "today");
+
+      if (mounted) {
+        setRankRows(data.rankingBoards ?? []);
+      }
+    } catch (e: any) {
+      if (mounted) {
+        setRankError(
+          e?.response?.data?.message ?? "랭킹 데이터를 불러오지 못했습니다."
+        );
+        setRankRows([]);
+      }
+    } finally {
+      if (mounted) setRankLoading(false);
+    }
+  })();
+
+  return () => {
+    mounted = false;
+  };
+}, [open, studyId, rankTab]);
   const isOwner = detail?.isStudyOwner ?? false;
   const isLiked = detail?.isStudyLike ?? false;
   const canJoin = useMemo(() => {
@@ -218,6 +267,7 @@ useEffect(() => {
 
   if (!open) return null;
 
+  console.log("RANK MOCK:", open, studyId, MOCK_RANKINGS[studyId]);
   /**좋아요 토글 */
   const onToggleLike = async () => {
     if (!studyId || likeLoading) return;
