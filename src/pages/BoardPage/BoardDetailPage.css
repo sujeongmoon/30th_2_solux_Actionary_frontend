@@ -115,6 +115,10 @@
   border-radius: 8px; /* 추가하면 둥글게 */
 }
 
+.comment-title {
+  margin: 10px 0px;
+}
+
 .count-grey {
   color: #B3B3B3;
 }
