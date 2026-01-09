@@ -163,12 +163,15 @@ const [isModalOpen, setIsModalOpen] = useState(false);
 
             
             <div className='owner-todo-body'>
-                {todoList.map((todo) => {
+                {todoList.map((todo, index) => {
                     const category = mockCategories.find(cat => cat.categoryId === todo.categoryId);
+                    const prevTodo = todoList[index - 1];
+                    const showCategory = 
+                      !prevTodo || prevTodo.categoryId !== todo.categoryId;
 
                     return (
                           <div className='owner-todo-item-wrapper' key={todo.todoId}>
-                            {category && (
+                            {showCategory && category && (
                                 <span 
                                   className='owner-todo-tag'
                                   style = {{ 
