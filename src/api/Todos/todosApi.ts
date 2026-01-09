@@ -2,27 +2,123 @@ import { api } from '../client';
 
 
 // 특정 날짜 투두리스트 조회
-export const getTodosByDate = async (date: string) => {
+export const getTodosByDate = async (date: string): Promise<Todo[]> => {
     try {
-        const res = await api. get(`/todos`, {
+        const res = await api.get(`/api/todos`, {
             params: {date},
         });
-        return res.data;
+        return res.data.data.todos; // 수정: 실제 todos 배열 반환
     } catch (error) {
         console.error('투두리스트 조회 실패', error);
         throw error;
     }
 };
 
-// 투두리스트 달성, 실패
+// 투두리스트 달성, 실패 (수정)
 export type TodoStatus = 'PENDING' | 'DONE' | 'FAILED';
 
 export const updateTodoStatus = async (
     todoId: number,
     status: TodoStatus
-) => {
-    const res = await api.patch(`/api/todos/${todoId}/status`, {
-        status,
-    });
-    return res.data;
+): Promise<{success: boolean; data: { todoId: number; status: TodoStatus}}> => {
+    try {
+        const res = await api.patch(`/api/todos/${todoId}/status`, {status});
+        return res.data;
+    } catch (error) {
+        console.error('투두 상태 변경 실패', error);
+        throw error;
+    }
+};
+
+// 투두 타입
+export interface Todo {
+    todoId: number;
+    title: string;
+    date: string;
+    categoryId?: number | null;
+    status: TodoStatus;
+    createdAt: string;
+    routineId?: number | null;
 }
+
+// 투두 생성
+export interface CreateTodoRequest {
+    title: string;
+    date: string;
+    categoryId?: number | null;
+}
+
+export const createTodo = async ({
+    title,
+    date,
+    categoryId = null,
+}: CreateTodoRequest): Promise<{ success: boolean; data: Todo}> => {
+    try {
+        const res = await api.post('/api/todos', {
+            title,
+            date,
+            categoryId,
+        });
+        return res.data;
+    } catch (error) {
+        console.error('투두 생성 실패', error);
+        throw error;
+    }
+};
+
+// 투두 수정
+export interface UpdateTodoRequest {
+    title?: string;
+    categoryId?: number;
+}
+
+export const updateTodo = async (
+    todoId: number,
+    data: UpdateTodoRequest
+): Promise<{success: boolean; data: Todo}> => {
+    try {
+        const res = await api.patch(`/api/todos/${todoId}`, data);
+        return res.data;
+    } catch (error) {
+        console.error('투두 수정 실패', error);
+        throw error;
+    }
+};
+
+// 투두 삭제
+export const deleteTodo = async (todoId: number): Promise<{success: boolean; message: string}> => {
+    try {
+        const res = await api.delete(`/api/todos/${todoId}`);
+        return res.data;
+    } catch (error) {
+        console.error('투두 삭제 실패', error);
+        throw error;
+    }
+};
+
+// 루틴 생성
+export interface CreateRoutineRequest {
+    todoId: number;
+    startDate: string;
+    repeat: 'DAILY'
+}
+
+export const createRoutine = async (data: CreateRoutineRequest) => {
+    try {
+        const res = await api.post('/api/todos/routine', data);
+        return res.data;
+    } catch (error) {
+        console.error('루틴 생성 실패', error);
+        throw error;
+    }
+};
+
+export const cancelRoutine = async (routineId: number) => {
+    try {
+        const res = await api.patch(`/api/todos/routine/${routineId}/cancel`);
+        return res.data;
+    } catch (error) {
+        console.error('루틴 취소 실패', error);
+        throw error;
+    }
+};
