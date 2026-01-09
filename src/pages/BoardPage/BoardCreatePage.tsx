@@ -185,8 +185,6 @@ const BoardCreatePage = () => {
             </div>
             <div className="toolbar-group">
               <button onClick={handlePhotoClick}>Photo</button>
-              <button onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()}>↶</button>
-              <button onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()}>↷</button>
             </div>
             <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleFileChange} />
           </div>

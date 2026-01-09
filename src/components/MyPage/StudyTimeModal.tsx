@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css'; // 기본 스타일 import
-import './StudyTimeModal.css'; // 커스텀 스타일 import
+import './StudyTimeModal.css'; 
+import Union from '../../assets/bookmark/Union.svg';
+import { addStudyTimeManual } from '../../api/addStudyTime';
+
 
 interface StudyTimeModalProps {
   isOpen: boolean;
@@ -10,19 +13,57 @@ interface StudyTimeModalProps {
 
 const StudyTimeModal: React.FC<StudyTimeModalProps> = ({ isOpen, onClose }) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  // 이미지에 맞춰 select box로 구현하거나, 디자인된 input으로 구현
   const [hours, setHours] = useState<string>('00');
   const [minutes, setMinutes] = useState<string>('00');
+  const [isSaving, setIsSaving] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSave = () => {
-    const dateStr = selectedDate.toISOString().slice(0, 10);
-    console.log(`날짜: ${dateStr}, 시간: ${hours}시간 ${minutes}분 저장`);
-    onClose();
+  const handleSave = async() => {
+    if (isSaving) return;
+    setIsSaving(true);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate > today) {
+        alert('오늘 이후 날짜는 선택할 수 없습니다.');
+        setIsSaving(false);
+        return;
+    }
+
+    const yyyy = selectedDate.getFullYear();
+    const mm = String(selectedDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(selectedDate.getDate()).padStart(2, '0');
+    const dateStr = `${yyyy}-${mm}-${dd}`;
+
+    const durationSecond = 
+        Number(hours) * 3600 +
+        Number(minutes) * 60;
+
+    if (durationSecond === 0) {
+        alert('공부 시간을 입력해주세요.');
+        setIsSaving(false);
+        return;
+    }
+
+    try {
+        const res = await addStudyTimeManual({
+            date: dateStr,
+            durationSecond,
+        });
+
+        console.log('공부량 추가 성공:', res.data);
+        onClose();
+    } catch (error) {
+        console.error('공부량 추가 실패', error);
+        alert('공부량 추가에 실패했습니다.');
+    } finally {
+        setIsSaving(false);
+    }
   };
 
-  // 시간/분 선택을 위한 옵션 생성 (예시)
+  // 시간/분 선택을 위한 옵션 생성
   const hourOptions = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
   const minuteOptions = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
 
@@ -30,15 +71,15 @@ const StudyTimeModal: React.FC<StudyTimeModalProps> = ({ isOpen, onClose }) => {
     <div className="add-calendar-overlay">
       <div className="add-calendar-container">
         <div className="add-calendar-header">
-          <span className="add-calendar-title-icon"></span>
+          <img src={Union} alt="이모지" className='add-calendar-title-icon'></img>
           <h2 className="add-calendar-title">공부량 추가하기</h2>
         </div>
-
         {/* 1. 캘린더 섹션 (상단 배치) */}
         <div className="add-calendar-section">
           <Calendar
-            onChange={setSelectedDate}
             value={selectedDate}
+            onChange={(value) => setSelectedDate(value as Date)}
+            maxDate={new Date()}
             formatDay={(locale, date) => date.getDate().toString()} // '일' 제거하고 숫자만 표시
             className="add-custom-calendar"
             // 추가할 속성들
@@ -52,13 +93,13 @@ const StudyTimeModal: React.FC<StudyTimeModalProps> = ({ isOpen, onClose }) => {
         {/* 2. 시간 입력 섹션 (하단 배치) */}
         <div className="time-input-section">
           <div className="time-input-group">
-            <select value={hours} onChange={(e) => setHours(e.target.value)} className="time-select">
+            <select value={hours} onChange={(e) => setHours(e.target.value)} className="time-select" title="시간 설정">
               {hourOptions.map(h => <option key={h} value={h}>{h}</option>)}
             </select>
             <span className="time-unit">H</span>
           </div>
           <div className="time-input-group">
-            <select value={minutes} onChange={(e) => setMinutes(e.target.value)} className="time-select">
+            <select value={minutes} onChange={(e) => setMinutes(e.target.value)} className="time-select" title="분 설정">
                {minuteOptions.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
             <span className="time-unit">M</span>
@@ -66,9 +107,9 @@ const StudyTimeModal: React.FC<StudyTimeModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* 3. 버튼 섹션 */}
-        <div className="modal-button-group">
-          <button className="modal-btn cancel-btn" onClick={onClose}>취소</button>
-          <button className="modal-btn save-btn" onClick={handleSave}>추가하기</button>
+        <div className="add-modal-button-group">
+          <button className="add-modal-btn cancel-btn" onClick={onClose}>취소</button>
+          <button className="add-modal-btn save-btn" onClick={handleSave}>추가하기</button>
         </div>
       </div>
     </div>

@@ -44,7 +44,7 @@ const Navbar = () => {
           className={`nav-profile-circle ${
             profileImageUrl ? "has-image" : ""
           }`}
-          onClick={() => navigate("/mypage")}>
+          onClick={() => navigate("/OwnerPage")}>
             {profileImageUrl ? (
               <img src={profileImageUrl} alt="프로필" className="nav-profile-image"/>
             ):(
