@@ -13,7 +13,7 @@
   height: 10px;
 }
 
-/* --- 공통 드롭다운 스타일 (White Theme 기본) --- */
+/* --- 공통 드롭다운 스타일 --- */
 .dropdown-label,
 .header-label {
   background-color: #ffffff;
@@ -24,12 +24,14 @@
   gap: 8px;
   font-weight: 600;
   transition: all 0.2s;
+  width: fit-content;
 }
 
 .dropdown-label{
   margin-bottom: 5px;
   margin-top: 20px;
   border-radius: 50px;
+  width: fit-content;
 }
 
 .custom-dropdown-menu,
@@ -37,10 +39,13 @@
   position: absolute;
   background-color: #ffffff;
   border-radius: 15px;
-  z-index: 100;
-  overflow: hidden;
+  z-index: 9999;
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
   border: 1px solid #eeeeee;
+}
+
+.custom-dropdown-container {
+  display: inline-block;
 }
 
 .dropdown-item-board {
@@ -74,16 +79,27 @@
 
 .sort-section .custom-dropdown-container {
   position: relative;
+  
 }
+
+.arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
 
 .sort-section .dropdown-label {
   background-color: #222222;
+  padding: 6px 15px;
   color: #ffffff;
   border: 1px solid #333333;
-  padding: 8px 20px;
   border-radius: 25px;
-  min-width: 110px;
   justify-content: center;
+  font-weight: 400;
 }
 
 .sort-section .custom-dropdown-menu {
@@ -140,7 +156,6 @@
   background-color: #262627;
   border-radius: 50px;
   padding: 20px 40px 15px 40px;
-  overflow: hidden;
   min-height: 200px;
 }
 
@@ -173,12 +188,12 @@
 
 /* 2번째 열(제목) 스타일바꾸기 */
 .board-table td:nth-child(2) {
-  text-align: left;     /* 중앙 정렬을 왼쪽 정렬로 변경 */
-  padding-left: 30px;   /* 왼쪽 여백을 주어 너무 붙지 않게 위치 조정 */
+  text-align: center;     /* 중앙 정렬을 왼쪽 정렬로 변경 */
+  padding-left: 0px;   /* 왼쪽 여백을 주어 너무 붙지 않게 위치 조정 */
 }
 .board-table th:nth-child(2) {
-  text-align: left;     /* 중앙 정렬을 왼쪽 정렬로 변경 */
-  padding-left: 55px;   /* 왼쪽 여백을 주어 너무 붙지 않게 위치 조정 */
+  text-align: center;     /* 중앙 정렬을 왼쪽 정렬로 변경 */
+  padding-left: 0px;   /* 왼쪽 여백을 주어 너무 붙지 않게 위치 조정 */
 }
 
 .board-table tbody tr {

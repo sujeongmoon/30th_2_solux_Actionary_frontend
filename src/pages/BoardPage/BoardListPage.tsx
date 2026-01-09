@@ -22,6 +22,14 @@ const BoardListPage: React.FC = () => {
   const [displayPosts, setDisplayPosts] = useState<Post[]>([]);
   const [totalPages, setTotalPages] = useState(0);
   const navigate = useNavigate();
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}/${mm}/${dd}`;
+  };
+
 
 
   /** ======================
@@ -193,7 +201,7 @@ const BoardListPage: React.FC = () => {
                   </td>
                   <td>{item.title}</td>
                   <td className="author-cell">{item.nickname}</td>
-                  <td className="date-cell">{item.created_at}</td>
+                  <td className="date-cell">{formatDate(item.created_at)}</td>
                   <td className="comment-count">{item.comment_count}</td>
                 </tr>
               ))}
