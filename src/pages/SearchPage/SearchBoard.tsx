@@ -5,6 +5,7 @@ import '../../pages/HomePage/HomePage.css';
 import DropdownIcon from '../../assets/Board/Dropdown.svg';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { usePosts, type Post } from '../../context/PostContext';
+//import { searchPosts, type SearchPostItem } from '../../api/Search/SearchPost'; 
 
 const SearchBoard: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -15,6 +16,9 @@ const SearchBoard: React.FC = () => {
   const { posts } = usePosts();
   const [displayPosts, setDisplayPosts] = useState<Post[]>([]);
   const [totalPages, setTotalPages] = useState(0);
+  //const [loading, setLoading] = useState(false);
+  //const [error, setError] = useState<string | null>(null);
+
   const navigate = useNavigate();
   const location = useLocation();
   const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '');
@@ -63,12 +67,53 @@ const SearchBoard: React.FC = () => {
     setDisplayPosts(filteredPosts);
     setTotalPages(1); // MockData용, 실제 API라면 페이지 계산
   }, [posts, currentPage, selectedSort, selectedCategory, keyword]);
+  
+  // ==========================
+  // 실제 API 연동용
+  // ==========================
+  /*
+  useEffect(() => {
+    const fetchPosts = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await searchPosts(
+          keyword,
+          currentPage - 1, // 백엔드 페이지 0부터 시작
+          selectedSort === 'latest' ? 'LATEST' : 'POPULAR',
+          selectedCategory === '전체' || selectedCategory === '말머리' ? undefined : selectedCategory
+        );
+
+        // API response -> MockData 구조 맞추기
+        setDisplayPosts(
+          res.content.map((item) => ({
+            postId: item.postId,
+            type: item.type,
+            title: item.title,
+            nickname: item.authorNickname,
+            created_at: item.createdAt,
+            comment_count: item.commentCount,
+            content: { text_content: '', image_urls: [] },
+          }))
+        );
+        setTotalPages(res.pageInfo.totalPages);
+      } catch (err: unknown) {
+        if (err instanceof Error) setError(err.message || '검색 중 오류가 발생했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [keyword, currentPage, selectedSort, selectedCategory]);
+  */
 
   const handleSortChange = (sortType: 'popular' | 'latest') => {
     setSelectedSort(sortType);
     setCurrentPage(1);
     setIsSortOpen(false);
   };
+
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
