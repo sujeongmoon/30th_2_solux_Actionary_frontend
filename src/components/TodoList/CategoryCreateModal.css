@@ -1,0 +1,78 @@
+/* 백드롭 */
+.catCmodal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* 모달 박스 */
+.catCmodal {
+  background-color: #ffffff;
+  border-radius: 25px;
+  width: 400px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 모달 타이틀 */
+.catmodal-title {
+  background-color: #f8f8f6;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+/* 구분선 */
+.catC-divider, .divider {
+  height: 1px;
+  background-color: #b3b3b3;
+  width: 100%;
+}
+
+/* 카테고리 입력 */
+.category-input {
+  padding: 10px;
+  font-size: 8;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 색상 선택 행 */
+.catC-color-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+/* 색상 동그라미 */
+.color-circle {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  cursor: pointer;
+  outline: none;
+}
+
+/* 확인 버튼 */
+.catC-confirm-btn {
+  padding: 10px 20px;
+  font-size: 21px;
+  border: none;
+  border-radius: 999px;
+  background:linear-gradient(
+    90deg, #FA785B 0%, #FF3761 100%
+  );
+  color: white;
+  cursor: pointer;
+}

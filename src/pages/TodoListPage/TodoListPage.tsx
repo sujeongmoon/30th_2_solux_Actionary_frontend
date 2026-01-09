@@ -6,6 +6,8 @@ import { useTodos } from '../../hooks/useTodos';
 import { useTodoCategories } from '../../hooks/useTodoCategories';
 import ddd from "../../assets/TodoList/ddd.svg";
 import type { CreateTodoRequest } from '../../api/Todos/todosApi';
+import CategoryCreateModal from '../../components/TodoList/CategoryCreateModal';
+import CategoryManageModal from '../../components/TodoList/CategoryManageModal';
 
 const TodoListPage: React.FC = () => {
   const { todos, loading, addTodo, editTodo, changeStatus, removeTodo } = useTodos();
@@ -13,6 +15,8 @@ const TodoListPage: React.FC = () => {
 
   // 상태 관리
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [manageModalOpen, setManageModalOpen] = useState(false);
   const [todoDropdownOpenId, setTodoDropdownOpenId] = useState<number | null>(null);
   const [editingTodoId, setEditingTodoId] = useState<number | null>(null);
   const [editingText, setEditingText] = useState("");
@@ -90,8 +94,14 @@ const handleDateChange = (value: any) => {
         </button>
         {categoryDropdownOpen && (
           <ul className="category-dropdown">
-            <li> 카테고리 등록</li>
-            <li> 카테고리 관리</li>
+            <li 
+              onClick={() => {
+                setCreateModalOpen(true); 
+                setCategoryDropdownOpen(false);}}> 카테고리 등록</li>
+            <li 
+              onClick = {() => {
+                setManageModalOpen(true); 
+                setCategoryDropdownOpen(false);}}> 카테고리 관리</li>
           </ul>
         )}
         </div>
@@ -169,6 +179,15 @@ const handleDateChange = (value: any) => {
         </div>
         {loading && <div className="loading"> 로딩중...</div>}
       </div>
+      
+      {createModalOpen && (
+        <CategoryCreateModal 
+          onClose={()=> setCreateModalOpen(false)} 
+        />)}
+      {manageModalOpen && (
+        <CategoryManageModal 
+          onClose={() => setManageModalOpen(false)} />)}
+
     </div>
   );
 };
