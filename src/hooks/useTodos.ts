@@ -11,12 +11,15 @@ import {
   updateTodo,
   updateTodoStatus,
   deleteTodo,
-  createRoutine,
-  cancelRoutine,
 } from '../api/Todos/todosApi';
 
+const getTodayString = () => {
+  const today = new Date();
+  return `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`
+};
+
 export const useTodos = () => {
-  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<string>(getTodayString());
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -91,25 +94,6 @@ export const useTodos = () => {
     }
   };
 
-  // 루틴 생성/해제
-  const toggleRoutine = async (todo: Todo) => {
-    if (!selectedDate) return;
-    setLoading(true);
-    try {
-      if (todo.routineId) {
-        await cancelRoutine(todo.routineId);
-      } else {
-        await createRoutine({ todoId: todo.todoId, startDate: selectedDate, repeat: 'DAILY'});
-      }
-      const refreshed = await getTodosByDate(selectedDate);
-      setTodos(refreshed);
-    } catch (error) {
-      console.error("루틴 토글 실패:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return {
     selectedDate,
     setSelectedDate,
@@ -119,6 +103,6 @@ export const useTodos = () => {
     editTodo,
     changeStatus,
     removeTodo,
-    toggleRoutine,
+    getTodayString,
   };
 };
