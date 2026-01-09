@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import '../BoardPage/BoardListPage.css';
+import './SearchBoard.css';
 import Pagination from '../../components/Pagination/Pagination';
 import '../../pages/HomePage/HomePage.css';
 import DropdownIcon from '../../assets/Board/Dropdown.svg';
@@ -136,6 +136,8 @@ const SearchBoard: React.FC = () => {
       <div className="content-section">
         {/* 정렬 드롭다운 */}
         <div className="sort-section">
+        <div className='board-result-header'>
+          <span className='board-result-head'>제목+내용 검색 결과</span>
           <div className="custom-dropdown-container">
             <button
               className="dropdown-label"
@@ -162,6 +164,7 @@ const SearchBoard: React.FC = () => {
               </div>
             )}
           </div>
+        </div>
         </div>
 
         {/* 게시판 테이블 */}
