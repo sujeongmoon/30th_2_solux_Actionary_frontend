@@ -62,6 +62,7 @@
 
 /* 네비게이션 */
 .add-custom-calendar .react-calendar__navigation {
+  margin-left: 10px;
   margin-bottom: 6px;
 }
 
@@ -101,19 +102,26 @@
 }
 
 .add-custom-calendar .react-calendar__month-view__days {
+  display: grid !important; /* Flex 대신 Grid를 사용하면 간격 제어가 훨씬 쉽습니다 */
+  grid-template-columns: repeat(7, 1fr);
+  row-gap: 2px;
 }
 
-/* 날짜 타일 */
+/* 1. 날짜 타일의 높이 고정 및 원형 유지 */
 .add-custom-calendar .react-calendar__tile {
-  width: 20px;
-  height: 29px;
-  min-height: 29px;
-  padding: 0;
-  font-size: 11px;
-  border-radius: 50%;
+  aspect-ratio: 1 / 1; /* 가로세로 1:1 비율 유지 */
+  width: 36px !important;  /* 원하는 원 크기 */
+  height: 36px !important; /* width와 동일하게 설정 */
+  max-width: 36px;
+  padding: 0 !important;
+  margin: 4px auto; /* 날짜 사이의 상하좌우 간격 조절 */
+  
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 50% !important; /* 무조건 원형으로 */
+  font-size: 13px;
+  background: none;
 }
 
 /* 주말 */
@@ -137,7 +145,7 @@
 .add-custom-calendar .react-calendar__tile--active {
   background-color: #333;
   color: #fff;
-  font-weight: 600;
+  font-weight: 800;
 }
 
 /* ===============================

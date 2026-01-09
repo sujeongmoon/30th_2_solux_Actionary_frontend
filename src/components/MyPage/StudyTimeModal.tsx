@@ -3,6 +3,8 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css'; // 기본 스타일 import
 import './StudyTimeModal.css'; 
 import Union from '../../assets/bookmark/Union.svg';
+import { addStudyTimeManual } from '../../api/addStudyTime';
+
 
 interface StudyTimeModalProps {
   isOpen: boolean;
@@ -13,16 +15,52 @@ const StudyTimeModal: React.FC<StudyTimeModalProps> = ({ isOpen, onClose }) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [hours, setHours] = useState<string>('00');
   const [minutes, setMinutes] = useState<string>('00');
+  const [isSaving, setIsSaving] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSave = () => {
+  const handleSave = async() => {
+    if (isSaving) return;
+    setIsSaving(true);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate > today) {
+        alert('오늘 이후 날짜는 선택할 수 없습니다.');
+        setIsSaving(false);
+        return;
+    }
+
     const yyyy = selectedDate.getFullYear();
     const mm = String(selectedDate.getMonth() + 1).padStart(2, '0');
     const dd = String(selectedDate.getDate()).padStart(2, '0');
     const dateStr = `${yyyy}-${mm}-${dd}`;
-    console.log(`날짜: ${dateStr}, 시간: ${hours}시간 ${minutes}분 저장`);
-    onClose();
+
+    const durationSecond = 
+        Number(hours) * 3600 +
+        Number(minutes) * 60;
+
+    if (durationSecond === 0) {
+        alert('공부 시간을 입력해주세요.');
+        setIsSaving(false);
+        return;
+    }
+
+    try {
+        const res = await addStudyTimeManual({
+            date: dateStr,
+            durationSecond,
+        });
+
+        console.log('공부량 추가 성공:', res.data);
+        onClose();
+    } catch (error) {
+        console.error('공부량 추가 실패', error);
+        alert('공부량 추가에 실패했습니다.');
+    } finally {
+        setIsSaving(false);
+    }
   };
 
   // 시간/분 선택을 위한 옵션 생성
@@ -39,11 +77,9 @@ const StudyTimeModal: React.FC<StudyTimeModalProps> = ({ isOpen, onClose }) => {
         {/* 1. 캘린더 섹션 (상단 배치) */}
         <div className="add-calendar-section">
           <Calendar
-            onChange={(value) => {
-                if (value instanceof Date) {
-                    setSelectedDate(value);
-                }
-            }}
+            value={selectedDate}
+            onChange={(value) => setSelectedDate(value as Date)}
+            maxDate={new Date()}
             formatDay={(locale, date) => date.getDate().toString()} // '일' 제거하고 숫자만 표시
             className="add-custom-calendar"
             // 추가할 속성들
