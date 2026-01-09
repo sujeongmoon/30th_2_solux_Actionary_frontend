@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css'; // 기본 스타일 import
-import './StudyTimeModal.css'; // 커스텀 스타일 import
+import './StudyTimeModal.css'; 
+import Union from '../../assets/bookmark/Union.svg';
 
 interface StudyTimeModalProps {
   isOpen: boolean;
@@ -30,10 +31,9 @@ const StudyTimeModal: React.FC<StudyTimeModalProps> = ({ isOpen, onClose }) => {
     <div className="add-calendar-overlay">
       <div className="add-calendar-container">
         <div className="add-calendar-header">
-          <span className="add-calendar-title-icon"></span>
+          <img src={Union} alt="이모지" className='add-calendar-title-icon'></img>
           <h2 className="add-calendar-title">공부량 추가하기</h2>
         </div>
-
         {/* 1. 캘린더 섹션 (상단 배치) */}
         <div className="add-calendar-section">
           <Calendar
@@ -52,13 +52,13 @@ const StudyTimeModal: React.FC<StudyTimeModalProps> = ({ isOpen, onClose }) => {
         {/* 2. 시간 입력 섹션 (하단 배치) */}
         <div className="time-input-section">
           <div className="time-input-group">
-            <select value={hours} onChange={(e) => setHours(e.target.value)} className="time-select">
+            <select value={hours} onChange={(e) => setHours(e.target.value)} className="time-select" title="시간 설정">
               {hourOptions.map(h => <option key={h} value={h}>{h}</option>)}
             </select>
             <span className="time-unit">H</span>
           </div>
           <div className="time-input-group">
-            <select value={minutes} onChange={(e) => setMinutes(e.target.value)} className="time-select">
+            <select value={minutes} onChange={(e) => setMinutes(e.target.value)} className="time-select" title="분 설정">
                {minuteOptions.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
             <span className="time-unit">M</span>
@@ -66,9 +66,9 @@ const StudyTimeModal: React.FC<StudyTimeModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* 3. 버튼 섹션 */}
-        <div className="modal-button-group">
-          <button className="modal-btn cancel-btn" onClick={onClose}>취소</button>
-          <button className="modal-btn save-btn" onClick={handleSave}>추가하기</button>
+        <div className="add-modal-button-group">
+          <button className="add-modal-btn cancel-btn" onClick={onClose}>취소</button>
+          <button className="add-modal-btn save-btn" onClick={handleSave}>추가하기</button>
         </div>
       </div>
     </div>
