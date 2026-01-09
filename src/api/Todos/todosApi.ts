@@ -38,7 +38,6 @@ export interface Todo {
     categoryId?: number | null;
     status: TodoStatus;
     createdAt: string;
-    routineId?: number | null;
 }
 
 // 투두 생성
@@ -92,33 +91,6 @@ export const deleteTodo = async (todoId: number): Promise<{success: boolean; mes
         return res.data;
     } catch (error) {
         console.error('투두 삭제 실패', error);
-        throw error;
-    }
-};
-
-// 루틴 생성
-export interface CreateRoutineRequest {
-    todoId: number;
-    startDate: string;
-    repeat: 'DAILY'
-}
-
-export const createRoutine = async (data: CreateRoutineRequest) => {
-    try {
-        const res = await api.post('/api/todos/routine', data);
-        return res.data;
-    } catch (error) {
-        console.error('루틴 생성 실패', error);
-        throw error;
-    }
-};
-
-export const cancelRoutine = async (routineId: number) => {
-    try {
-        const res = await api.patch(`/api/todos/routine/${routineId}/cancel`);
-        return res.data;
-    } catch (error) {
-        console.error('루틴 취소 실패', error);
         throw error;
     }
 };
