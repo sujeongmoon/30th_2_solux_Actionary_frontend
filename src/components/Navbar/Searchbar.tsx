@@ -18,7 +18,11 @@ const Searchbar = () => {
       alert('검색어를 입력해주세요.');
       return;
     }
-    navigate(`/search?category=${category}&keyword=${encodeURIComponent(keyword)}`);
+    if (category === '게시글') {
+      navigate(`/search/board?keyword=${encodeURIComponent(keyword)}`);
+    } else {
+      navigate(`/search/all?category=${category}&keyword=${encodeURIComponent(keyword)}`);
+    }
   };
 
   // 4. 엔터키 지원 함수
