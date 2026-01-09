@@ -11,19 +11,21 @@ interface StudyTimeModalProps {
 
 const StudyTimeModal: React.FC<StudyTimeModalProps> = ({ isOpen, onClose }) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  // 이미지에 맞춰 select box로 구현하거나, 디자인된 input으로 구현
   const [hours, setHours] = useState<string>('00');
   const [minutes, setMinutes] = useState<string>('00');
 
   if (!isOpen) return null;
 
   const handleSave = () => {
-    const dateStr = selectedDate.toISOString().slice(0, 10);
+    const yyyy = selectedDate.getFullYear();
+    const mm = String(selectedDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(selectedDate.getDate()).padStart(2, '0');
+    const dateStr = `${yyyy}-${mm}-${dd}`;
     console.log(`날짜: ${dateStr}, 시간: ${hours}시간 ${minutes}분 저장`);
     onClose();
   };
 
-  // 시간/분 선택을 위한 옵션 생성 (예시)
+  // 시간/분 선택을 위한 옵션 생성
   const hourOptions = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
   const minuteOptions = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
 
@@ -37,8 +39,11 @@ const StudyTimeModal: React.FC<StudyTimeModalProps> = ({ isOpen, onClose }) => {
         {/* 1. 캘린더 섹션 (상단 배치) */}
         <div className="add-calendar-section">
           <Calendar
-            onChange={setSelectedDate}
-            value={selectedDate}
+            onChange={(value) => {
+                if (value instanceof Date) {
+                    setSelectedDate(value);
+                }
+            }}
             formatDay={(locale, date) => date.getDate().toString()} // '일' 제거하고 숫자만 표시
             className="add-custom-calendar"
             // 추가할 속성들
