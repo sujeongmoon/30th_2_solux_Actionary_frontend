@@ -1,6 +1,4 @@
-/* ===============================
-   모달 배경 및 컨테이너
-================================ */
+/* 모달 배경 및 컨테이너 */
 .add-calendar-overlay {
   position: fixed;
   inset: 0;
@@ -16,36 +14,20 @@
   padding: 20px;
   border-radius: 20px;
   width: 90%;
-  max-width: 400px;
+  max-width: 380px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-/* ===============================
-   헤더
-================================ */
+/* 헤더 */
 .add-calendar-header {
   display: flex;
   align-items: center;
   margin-bottom: 12px;
 }
+.add-calendar-title-icon { width: 15px; height: 15px; margin-right: 8px; }
+.add-calendar-title { font-size: 16px; font-weight: 600; margin: 0; color: #FFFFFF; }
 
-.add-calendar-title-icon {
-  width: 15px;
-  height: 15px;
-  margin-right: 8px;
-}
-
-.add-calendar-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0;
-  color: #FFFFFF;
-
-}
-
-/* ===============================
-   캘린더 영역
-================================ */
+/* 캘린더 영역 */
 .add-calendar-section {
   display: flex;
   justify-content: center;
@@ -53,189 +35,97 @@
 }
 
 .add-custom-calendar {
-  width: 100%;
+  width: 100% !important;
   border-radius: 16px;
-  padding: 0;
+  padding: 10px;
   background: #fff;
-  font-family: sans-serif;
+  border: none !important;
 }
 
-/* 네비게이션 */
+/* 네비게이션 정렬 */
 .add-custom-calendar .react-calendar__navigation {
-  margin-left: 10px;
-  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
 }
-
 .add-custom-calendar .react-calendar__navigation button {
   min-width: 32px;
   background: none;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 800;
   color: #333;
 }
-
-/* ===============================
-   요일 (월화수목금토일)
-================================ */
-.add-custom-calendar .react-calendar__month-view__weekdays {
-  margin-bottom: 4px;
+.add-custom-calendar .react-calendar__navigation__label {
+  text-align: left !important;
+  flex-grow: 1 !important;
+  font-size: 16px;
 }
 
-.add-custom-calendar
-.react-calendar__month-view__weekdays__weekday {
-  padding: 4px 0;
+/* 요일과 날짜 그리드 */
+.add-custom-calendar .react-calendar__month-view__weekdays,
+.add-custom-calendar .react-calendar__month-view__days {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  width: 100% !important;
+  row-gap: 2px !important; /* 세로 간격 최소화 [핵심] */
+}
+
+.add-custom-calendar .react-calendar__month-view__weekdays__weekday {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px 0; /* 요일 행 높이 축소 */
+}
+.add-custom-calendar .react-calendar__month-view__weekdays__weekday abbr {
+  text-decoration: none !important;
   font-size: 11px;
   font-weight: 600;
-  text-decoration: none;
-  text-align: center;
-}
-
-/* ===============================
-     날짜 영역 핵심 (7칸 유지)
-================================ */
-
-/* 주 단위 */
-.add-custom-calendar .react-calendar__month-view__week {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 4px;
-}
-
-.add-custom-calendar .react-calendar__month-view__days {
-  display: grid !important; /* Flex 대신 Grid를 사용하면 간격 제어가 훨씬 쉽습니다 */
-  grid-template-columns: repeat(7, 1fr);
-  row-gap: 2px;
-}
-
-/* 1. 날짜 타일의 높이 고정 및 원형 유지 */
-.add-custom-calendar .react-calendar__tile {
-  aspect-ratio: 1 / 1; /* 가로세로 1:1 비율 유지 */
-  width: 36px !important;  /* 원하는 원 크기 */
-  height: 36px !important; /* width와 동일하게 설정 */
-  max-width: 36px;
-  padding: 0 !important;
-  margin: 4px auto; /* 날짜 사이의 상하좌우 간격 조절 */
-  
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50% !important; /* 무조건 원형으로 */
-  font-size: 13px;
-  background: none;
-}
-
-/* 주말 */
-.add-custom-calendar
-.react-calendar__month-view__days__day--weekend {
-  color: #FF6B6B;
-}
-
-/* 오늘 */
-.add-custom-calendar .react-calendar__tile--now {
-  background: none;
   color: #333;
 }
 
-/* hover */
-.add-custom-calendar .react-calendar__tile:enabled:hover {
-  background-color: #f0f0f0;
+/* 타일 높이 고정 및 축소 [핵심 수정] */
+.add-custom-calendar .react-calendar__tile {
+  height: 34px !important; /* 세로 길이를 짧게 고정 */
+  width: 34px !important;  /* 가로세로 비율 유지 */
+  margin: 2px auto !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 12px;
+  background: none;
+  border-radius: 50% !important;
 }
 
-/* 선택된 날짜 */
+.add-custom-calendar .react-calendar__month-view__days__day--weekend { color: #FF6B6B; }
+.add-custom-calendar .react-calendar__tile--now { background: none; color: #333; font-weight: bold; }
+.add-custom-calendar .react-calendar__tile:enabled:hover { background-color: #f0f0f0; }
+
+/* 선택된 날짜 (깔끔한 원형) */
 .add-custom-calendar .react-calendar__tile--active {
-  background-color: #333;
-  color: #fff;
+  background-color: #b2b2b2 !important;
+  color: #fff !important;
+  border-radius: 50% !important;
   font-weight: 800;
 }
 
-/* ===============================
-   시간 입력
-================================ */
-.time-input-section {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-
-.time-input-group {
-  display: flex;
-  align-items: center;
-  margin: 0 8px;
-}
-
+/* 시간 입력 */
+.time-input-section { display: flex; justify-content: center; margin-bottom: 20px; }
+.time-input-group { display: flex; align-items: center; margin: 0 8px; }
 .time-select {
-  width: 100px;
-  padding: 3px 0;
-  border-radius: 16px;
-  border: 1px solid #FA785B;
-  background: #F8F8F6;
-  font-size: 16px;
-  font-weight: 600;
-  text-align: center;
-  cursor: pointer;
+  width: 90px; padding: 5px 0; border-radius: 16px; border: 1px solid #FA785B;
+  background: #F8F8F6; font-size: 16px; font-weight: 600; text-align: center;
 }
+.time-unit { margin-left: 6px; font-size: 16px; font-weight: 600; color: #FFFFFF; }
 
-.time-unit {
-  margin-left: 6px;
-  font-size: 16px;
-  font-weight: 600;
-  color: #FFFFFF;
-}
-
-/* ===============================
-   버튼
-================================ */
-.add-modal-button-group {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-.add-modal-btn {
-  padding: 10px 24px;
-  border-radius: 22px;
-  border: none;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  width: auto;
-  min-width: 90px;
-}
-
+/* 버튼 */
+.add-modal-button-group { display: flex; gap: 10px; justify-content: flex-end; }
+.add-modal-btn { padding: 10px 24px; border-radius: 22px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; min-width: 90px; }
 .cancel-btn {
-  background-color: #B0B0B0; /* 회색 버튼 */
-  color: white;
-  border: 2px solid transparent;
-    /* 3️⃣ 핵심: 이중 background */
-  background:
-    /* 안쪽 배경 */
-    linear-gradient(#B0B0B0, #B0B0B0) padding-box,
-    /* 테두리 그라데이션 */
-    linear-gradient(
-      152.27deg,
-      #FFFFFF 35.45%,
-      rgba(255, 255, 255, 0) 127.61%
-    ) border-box;
+  background: linear-gradient(#B0B0B0, #B0B0B0) padding-box, linear-gradient(152deg, #FFF 35%, rgba(255,255,255,0) 127%) border-box;
+  color: white; border: 2px solid transparent;
 }
-
-
-
 .save-btn {
-  background:
-    linear-gradient(
-      86.58deg,
-      #FA785B 20.5%,
-      #FF3761 89.45%
-    ) padding-box,
-    linear-gradient(
-      152.27deg,
-      #FFFFFF 35.45%,
-      rgba(255, 255, 255, 0) 127.61%
-    ) border-box;
-
-  border: 2px solid transparent;
-  border-radius: 30px;
-  background-clip: padding-box, border-box;
-  color: white;
+  background: linear-gradient(86deg, #FA785B 20%, #FF3761 89%) padding-box, linear-gradient(152deg, #FFF 35%, rgba(255,255,255,0) 127%) border-box;
+  color: white; border: 2px solid transparent;
 }
-
