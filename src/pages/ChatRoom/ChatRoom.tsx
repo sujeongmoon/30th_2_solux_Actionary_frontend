@@ -11,6 +11,7 @@ import {
   getSummaryList,
 } from '../../api/ai/aiSummaryApi';
 import type { SummaryListItem } from '../../types/aiSummary';
+import { useLocation } from 'react-router-dom';
 
 type Message = {
   id: string;
@@ -30,6 +31,16 @@ const ChatBotUI = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pollingRef = useRef<number | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  const location = useLocation();
+  const passedFile = location.state?.file as File | undefined;
+
+  /* -------------------- 자동으로 파일 선택된 상태로 시작 -------------------- */
+  useEffect(() => {
+    if (!passedFile) return;
+
+    setSelectedFile(passedFile);
+  }, [passedFile])
 
   /* -------------------- 자동 스크롤 -------------------- */
   useEffect(() => {
@@ -285,7 +296,7 @@ const ChatBotUI = () => {
                 </>
               )}
 
-              <input ref={fileInputRef} type="file" className="chat-hidden-input" onChange={handleFileChange} />
+              <input ref={fileInputRef} type="file" className="chat-hidden-input" onChange={handleFileChange} title="입력창" />
             </div>
           </div>
         </div>
