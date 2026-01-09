@@ -111,7 +111,7 @@ const ChatBotUI = () => {
     const file = selectedFile;
     const text = inputText;
 
-    // 유저 메시지 한 번만 추가
+    // 유저 메시지 추가
     const userMessage: Message = {
       id: crypto.randomUUID(),
       text: file ? file.name : text,
@@ -124,39 +124,40 @@ const ChatBotUI = () => {
     setIsLoading(true);
 
     try {
-      const res = file ? await summarizeFile(file) : await summarizeUrl(text);
+      const res = file 
+        ? await summarizeFile(file) 
+        : await summarizeUrl(text, { language: 'ko', maxTokens: 600 });
+
       const data = res.data.data;
 
-      if (res.status === 200 && data.status === 'SUCCEEDED') {
-        const botMessage: Message = {
-          id: crypto.randomUUID(),
-          text: data.summary,
-          type: 'bot',
-        };
-        setMessages(prev => [...prev, botMessage]);
+      if (data.status === 'SUCCEEDED') {
+        setMessages(prev => [
+          ...prev,
+          { id: crypto.randomUUID(), text: data.summary, type: 'bot' },
+        ]);
         setIsLoading(false);
-      } else if (res.status === 202) {
-        const pendingMessage: Message = {
-          id: crypto.randomUUID(),
-          text: '문서를 요약 중입니다...',
-          type: 'bot',
-        };
-        setMessages(prev => [...prev, pendingMessage]);
+      } else if (data.status === 'PENDING' || data.status === 'RUNNING') {
+        setMessages(prev => [
+          ...prev,
+          { id: crypto.randomUUID(), text: '문서를 요약 중입니다...', type: 'bot' },
+        ]);
         startPolling(data.jobId);
+      } else if (data.status === 'FAILED') {
+        setMessages(prev => [
+          ...prev,
+          { id: crypto.randomUUID(), text: data.error.message, type: 'bot' },
+        ]);
+        setIsLoading(false);
       }
     } catch (err: unknown) {
-      let errorMessage = '요약 중 오류가 발생했습니다.';
-      if (err instanceof Error) errorMessage = err.message;
-      const botMessage: Message = {
-        id: crypto.randomUUID(),
-        text: errorMessage,
-        type: 'bot',
-      };
-      setMessages(prev => [...prev, botMessage]);
+      const errorMessage = err instanceof Error ? err.message : '요약 중 오류가 발생했습니다.';
+      setMessages(prev => [
+        ...prev,
+        { id: crypto.randomUUID(), text: errorMessage, type: 'bot' },
+      ]);
       setIsLoading(false);
     }
   };
-
   /* -------------------- 파일 -------------------- */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
