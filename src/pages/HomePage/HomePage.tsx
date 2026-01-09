@@ -53,6 +53,8 @@ const studyList = [
 const boardList = mockPopularPosts;
 const HomePage: React.FC = () => {
 
+  const isLoggedIn = Boolean(localStorage.getItem('accessToken'));
+
   //임시로 mockData 사용
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -85,6 +87,7 @@ const HomePage: React.FC = () => {
 fetchPopularStudies();
 }, [studyPage]); */}
 const [selectedFileName, setSelectedFileName] = useState<string>("");
+const [selectedFile, setSelectedFile] = useState<File | null>(null);
 const bgClasses = ['study-dark', 'study-gradient', 'study-gray'];
 const handlePlusClick = () => setIsMenuOpen(prev => !prev);
 const handleCloseMenu = () => setIsMenuOpen(false);
@@ -97,11 +100,12 @@ const handleCloseMenu = () => setIsMenuOpen(false);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setSelectedFileName(e.target.files[0].name);
-    } else {
-      setSelectedFileName("");
-    }
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setSelectedFile(file);
+    setSelectedFileName(file.name)
+    e.target.value = '';
   };
 
   const handleStudyPageClick = (pageIndex: number) => setStudyPage(pageIndex);
@@ -113,6 +117,16 @@ const handleCloseMenu = () => setIsMenuOpen(false);
   );
 
   const navigate = useNavigate();
+
+  const handleSearchClick = () => {
+    if (!selectedFile) return;
+
+    navigate('/chatroom', {
+      state: {
+        file: selectedFile,
+      }
+    })
+  }
 
   return (
     <div className="homepage-content-wrapper">
@@ -149,7 +163,7 @@ const handleCloseMenu = () => setIsMenuOpen(false);
           <div className="ai-input-box">
             <div className="home-plus-button" onClick={handlePlusClick}>+</div>
             <input className="ai-input" placeholder="| ex) 파일을 요약해줘" value={selectedFileName} readOnly />
-            <button className="search-button">
+            <button className="search-button" onClick={handleSearchClick}>
               <img src={SearchIcon} alt="search" />
             </button>
 
@@ -168,7 +182,7 @@ const handleCloseMenu = () => setIsMenuOpen(false);
       </div>
 
       {/* 북마크 섹션 */}
-      <BookmarkSection />
+      {isLoggedIn && <BookmarkSection />}
 
       {/* ===== 인기 스터디 섹션 ===== */}
       <div className="popular-study-container">
