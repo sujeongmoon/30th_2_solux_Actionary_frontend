@@ -1,9 +1,42 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './MyPageOwner.css';
+import { useParams } from 'react-router-dom';
 import ProfileSectionPublic from '../../components/MyPage/ProfileSectionPublic';        
 import AchievementSectionPublic from '../../components/MyPage/AchievementSectionPublic';
+import { getOtherUserInfo } from '../../api/MyPage/getOtherUserInfo';
+
+interface PublicUserInfo {
+  memberId: number;
+  nickname: string;
+  profileImageUrl: string;
+}
+
 
 const MyPagePublic: React.FC = () => {
+  const { memberId } = useParams<{ memberId: string }>();
+  const [userInfo, setUserInfo] = useState<PublicUserInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!memberId) return;
+
+    const fetchUserInfo = async() => {
+      try {
+        const data = await getOtherUserInfo(Number(memberId));
+        setUserInfo(data);
+      } catch (e) {
+        console.error('타인 정보 조회 실패', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserInfo();
+  }, [memberId]);
+
+  if (loading) return <div>로딩 중...</div>;
+  if (!userInfo) return <div>유저 정보 없음</div>;
+
   return (
     <>
     <div>
@@ -11,9 +44,9 @@ const MyPagePublic: React.FC = () => {
       <div className='owner-divider'></div>
     </div>
     <div className='owner-container'>
-    <ProfileSectionPublic />
+      <ProfileSectionPublic userInfo={userInfo} />
       <div className='owner-profile-divider'></div>
-      <AchievementSectionPublic />
+      <AchievementSectionPublic memberId={userInfo.memberId} />
     </div>
     </>
   );

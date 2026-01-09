@@ -4,8 +4,8 @@
 
 .owner-avatar-container {
   position: relative;
-  width: 90px;  /* 원하는 크기로 조절 */
-  height: 90px; /* 원하는 크기로 조절 */
+  width: 120px;  /* 원하는 크기로 조절 */
+  height: 120px; /* 원하는 크기로 조절 */
   margin-bottom: 20px; /* 테스트용 여백 */
   padding: 30px 0px 0px 25px;
 }
