@@ -70,7 +70,6 @@
   border-radius: 12px;
   width: 90px;
   z-index: 10;
-  overflow: hidden;
 }
 
 .menu-item {
@@ -113,6 +112,10 @@
   height: 100%;
   object-fit: cover;
   border-radius: 8px; /* 추가하면 둥글게 */
+}
+
+.comment-title {
+  margin: 10px 0px;
 }
 
 .count-grey {
