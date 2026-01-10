@@ -1,0 +1,335 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+.board-container {
+  width: 100%;
+  margin: 0px auto;
+  padding: 0px 40px 20px 40px;
+  background-color: #F8F8F6;
+  box-sizing: border-box;
+}
+
+.arrowImg {
+  width: 10px;
+  height: 10px;
+}
+
+.board-result-header {
+  display: flex;            
+  align-items: center;
+  justify-content: space-between; 
+  width: 100%;
+  gap: 12px;              
+  margin-bottom: 10px; 
+
+}
+
+.board-result-head {
+    margin-top: 30px;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+/* --- 공통 드롭다운 스타일 --- */
+.dropdown-label,
+.header-label {
+  background-color: #ffffff;
+  color: #000000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  transition: all 0.2s;
+  width: fit-content;
+}
+
+.dropdown-label{
+  margin-bottom: 5px;
+  margin-top: 20px;
+  border-radius: 50px;
+  width: fit-content;
+}
+
+.custom-dropdown-menu,
+.header-dropdown-menu {
+  position: absolute;
+  background-color: #ffffff;
+  border-radius: 15px;
+  z-index: 9999;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  border: 1px solid #eeeeee;
+}
+
+.custom-dropdown-container {
+  display: inline-block;
+}
+
+.dropdown-item-board {
+  color: #333333;
+  padding: 12px 0;
+  text-align: center;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.dropdown-item-board:hover {
+  background-color: #f5f5f5;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background-color: rgba(0, 0, 0, 0.05);
+  width: 80%;
+  margin: 0 auto;
+}
+
+/* --- 우측 상단 정렬 드롭다운 (Black Theme) --- */
+.content-section {
+  padding: 0px 100px;
+}
+.sort-section {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.sort-section .custom-dropdown-container {
+  position: relative;
+  
+}
+
+.arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+
+.sort-section .dropdown-label {
+  background-color: #222222;
+  padding: 6px 15px;
+  color: #ffffff;
+  border: 1px solid #333333;
+  border-radius: 25px;
+  justify-content: center;
+  font-weight: 400;
+}
+
+.sort-section .custom-dropdown-menu {
+  top: 110%;
+  right: 0;
+  width: 110px;
+  background-color: #222222;
+  border: 1px solid #333333;
+}
+
+.sort-section .dropdown-item-board {
+  color: #ffffff;
+}
+
+.sort-section .dropdown-item-board:hover {
+  background-color: #333333;
+}
+
+.sort-section .dropdown-divider {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 아이콘 흰색 */
+.sort-section .board-pagination-icon {
+  filter: brightness(0) invert(1);
+}
+
+/* --- 헤더 말머리 드롭다운 전용 (White Theme 유지) --- */
+.header-dropdown-cell {
+  position: relative;
+  padding-left: 50px !important;
+}
+
+.header-dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.header-label {
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+}
+
+.header-dropdown-menu {
+  top: 150%;
+  left: -10px;
+  width: 100px;
+}
+
+/* --- Table Styles --- */
+.table-card {
+  background-color: #262627;
+  border-radius: 50px;
+  padding: 20px 40px 15px 40px;
+  min-height: 200px;
+}
+
+.board-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0;
+  color: #ffffff;
+}
+
+.board-table th {
+  background-color: #ffffff;
+  color: #000000;
+  padding: 15px;
+  font-size: 16px;
+  border: none;
+  align-items: center;
+}
+
+.board-table th:first-child {
+  border-top-left-radius: 30px;
+  border-bottom-left-radius: 30px;
+  text-align: left;
+}
+
+.board-table th:last-child {
+  border-top-right-radius: 30px;
+  border-bottom-right-radius: 30px;
+}
+
+/* 2번째 열(제목) 스타일바꾸기 */
+.board-table td:nth-child(2) {
+  text-align: center;     /* 중앙 정렬을 왼쪽 정렬로 변경 */
+  padding-left: 0px;   /* 왼쪽 여백을 주어 너무 붙지 않게 위치 조정 */
+}
+.board-table th:nth-child(2) {
+  text-align: center;     /* 중앙 정렬을 왼쪽 정렬로 변경 */
+  padding-left: 0px;   /* 왼쪽 여백을 주어 너무 붙지 않게 위치 조정 */
+}
+
+.board-table tbody tr {
+  position: relative;
+}
+
+.board-table tbody tr::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 40px;
+  right: 0;
+  height: 1px;
+  transform: scaleY(0.5);
+  background-color: #E6E6E6;
+}
+
+.board-table tbody tr:last-child::after {
+  display: none;
+}
+
+.board-table td {
+  padding: 15px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.board-table td:first-child {
+  text-align: left;
+  padding-left: 40px;
+}
+
+
+/* --- Icons & Badges --- */
+.board-pagination-icon {
+  width: 12px;
+  height: 12px;
+  filter: brightness(0);
+}
+
+.arrow {
+  height: 12px;
+  display: flex;
+  align-items: center;
+  transition: transform 0.3s;
+}
+
+.arrow.up {
+  transform: rotate(180deg);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  
+  /* 1. 배경을 흰색으로 만들고, 테두리에 그라데이션 넣기 */
+  border: 1px solid transparent; /* 테두리 공간 확보 */
+  background-image: 
+    linear-gradient(#ffffff, #ffffff), 
+    linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+  background-origin: border-box;
+  background-clip: padding-box, border-box; /* 흰색은 안쪽에, 그라데이션은 테두리에 */
+}
+
+.badge span {
+  /* 2. 글자에만 그라데이션 적용 */
+  background: linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  
+  /* 글자가 잘리지 않도록 함 */
+  display: inline-block; 
+}
+
+.author-cell,
+.date-cell {
+  color: #FFFFFF;
+}
+
+.comment-count {
+  font-weight: 400;
+}
+
+/* --- Bottom Section --- */
+.bottom-section {
+  position: relative;
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.btn-write {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background: linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+  color: white;
+  padding: 10px 12px;
+  border-radius: 30px;
+  border: none;
+  font-weight: 400;
+  cursor: pointer;
+  font-size: 12px;
+  align-items: center;
+  display: flex;
+  gap: 5px;
+}
+
+.mage-pen {
+  width: 12px;
+  height: 12px;
+}
+
+.pagination-wrapper {
+  margin-top: 50px;
+}

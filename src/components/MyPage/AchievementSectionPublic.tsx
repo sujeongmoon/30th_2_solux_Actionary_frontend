@@ -20,7 +20,7 @@ interface Badge {
 }
 
 interface AchievementSectionProps {
-  nickname?: string; // 🔹 없으면 내 업적, 있으면 상대방 업적
+  memberId: number; //
 }
 
 /* MOCK DATA */
@@ -37,7 +37,7 @@ const MOCK_BADGE = {
   badge_image_url: 'https://i.pravatar.cc/150?img=3',
 };
 
-const AchievementSection: React.FC<AchievementSectionProps> = ({ nickname }) => {
+const AchievementSectionPublic: React.FC<AchievementSectionProps> = ({ memberId }) => {
   const [points, setPoints] = useState<Points>({
     study: 0,
     studyParticipation: 0,
@@ -61,22 +61,16 @@ const AchievementSection: React.FC<AchievementSectionProps> = ({ nickname }) => 
     /*
     const fetchPoints = async () => {
       try {
-        const url = nickname
-          ? `/api/users/nickname/${nickname}/points`
-          : `/api/users/me/points`;
-
-        const res = await fetch(url);
+        const res = await fetch(`/api/users/${memberId}/points`);
         const result = await res.json();
-
         setPoints(result.data);
-      } catch (error) {
-        console.error('포인트 조회 실패', error);
+      } catch (err) {
+        console.error('포인트 조회 실패', err);
       }
     };
-
     fetchPoints();
     */
-  }, [nickname]);
+  }, [memberId]);
 
   /* =========================
      🔹 배지 조회
@@ -88,29 +82,23 @@ const AchievementSection: React.FC<AchievementSectionProps> = ({ nickname }) => 
     /*
     const fetchBadge = async () => {
       try {
-        const url = nickname
-          ? `/api/users/nickname/${nickname}/badge`
-          : `/api/users/me/badge`;
-
-        const res = await fetch(url);
+        const res = await fetch(`/api/users/${memberId}/badge`);
         const result = await res.json();
-
         setBadge(result.data);
-      } catch (error) {
-        console.error('배지 조회 실패', error);
+      } catch (err) {
+        console.error('배지 조회 실패', err);
       }
     };
-
     fetchBadge();
     */
-  }, [nickname]);
+  }, [memberId]);
 
   return (
     <div className='owner-achievement-section'>
       <div className='owner-achievement-header'>
         <img src={Union} alt='제목' className='owner-achievement-dot' />
         <span className='owner-achievement-title'>
-          {`${nickname}님의 업적`}
+          {`업적`}
         </span>
       </div>
 
@@ -173,4 +161,4 @@ const AchievementSection: React.FC<AchievementSectionProps> = ({ nickname }) => 
   );
 };
 
-export default AchievementSection;
+export default AchievementSectionPublic;
