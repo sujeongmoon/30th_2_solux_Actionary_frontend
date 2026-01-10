@@ -76,7 +76,7 @@ const BoardDetailPage = () => {
   /** ref */
   const postMenuRef = useRef<HTMLDivElement | null>(null);
 
-  const [loginUserId, setLoginUserId] = useState<number>(1); // 로그인 사용자 설정
+  const [loginUserId] = useState<number>(1); // 로그인 사용자 설정
 
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editingCommentText, setEditingCommentText] = useState('');
