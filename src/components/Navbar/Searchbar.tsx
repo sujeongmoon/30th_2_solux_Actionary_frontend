@@ -15,11 +15,25 @@ const Searchbar = () => {
 
   const handleSearch = () => {
     if (!keyword.trim()) {
-      alert('검색어를 입력해주세요.');
+      switch (category) {
+        case "게시글":
+          navigate(`/search/board`);
+          break;
+        case '스터디':
+          navigate("여기에다 링크 넣어주세요!");
+          break;
+        case '전체':
+          navigate(`/search/all?category=${category}`);
+          break;
+        default:
+          navigate(`/search/all?category=전체`);
+      }
       return;
     }
     if (category === '게시글') {
       navigate(`/search/board?keyword=${encodeURIComponent(keyword)}`);
+    } else if (category==='스터디') {
+      navigate('여기에다 추가해주세요!');
     } else {
       navigate(`/search/all?category=${category}&keyword=${encodeURIComponent(keyword)}`);
     }
