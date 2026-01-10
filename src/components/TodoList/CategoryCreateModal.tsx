@@ -11,7 +11,7 @@ const CategoryCreateModal: React.FC<Props> = ({ onClose }) => {
   const { addCategory } = useTodoCategories();
 
   const [name, setName] = useState("");
-  const [color, setColor] = useState("#4F46E5");
+  const [color, setColor] = useState("#ff3d2f");
   const [paletteOpen, setPaletteOpen] = useState(false);
 
   const handleSubmit = async () => {
@@ -28,7 +28,7 @@ const CategoryCreateModal: React.FC<Props> = ({ onClose }) => {
 
         <input
           className="category-input"
-          placeholder="카테고리 입력"
+          placeholder="| 카테고리 입력"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
