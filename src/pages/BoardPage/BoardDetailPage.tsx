@@ -107,7 +107,7 @@ const BoardDetailPage = () => {
     };
 
     fetchData();
-  }, [postId]); */}
+  }, [postId, posts]); */}
 
   {/* 댓글 작성 기능 (MockData) */ }
   const handleCommentSubmitMock = () => {
@@ -184,7 +184,7 @@ const handleCommentSubmit = async () => {
     setData(mappedData);
     setComments(MOCK_COMMENTS);
     setLoading(false);
-  }, [postId]);
+  }, [postId, posts]);
 
   {/*연동용 */}
   {/*
@@ -297,12 +297,9 @@ const handleCommentSubmit = async () => {
             </div>
           ))}
           <div
-            className='text-body'
-            dangerouslySetInnerHTML={{
-              __html: post.text_content.replace(/<img[^>]*>/g, '')
-            }}
-          />
-
+            className='text-body'>
+              {post.text_content}
+            </div>
         </div>
 
 
@@ -432,7 +429,7 @@ const handleCommentSubmit = async () => {
 
               </div>
               ) : (
-                <p className='comment-text'>{comment.content}</p>
+                <p className='comment-text'>{commentContent}</p>
               )}
             </div>
 
