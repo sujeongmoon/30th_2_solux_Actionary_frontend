@@ -22,7 +22,7 @@ import Signup from "./pages/Siginup/Signup";
 import SignupComplete from "./pages/Siginup/SignupComplete";
 import TodoListPage from "./pages/TodoListPage/TodoListPage";
 import SearchBoard from "./pages/SearchPage/SearchBoard";
-
+import AllSearch from './pages/SearchPage/AllSearch';
 
 
 function App() {
@@ -49,7 +49,8 @@ function App() {
           <Route path = "/studyTime" element={<StudyTime />} />
           <Route path = "/todolistpage" element={<TodoListPage />} />
           <Route path = "/chatroom" element={<ChatRoom />} />
-          <Route path= "/search" element={<SearchBoard />} />
+          <Route path= "/search/board" element={<SearchBoard /> } />
+          <Route path = "/search/all" element={<AllSearch />} />
 
         </Route>
 
