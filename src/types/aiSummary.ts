@@ -30,3 +30,15 @@ export interface SummaryListResponse {
     totalPages: number;
   };
 }
+
+export interface FileSummaryResponse {
+  success: boolean;
+  message: string;
+  data: {
+    status: SummaryStatus;
+    summary: string | null;
+    jobId: string | null;
+    queuedAt: string | null;
+    error: string | null;
+  };
+}
