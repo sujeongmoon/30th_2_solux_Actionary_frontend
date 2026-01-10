@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getStudies } from "../../api/studies";
 import "./StudyPage.css";
+
 import StudyViewModal from "../StudyDetailPage/StudyViewModal";
+import { useAuth } from "../../context/AuthContext";
+import StudyGuestView from "./StudyGuestView";
+import StudyLoggedInView from "./StudyLoggedInView";
 
-/** ===== 명세 기준(추후 API 연동) =====
- * GET /api/studies?visibility={public/private}&category={category}&page={pageNumber}
- * 응답: data.content, data.totalElements, data.totalPages, data.page, data.size
- */
-
+// ===== 타입/옵션 =====
 type VisibilityParam = "public" | "private";
 
 type CategoryEnum =
@@ -31,23 +30,20 @@ const CATEGORY_OPTIONS: { label: string; value?: CategoryEnum }[] = [
   { label: "기타", value: "OTHER" },
 ];
 
+// “나만의 스터디” 상단 필터 (아래 필터랑 완전 별개)
+type MyFilter = "ALL" | "CREATED" | "JOINED" | "FAVORITE";
+
 type StudyListItem = {
   studyId: number;
   studyName: string;
   coverImage?: string | null;
   isPublic: boolean;
-};
 
-type StudiesListResponse = {
-  success: boolean;
-  message: string;
-  data: {
-    content: StudyListItem[];
-    page: number; // 0-based
-    size: number;
-    totalElements: number;
-    totalPages: number;
-  };
+  // 아래 필터용(카테고리)
+  category?: CategoryEnum;
+
+  // 위 “나만의 스터디” 필터용(내 타입)
+  myType?: MyFilter;
 };
 
 function buildPageNumbers(current: number, totalPages: number, maxButtons = 5) {
@@ -60,33 +56,40 @@ function buildPageNumbers(current: number, totalPages: number, maxButtons = 5) {
   return pages;
 }
 
-/** API 아직이면 이거 true로 두면 됨 */
 const USE_MOCK = true;
 
-/** 목업 데이터(이미지는 아무 url 써도 됨 / 없으면 회색 박스) */
 const MOCK_ITEMS: StudyListItem[] = [
-  { studyId: 1, studyName: "같이 공부해요", coverImage: "https://picsum.photos/seed1/600/600",isPublic: true, },
-  { studyId: 2, studyName: "공무원 한국사", coverImage: "https://picsum.photos/seed/study2/600/600",isPublic: true, },
-  { studyId: 3, studyName: "토익 900+", coverImage: "https://picsum.photos/seed/study3/600/600",isPublic: true, },
-  { studyId: 4, studyName: "자격증 스터디", coverImage: null,isPublic: true, },
-  { studyId: 5, studyName: "임용 오전반", coverImage: "https://picsum.photos/seed/study5/600/600",isPublic: false, },
-  { studyId: 6, studyName: "취업 코테", coverImage: "https://picsum.photos/seed/study6/600/600", isPublic: false, },
-  { studyId: 7, studyName: "수능 국어", coverImage: null, isPublic: false, },
-  { studyId: 8, studyName: "기타 모임", coverImage: "https://picsum.photos/seed/study8/600/600",isPublic: false,},
+  { studyId: 1, studyName: "같이 공부해요", coverImage: "https://picsum.photos/seed1/600/600", isPublic: true, category: "OTHER" },
+  { studyId: 2, studyName: "공무원 한국사", coverImage: "https://picsum.photos/seed/study2/600/600", isPublic: true, category: "CIVIL_SERVICE" },
+  { studyId: 3, studyName: "토익 900+", coverImage: "https://picsum.photos/seed/study3/600/600", isPublic: true, category: "LANGUAGE" },
+  { studyId: 4, studyName: "자격증 스터디", coverImage: null, isPublic: true, category: "LICENSE" },
+  { studyId: 5, studyName: "임용 오전반", coverImage: "https://picsum.photos/seed/study5/600/600", isPublic: false, category: "TEACHER_EXAM" },
+  { studyId: 6, studyName: "취업 코테", coverImage: "https://picsum.photos/seed/study6/600/600", isPublic: false, category: "EMPLOYMENT" },
+  { studyId: 7, studyName: "수능 국어", coverImage: null, isPublic: false, category: "CSAT" },
+  { studyId: 8, studyName: "기타 모임", coverImage: "https://picsum.photos/seed/study8/600/600", isPublic: false, category: "OTHER" },
+];
+
+//  위 “나만의 스터디” 목업 (myType만으로 필터됨! 아래 category 필터랑 무관)
+const MOCK_MY_STUDIES: StudyListItem[] = [
+  { studyId: 101, studyName: "내 스터디 A", coverImage: null, isPublic: true, myType: "CREATED" },
+  { studyId: 102, studyName: "내 스터디 B", coverImage: null, isPublic: true, myType: "JOINED" },
+  { studyId: 103, studyName: "내 스터디 C", coverImage: null, isPublic: true, myType: "FAVORITE" },
+  { studyId: 104, studyName: "내 스터디 D", coverImage: null, isPublic: true, myType: "CREATED" },
 ];
 
 export default function StudyPage() {
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
 
-  // 기본값 공개
   const [visibility, setVisibility] = useState<VisibilityParam>("public");
   const [categoryLabel, setCategoryLabel] = useState<string>("전체");
   const [category, setCategory] = useState<CategoryEnum | undefined>(undefined);
 
-  // 모달은 studyId만 넘김
+  const [myFilter, setMyFilter] = useState<MyFilter>("ALL");
+
+  // 모달
   const [selectedStudyId, setSelectedStudyId] = useState<number | null>(null);
 
-  // UI는 1-based
   const [page, setPage] = useState(1);
 
   const [items, setItems] = useState<StudyListItem[]>([]);
@@ -115,17 +118,22 @@ export default function StudyPage() {
     setLoading(true);
     setErrorMsg(null);
 
-    // 목업이면 API 안 타고 UI만 확인
     if (USE_MOCK) {
-      const filtered = MOCK_ITEMS.filter((item) =>
-        visibility === "public" ? item.isPublic : !item.isPublic
-      );
-    
+      // 1) 공개/비공개
+      let filtered = MOCK_ITEMS.filter((item) => (visibility === "public" ? item.isPublic : !item.isPublic));
+
+      // 2) 카테고리(전체면 패스)
+      if (category) {
+        filtered = filtered.filter((item) => item.category === category);
+      }
+
       const fakeSize = 8;
       const fakeTotalElements = filtered.length;
       const fakeTotalPages = Math.max(1, Math.ceil(fakeTotalElements / fakeSize));
       const start = (page - 1) * fakeSize;
-    
+
+      if (!mounted) return;
+
       setItems(filtered.slice(start, start + fakeSize));
       setTotalElements(fakeTotalElements);
       setTotalPages(fakeTotalPages);
@@ -133,34 +141,9 @@ export default function StudyPage() {
       setLoading(false);
       return;
     }
-    
 
-    const params: { visibility: VisibilityParam; category?: CategoryEnum; page: number } = {
-      visibility,
-      page: page - 1,
-    };
-    if (category) params.category = category;
-
-    getStudies(params)
-      .then((res: StudiesListResponse) => {
-        if (!mounted) return;
-        if (!res?.success) throw new Error(res?.message || "스터디 목록을 불러오지 못했어요.");
-
-        const d = res.data;
-        setItems(d.content ?? []);
-        setTotalElements(typeof d.totalElements === "number" ? d.totalElements : 0);
-        setTotalPages(typeof d.totalPages === "number" ? Math.max(1, d.totalPages) : 1);
-        setSize(typeof d.size === "number" ? d.size : 8);
-      })
-      .catch((e) => {
-        if (!mounted) return;
-        setItems([]);
-        setTotalElements(0);
-        setTotalPages(1);
-        setSize(8);
-        setErrorMsg(e?.message ?? "스터디 목록을 불러오지 못했어요.");
-      })
-      .finally(() => mounted && setLoading(false));
+    // TODO: API 연동 시 getStudies 호출
+    setLoading(false);
 
     return () => {
       mounted = false;
@@ -171,137 +154,49 @@ export default function StudyPage() {
     if (page > totalPages) setPage(totalPages);
   }, [totalPages, page]);
 
+  const filteredMyStudies = useMemo(() => {
+    const base = MOCK_MY_STUDIES;
+    if (myFilter === "ALL") return base;
+    return base.filter((s) => s.myType === myFilter);
+  }, [myFilter]);
+
+  // 공통 props
+  const commonProps = {
+    navigate,
+
+    // 아래 필터
+    visibility,
+    categoryLabel,
+    CATEGORY_OPTIONS,
+    onChangeVisibility,
+    onChangeCategory,
+
+    items,
+    loading,
+    errorMsg,
+
+    page,
+    totalPages,
+    pageNumbers,
+    size,
+    totalElements,
+    setPage,
+
+    onOpenStudy: (id: number) => setSelectedStudyId(id),
+
+    // 위 “나만의 스터디”
+    myStudies: filteredMyStudies,
+    myFilter,
+    setMyFilter,
+  };
+
   return (
     <div className="studyPage">
-      {/* 상단 배너 */}
-      <section className="studyHero">
-        <div className="studyHeroCard">
-          <div className="studyHeroLeft">
-            <div className="studyHeroKicker">스터디</div>
-            <div className="studyHeroTitle">새로운 스터디를 만들어보세요</div>
-            <div className="studyHeroSub">관심 있는 분야의 스터디를 찾아 참여할 수도 있어요.</div>
-          </div>
+      {isLoggedIn ? <StudyLoggedInView {...commonProps} /> : <StudyGuestView {...commonProps} />}
 
-          <button
-            className="studyHeroPlus"
-            type="button"
-            onClick={() => navigate("/studies/new")}
-            aria-label="스터디 만들기"
-          >
-            +
-          </button>
-        </div>
-      </section>
-
-      {/* 필터 */}
-      <section className="studyFilters">
-        <div className="pillRow">
-          <button
-            type="button"
-            className={`pill ${visibility === "public" ? "active" : ""}`}
-            onClick={() => onChangeVisibility("public")}
-          >
-            공개
-          </button>
-          <button
-            type="button"
-            className={`pill ${visibility === "private" ? "active" : ""}`}
-            onClick={() => onChangeVisibility("private")}
-          >
-            비공개
-          </button>
-        </div>
-
-        <div className="pillRow scroll">
-          {CATEGORY_OPTIONS.map((opt) => (
-            <button
-              key={opt.label}
-              type="button"
-              className={`pill ${categoryLabel === opt.label ? "active" : ""}`}
-              onClick={() => onChangeCategory(opt.label, opt.value)}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* 목록 */}
-      <section className="studyContent">
-        {loading && <div className="state">불러오는 중…</div>}
-        {!loading && errorMsg && <div className="state error">{errorMsg}</div>}
-        {!loading && !errorMsg && items.length === 0 && <div className="state empty">조건에 맞는 스터디가 없어요.</div>}
-
-        {!loading && !errorMsg && items.length > 0 && (
-          <div className="studyGrid">
-            {items.map((s) => (
-              <article
-                key={s.studyId}
-                className="studyCard"
-                onClick={() => setSelectedStudyId(s.studyId)}
-                role="button"
-                tabIndex={0}
-              >
-                <div className="studyThumb">
-                  {s.coverImage ? <img src={s.coverImage} alt="" /> : <div className="thumbFallback" />}
-                  <div className="thumbDim" />
-                  <div className="thumbChips">
-                  <span className={`chip ${s.isPublic ? "chipPublic" : "chipPrivate"}`}>
-                    {s.isPublic ? "공개" : "비공개"}
-                </span>
-                    <span className="chip chipGhost">{categoryLabel}</span>
-                  </div>
-                </div>
-
-                {/* 아래 검은 바(시안 느낌) */}
-                <div className="studyBottomBar">
-                  <div className="studyName">{s.studyName}</div>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* 페이지네이션 */}
-      <div className="pager">
-        <button
-          className="pageBtn"
-          type="button"
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
-          disabled={page <= 1 || loading}
-        >
-          ‹
-        </button>
-
-        <div className="pageNums">
-          {pageNumbers.map((p) => (
-            <button
-              key={p}
-              type="button"
-              className={`pageNumBtn ${p === page ? "active" : ""}`}
-              onClick={() => setPage(p)}
-              disabled={loading}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
-
-        <button className="pageBtn" type="button" onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages || loading}>
-          ›
-        </button>
-      </div>
-
-      <div className="footMeta">총 {totalElements}개 · pageSize {size}</div>
-
-      {/* 모달: studyId만 넘김 */}
+      {/* 모달 */}
       {selectedStudyId !== null && (
-        <StudyViewModal
-          open={selectedStudyId !== null}
-          onClose={() => setSelectedStudyId(null)}
-          studyId={selectedStudyId}
-        />
+        <StudyViewModal open={selectedStudyId !== null} onClose={() => setSelectedStudyId(null)} studyId={selectedStudyId} />
       )}
     </div>
   );

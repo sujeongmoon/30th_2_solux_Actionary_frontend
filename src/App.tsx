@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import { PostProvider } from "./context/PostContext";
 import HomeLayout from './layouts/HomeLayout';
 import HomePage from './pages/HomePage/HomePage';
 import EmptyLayout from "./layouts/EmptyLayout";
@@ -14,7 +16,6 @@ import BoardDetailPage from "./pages/BoardPage/BoardDetailPage";
 import Login from "./pages/Login/Login";
 import BoardCreatePage from "./pages/BoardPage/BoardCreatePage";
 import BoardEditPage from './pages/BoardPage/BoardEditPage';
-import { PostProvider } from './context/PostContext';
 import StudyTime from './pages/StudyTime/StudyTime';
 import RightSidebar from "./components/Sidebar/Sidebar";
 import ChatRoom from './pages/ChatRoom/ChatRoom';
@@ -23,12 +24,14 @@ import SignupComplete from "./pages/Siginup/SignupComplete";
 import TodoListPage from "./pages/TodoListPage/TodoListPage";
 import SearchBoard from "./pages/SearchPage/SearchBoard";
 import AllSearch from './pages/SearchPage/AllSearch';
+import SearchStudy from "./pages/SearchPage/SearchStudy";
 
 
 function App() {
   return (
-    <BrowserRouter>
+    <AuthProvider>
     <PostProvider>
+    <BrowserRouter>
       <Routes>
         {/*Navbar 있는 레이아웃 */}
         <Route element = {<HomeLayout />}>
@@ -51,7 +54,7 @@ function App() {
           <Route path = "/chatroom" element={<ChatRoom />} />
           <Route path= "/search/board" element={<SearchBoard /> } />
           <Route path = "/search/all" element={<AllSearch />} />
-
+          <Route path="/search/study" element={<SearchStudy />} />
         </Route>
 
         {/* Navbar 없는 레이아웃 */}
@@ -64,8 +67,9 @@ function App() {
       </Routes>
 
       <RightSidebar />
-      </PostProvider>
     </BrowserRouter>
+    </PostProvider>
+    </AuthProvider>
   )
 }
 export default App;
