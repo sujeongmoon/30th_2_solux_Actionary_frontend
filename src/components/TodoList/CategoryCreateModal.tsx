@@ -21,8 +21,10 @@ const CategoryCreateModal: React.FC<Props> = ({ onClose }) => {
   };
 
   return (
-    <div className="catCmodal-backdrop">
-      <div className="catCmodal">
+    <div className="catCmodal-backdrop" onClick={onClose}>
+      <div 
+        className="catCmodal"
+        onClick={(e) => e.stopPropagation()}>
         <h2 className="catmodal-title">카테고리 등록</h2>
         <div className="catC-divider" />
 
