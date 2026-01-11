@@ -71,18 +71,9 @@ export const getSummaryJob = (jobId: string) => {
 };
 
 // 목록 조회
-export const getSummaryList = (params?: {
-  page?: number;
-  size?: number;
-  status?: string;
-  sourceType?: string;
-}) => {
+export const getSummaryList = (page = 1, size = 10) => {
   return api.get<SummaryListResponse>('/api/ai-summary', {
-    params: {
-      page: 1,
-      size: 10,
-      ...params
-    }
-  });
-};
+    params: { page, size }
+  })
+}
 

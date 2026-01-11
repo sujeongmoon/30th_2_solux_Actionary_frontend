@@ -10,6 +10,7 @@ import CommentIcon from '../../assets/homepage/HomePageCommentIcon.svg'
 import BookmarkSection from "../../components/Bookmark/BookmarkSection";
 //import { getPopularStudies } from "../../api/HomePage/getPopularStudies";
 import { useNavigate } from "react-router-dom";
+import study_noimg from '../../assets/homepage/study_noimg.svg';
 
 const studyList = [
   {
@@ -196,7 +197,11 @@ const handleCloseMenu = () => setIsMenuOpen(false);
             const bgClass = bgClasses[index % bgClasses.length];
             return (
               <div key={item.studyId} className={`study-card ${bgClass}`}>
-                {item.coverImage && <img src={item.coverImage} alt="" className="study-card-img" />}
+                <img
+                  src = {item.coverImage || study_noimg}
+                  alt ={item.name}
+                  className="study-card-img"
+                />
                 <div className="study-card-content">
                   <h3 className="study-card-title">{item.name}</h3>
                     {item.description && <p className="study-card-desc">{item.description}</p>}
