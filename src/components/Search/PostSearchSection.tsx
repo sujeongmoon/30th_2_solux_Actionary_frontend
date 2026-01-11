@@ -1,24 +1,27 @@
-import React, { useEffect, useState } from 'react';
+// src/components/PostSearchSection/PostSearchSection.tsx
+import React, { useState } from 'react';
 import './PostSearchSection.css';
 import '../../pages/HomePage/HomePage.css';
 import DropdownIcon from '../../assets/Board/Dropdown.svg';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { usePosts, type Post } from '../../context/PostContext';
+import { useNavigate } from 'react-router-dom';
+import { type SearchPostItem } from '../../api/Search/SearchPost';
 
-const PostSearchSection: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState(1);
+interface Props {
+  posts: SearchPostItem[];
+}
+
+const PostSearchSection: React.FC<Props> = ({ posts= [] }) => {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('말머리');
-  const { posts } = usePosts();
-  const [displayPosts, setDisplayPosts] = useState<Post[]>([]);
 
   const navigate = useNavigate();
-  const location = useLocation();
-  const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '');
 
-  // URL 쿼리에서 검색어 가져오기
-  const query = new URLSearchParams(location.search);
-  const keyword = query.get('keyword') || '';
+  // 선택한 카테고리에 따라 필터링
+  const filteredPosts = posts.filter(post => {
+    return selectedCategory === '말머리' || selectedCategory === '전체'
+    ? true
+    : post.type === selectedCategory;
+  }) ?? [];
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -28,34 +31,14 @@ const PostSearchSection: React.FC = () => {
     return `${yyyy}/${mm}/${dd}`;
   };
 
-  useEffect(() => {
-    let filteredPosts = posts;
-
-    // 카테고리 필터
-    if (selectedCategory !== '말머리' && selectedCategory !== '전체') {
-      filteredPosts = filteredPosts.filter((p) => p.type === selectedCategory);
-    }
-
-    // 검색어 필터
-    if (keyword) {
-      filteredPosts = filteredPosts.filter(
-        (p) =>
-          p.title.includes(keyword) || 
-          stripHtml(p.content?.text_content || '').includes(keyword)
-      );
-    }
-
-    setDisplayPosts(filteredPosts); // MockData용
-  }, [posts, currentPage, selectedCategory, keyword]);
-
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
     setIsCategoryOpen(false);
-    setCurrentPage(1);
   };
 
   return (
     <div className="board-container">
+      {/* 네비게이션 */}
       <nav className="sub-navigation">
         <a href="/board" className="nav-link-home-link">스터디</a>
         <span className="nav-divider">|</span>
@@ -118,35 +101,36 @@ const PostSearchSection: React.FC = () => {
             </thead>
 
             <tbody>
-              {displayPosts.map((item) => (
-                <tr key={item.postId} onClick={() => navigate(`/board/${item.postId}`)} style={{ cursor: 'pointer' }}>
+              {filteredPosts.map(item => (
+                <tr
+                  key={item.postId}
+                  onClick={() => navigate(`/board/${item.postId}`)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <td>
                     <div className="pss-badge">
                       <span>{item.type}</span>
                     </div>
                   </td>
                   <td>{item.title}</td>
-                  <td className="pss-author-cell">{item.nickname}</td>
-                  <td className="pss-date-cell">{formatDate(item.created_at)}</td>
-                  <td className="pss-comment-count">{item.comment_count}</td>
+                  <td className="pss-author-cell">{item.authorNickname}</td>
+                  <td className="pss-date-cell">{formatDate(item.createdAt)}</td>
+                  <td className="pss-comment-count">{item.commentCount}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+
         {/* 하단 섹션: 더보기 버튼 */}
         <div className="pss-bottom-section">
-        <button
+          <button
             className="pss-btn-load-more"
-            onClick={() => {
-            // TODO: 여기에 더보기 로직 구현
-            navigate('/board');
-            }}
-        >
+            onClick={() => navigate('/board')}
+          >
             더보기 &gt;
-        </button>
+          </button>
         </div>
-
       </div>
     </div>
   );
