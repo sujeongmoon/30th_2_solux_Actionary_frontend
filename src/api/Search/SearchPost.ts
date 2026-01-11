@@ -29,7 +29,7 @@ export interface SearchPostResponse {
 
 export const searchPosts = async (
   query: string,
-  page: number = 0,
+  page: number = 1,
   size: number = 10,
   sort?: 'LATEST' | 'POPULAR',
   category?: string

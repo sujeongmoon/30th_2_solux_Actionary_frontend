@@ -68,9 +68,13 @@ const ChatBotUI = () => {
           setIsLoading(false);
           setMessages(prev => [
             ...prev,
-            { id: crypto.randomUUID(), text: data.error.message, type: 'bot' },
+            { id: crypto.randomUUID(), 
+              text: typeof data.error === 'string'
+              ? data.error
+              : '요약에 실패했습니다', 
+              type: 'bot' },
           ]);
-        } else if (data.status === 'PENDING' || data.status === 'RUNNING') {
+        } else if (data.status === 'PENDING' || data.status === 'PROCESSING') {
           // 이미 "문서를 요약 중입니다..."가 있으면 업데이트
           setMessages(prev => {
             const lastMessage = prev[prev.length - 1];
@@ -85,7 +89,8 @@ const ChatBotUI = () => {
             } else {
               return [
                 ...prev,
-                { id: crypto.randomUUID(), text: `문서를 요약 중입니다... (${data.status})`, type: 'bot' },
+                { id: crypto.randomUUID(), 
+                  text: `문서를 요약 중입니다... (${data.status})`, type: 'bot' },
               ];
             }
           });
@@ -136,16 +141,20 @@ const ChatBotUI = () => {
           { id: crypto.randomUUID(), text: data.summary, type: 'bot' },
         ]);
         setIsLoading(false);
-      } else if (data.status === 'PENDING' || data.status === 'RUNNING') {
+      } else if (data.status === 'PENDING' || data.status === 'PROCESSING') {
         setMessages(prev => [
           ...prev,
           { id: crypto.randomUUID(), text: '문서를 요약 중입니다...', type: 'bot' },
         ]);
-        startPolling(data.jobId);
+        if (data.jobId) {
+          startPolling(data.jobId);
+        }
       } else if (data.status === 'FAILED') {
         setMessages(prev => [
           ...prev,
-          { id: crypto.randomUUID(), text: data.error.message, type: 'bot' },
+          { id: crypto.randomUUID(), 
+            text: data.error ?? '요약에 실패했습니다',
+            type: 'bot' },
         ]);
         setIsLoading(false);
       }
@@ -196,7 +205,13 @@ const ChatBotUI = () => {
       if (data.status === 'SUCCEEDED') {
         setMessages([{ id: crypto.randomUUID(), text: data.summary, type: 'bot' }]);
       } else if (data.status === 'FAILED') {
-        setMessages([{ id: crypto.randomUUID(), text: data.error.message, type: 'bot' }]);
+        setMessages([{ 
+          id: crypto.randomUUID(), 
+          text:
+            typeof data.error === 'string'
+            ? data.error
+            : '요약에 실패했습니다', 
+          type: 'bot' }]);
       }
     } catch (e) {
       console.error('요약 상세 조회 실패', e);
