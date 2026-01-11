@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./StudySearchSection.css";
 import noImg from "../../assets/study_noimg.png";
-import { searchAll } from "../../api/Search/SearchAll";
 import { type SearchStudyItemComponent } from "../../api/Search/SearchStudy";
 
 
@@ -20,38 +19,9 @@ export default function StudySearchSection({ studies }: StudySearchSectionProps)
   const navigate = useNavigate();
   const keyword = (q.get("keyword") ?? "").trim();
 
-  const [loading, setLoading] = useState(false);
-  const [items, setItems] = useState<SearchStudyItemComponent[]>([]);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-
-  useEffect(() => {
-    if (!keyword) return;
-
-    let mounted = true;
-    setErrorMsg(null);
-    setLoading(true);
-
-    searchAll(keyword)
-      .then(res => {
-        if (!mounted) return;
-        setItems(res.data.data.studies);
-      })
-      .catch(()=> {
-        if (!mounted) return;
-        setErrorMsg('검색 중 오류가 발생했습니다.');
-      })
-      .finally(() => {
-        if (!mounted) return;
-        setLoading(false);
-      });
-
-      return () => { mounted = false };
-  },[keyword]);
-
   return (
+    <>
     <section className="searchSection">
-      {/* 헤더: 왼쪽 제목/키워드 + 오른쪽 정렬 필터 */}
       <div className="searchSectionHeader">
         <div className="searchHeaderLeft">
           <h2 className="searchSectionTitle">스터디 검색</h2>
@@ -63,13 +33,9 @@ export default function StudySearchSection({ studies }: StudySearchSectionProps)
         </div>
       </div>
 
-      {loading && <div className="searchState">불러오는 중...</div>}
-      {!loading && errorMsg && <div className="searchState error">{errorMsg}</div>}
-      {!loading && !errorMsg && items.length === 0 && (
+      {studies.length === 0 ? (
         <div className="searchState empty">검색 결과가 없어요.</div>
-      )}
-
-      {!loading && !errorMsg && items.length > 0 && (
+      ) : (
         <div className="searchStudyWrap">
           {studies.map((s) => (
             <article
@@ -102,5 +68,16 @@ export default function StudySearchSection({ studies }: StudySearchSectionProps)
         </div>
       )}
     </section>
+    <div className="ss-bottom-section">
+      <button
+        className="ss-btn-load-more"
+        onClick={() => navigate('/studies')}
+      >
+        더보기 &gt;
+      </button>
+      </div>
+    
+    
+    </>
   );
 }
