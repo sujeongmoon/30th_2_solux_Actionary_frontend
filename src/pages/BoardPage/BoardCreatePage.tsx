@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
@@ -29,7 +28,6 @@ const BoardCreatePage = () => {
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Underline,
       Image.configure({ allowBase64: true }),
       Placeholder.configure({ placeholder: '내용을 입력하세요 |' }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
@@ -92,7 +90,7 @@ const BoardCreatePage = () => {
       type: selectedCategory,
       title,
       content: {
-        text_content: editor.getHTML(),
+        text_content: editor.getText(),
         image_urls: uploadedImageUrls,
       },
       comment_count: 0,
@@ -109,7 +107,7 @@ const BoardCreatePage = () => {
         type: selectedCategory,
         title,
         content: {
-          text_content: editor.getHTML(),
+          text_content: editor.getText(),
           image_urls: uploadedImageUrls,
         },
       });
@@ -169,20 +167,6 @@ const BoardCreatePage = () => {
         {/* Tiptap 에디터 */}
         <div className="tiptap-editor-box">
           <div className="tiptap-toolbar">
-            <div className="toolbar-group">
-              <button onClick={() => editor.chain().focus().toggleBold().run()} className={editor.isActive('bold') ? 'is-active' : ''}>Bold</button>
-              <button onClick={() => editor.chain().focus().toggleItalic().run()} className={editor.isActive('italic') ? 'is-active' : ''}>Italic</button>
-              <button onClick={() => editor.chain().focus().toggleUnderline().run()} className={editor.isActive('underline') ? 'is-active' : ''}>Underline</button>
-            </div>
-            <div className="toolbar-group">
-              <button onClick={() => editor.chain().focus().setTextAlign('left').run()} className={editor.isActive({ textAlign: 'left' }) ? 'is-active' : ''}>Left</button>
-              <button onClick={() => editor.chain().focus().setTextAlign('center').run()} className={editor.isActive({ textAlign: 'center' }) ? 'is-active' : ''}>Center</button>
-              <button onClick={() => editor.chain().focus().setTextAlign('right').run()} className={editor.isActive({ textAlign: 'right' }) ? 'is-active' : ''}>Right</button>
-            </div>
-            <div className="toolbar-group">
-              <button onClick={() => editor.chain().focus().toggleBulletList().run()} className={editor.isActive('bulletList') ? 'is-active' : ''}>• List</button>
-              <button onClick={() => editor.chain().focus().toggleBlockquote().run()} className={editor.isActive('blockquote') ? 'is-active' : ''}>Quote</button>
-            </div>
             <div className="toolbar-group">
               <button onClick={handlePhotoClick}>Photo</button>
             </div>

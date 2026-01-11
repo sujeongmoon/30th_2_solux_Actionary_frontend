@@ -22,7 +22,7 @@ const initialPosts: Post[] = [
     title: 'ERD 설계 질문입니다',
     type: '질문',
     content: {
-      text_content: '<p>게시글 본문 내용</p>',
+      text_content: '게시글 본문 내용',
       image_urls: ['https://picsum.photos/seed/board1/600/400'],
     },
     nickname: '가인',
@@ -34,7 +34,7 @@ const initialPosts: Post[] = [
     title: 'React useEffect 이해하기',
     type: '질문',
     content: {
-      text_content: '<p>useEffect를 잘 이해하고 싶은데요.</p>',
+      text_content: 'useEffect를 잘 이해하고 싶은데요.',
       image_urls: [],
     },
     nickname: '개발자B',
@@ -46,7 +46,7 @@ const initialPosts: Post[] = [
     title: 'JavaScript Array 메서드 정리',
     type: '공유',
     content: {
-      text_content: '<p>map, filter, reduce 정리 자료</p>',
+      text_content: 'map, filter, reduce 정리 자료',
       image_urls: [],
     },
     nickname: '개발자C',
@@ -58,7 +58,7 @@ const initialPosts: Post[] = [
     title: 'CSS Flexbox vs Grid',
     type: '토론',
     content: {
-      text_content: '<p>Flexbox와 Grid 어떤 경우에 사용하는지 의견 나눠요.</p>',
+      text_content: 'Flexbox와 Grid 어떤 경우에 사용하는지 의견 나눠요.',
       image_urls: ['https://picsum.photos/seed/board4/600/400'],
     },
     nickname: '디자이너A',
@@ -70,7 +70,7 @@ const initialPosts: Post[] = [
     title: 'TypeScript 타입 유틸 정리',
     type: '공유',
     content: {
-      text_content: '<p>Partial, Pick, Omit 등 타입 유틸 예제</p>',
+      text_content: 'Partial, Pick, Omit 등 타입 유틸 예제',
       image_urls: [],
     },
     nickname: '개발자D',
@@ -82,7 +82,7 @@ const initialPosts: Post[] = [
     title: 'Node.js 서버 구조 질문',
     type: '질문',
     content: {
-      text_content: '<p>Express 프로젝트 구조 관련해서 질문 있어요.</p>',
+      text_content: 'Express 프로젝트 구조 관련해서 질문 있어요.',
       image_urls: ['https://picsum.photos/seed/board6/600/400'],
     },
     nickname: '개발자E',

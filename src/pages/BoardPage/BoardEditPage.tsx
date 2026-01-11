@@ -1,10 +1,9 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
+import StarterKit from '@tiptap/starter-kit';
 // import api from '../../api/client'; // 실제 API 연동용
 import PencilIcon from '../../assets/MyPage/Pencil.svg';
 import ArrowIcon from '../../assets/Board/underArrow.svg';
@@ -19,18 +18,19 @@ const BoardEditPage = () => {
 
   // ------------------ MOCK DATA / Context ------------------
   const { posts, updatePost } = usePosts();
-
   const [title, setTitle] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('소통');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
 
   const categories = ['소통', '인증', '질문'];
+  const postToEdit = posts.find(p => p.postId === Number(postId));
+
 
   // ------------------ Tiptap 에디터 ------------------
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Underline,
       Image.configure({ allowBase64: true }),
       Placeholder.configure({ placeholder: '내용을 입력하세요 |' }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
@@ -40,26 +40,33 @@ const BoardEditPage = () => {
 
   // ------------------ MOCK DATA 로딩 ------------------
   useEffect(() => {
-    if (!postId || !editor) return;
-    const postToEdit = posts.find(p => p.postId === Number(postId));
-    if (!postToEdit) return;
+    if (!postId || !editor || !postToEdit) return;
 
     setTitle(postToEdit.title);
     setSelectedCategory(postToEdit.type);
+    setUploadedImageUrls(postToEdit.content.image_urls || []);
 
-    let content = postToEdit.content.text_content;
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(content, 'text/html');
-    const existingImages = doc.querySelectorAll('img');
+    const content = [];
 
-    if (existingImages.length === 0) {
-        postToEdit.content.image_urls.forEach((url:string) => {
-            content += `<p><img src="${url}" /></p>`;
-        });
+    if (postToEdit.content.text_content) {
+      content.push({
+        type: 'paragraph',
+        content: [{type: 'text', text: postToEdit.content.text_content }],
+      });
     }
-    // 기존 텍스트 + 이미지 삽입 (mockData)
-    editor.commands.setContent(content);
-  }, [postId, editor, posts]);
+
+    postToEdit.content.image_urls?.forEach(url => {
+      content.push({
+        type: 'image',
+        attrs: {src: url},
+      });
+    });
+
+    editor.commands.setContent({
+      type: 'doc',
+      content,
+    });
+  }, [postId, editor, postToEdit]);
 
   // ------------------ 입력/선택 ------------------
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,6 +91,7 @@ const BoardEditPage = () => {
     reader.onload = (event) => {
       const url = event.target?.result as string;
       editor.chain().focus().setImage({ src: url }).run();
+      setUploadedImageUrls(prev => [...prev, url]);
     };
     reader.readAsDataURL(file);
 
@@ -95,6 +103,7 @@ const BoardEditPage = () => {
       const res = await api.post('/api/upload', formData); // 실제 API
       const url = res.data.url;
       editor.chain().focus().setImage({ src: url }).run();
+      setUploadedImageUrls(prev => [...prev, url]);
     } catch (err) {
       console.error('이미지 업로드 실패:', err);
       alert('이미지 업로드에 실패했습니다.');
@@ -111,23 +120,17 @@ const BoardEditPage = () => {
     const postToEdit = posts.find(p => p.postId === Number(postId));
     if (!postToEdit) return alert('게시글을 찾을 수 없습니다.');
 
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(editor.getHTML(), 'text/html');
-    const images = Array.from(doc.querySelectorAll('img')).map(img => img.src);
-
     const updatedPost: Post = {
       ...postToEdit,
       title,
       type: selectedCategory,
       content: {
-        text_content: editor.getHTML(),
-        image_urls: images,
+        text_content: editor.getText(),
+        image_urls: uploadedImageUrls,
       },
     };
 
     // ------------------ mockData 적용 ------------------
-    updatePost(updatedPost);
-
     alert('게시글이 수정되었습니다! (mockData)');
     console.log('업데이트된 게시글:', updatedPost);
     updatePost(updatedPost);
@@ -139,8 +142,8 @@ const BoardEditPage = () => {
         title,
         type: selectedCategory,
         content: {
-          text_content: editor.getHTML(),
-          image_urls: images,
+          text_content: editor.getText(),
+          image_urls: uploadedImageUrls,
         },
       });
       console.log('수정된 게시글:', res.data);
@@ -198,69 +201,10 @@ const BoardEditPage = () => {
         <div className="tiptap-editor-box">
           <div className="tiptap-toolbar">
             <div className="toolbar-group">
-              <button
-                onClick={() => editor.chain().focus().toggleBold().run()}
-                className={editor.isActive('bold') ? 'is-active' : ''}
-              >
-                Bold
-              </button>
-              <button
-                onClick={() => editor.chain().focus().toggleItalic().run()}
-                className={editor.isActive('italic') ? 'is-active' : ''}
-              >
-                Italic
-              </button>
-              <button
-                onClick={() => editor.chain().focus().toggleUnderline().run()}
-                className={editor.isActive('underline') ? 'is-active' : ''}
-              >
-                Underline
-              </button>
-            </div>
-            <div className="toolbar-group">
-              <button
-                onClick={() => editor.chain().focus().setTextAlign('left').run()}
-                className={editor.isActive({ textAlign: 'left' }) ? 'is-active' : ''}
-              >
-                Left
-              </button>
-              <button
-                onClick={() => editor.chain().focus().setTextAlign('center').run()}
-                className={editor.isActive({ textAlign: 'center' }) ? 'is-active' : ''}
-              >
-                Center
-              </button>
-              <button
-                onClick={() => editor.chain().focus().setTextAlign('right').run()}
-                className={editor.isActive({ textAlign: 'right' }) ? 'is-active' : ''}
-              >
-                Right
-              </button>
-            </div>
-            <div className="toolbar-group">
-              <button
-                onClick={() => editor.chain().focus().toggleBulletList().run()}
-                className={editor.isActive('bulletList') ? 'is-active' : ''}
-              >
-                • List
-              </button>
-              <button
-                onClick={() => editor.chain().focus().toggleBlockquote().run()}
-                className={editor.isActive('blockquote') ? 'is-active' : ''}
-              >
-                Quote
-              </button>
-            </div>
-            <div className="toolbar-group">
               <button onClick={handlePhotoClick}>Photo</button>
-              <button onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()}>
-                ↶
-              </button>
-              <button onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()}>
-                ↷
-              </button>
             </div>
-            <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleFileChange} />
+            <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleFileChange} 
+            />
           </div>
 
           <div className="editor-content">
