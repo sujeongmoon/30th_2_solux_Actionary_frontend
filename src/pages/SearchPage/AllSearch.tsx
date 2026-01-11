@@ -11,7 +11,7 @@ const AllSearch: React.FC = () => {
   const [params] = useSearchParams();
   const keyword = params.get('keyword') ?? '';
 
-  //const [studies, setStudies] = useState<SearchStudyItemComponent[]>([]);
+  const [studies, setStudies] = useState<SearchStudyItemComponent[]>([]);
   const [posts, setPosts] = useState<SearchPostItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -22,8 +22,8 @@ const AllSearch: React.FC = () => {
       try {
         setIsLoading(true);
         const res = await searchAll(keyword);
-        const data = res.data.data ?? res.data;
-        setStudies(res.data ?? []);
+        const data = res.data.data;
+        setStudies(data.studies ?? []);
         setPosts(data.posts ?? []);
       } catch (e) {
         console.error('전체 검색 실패', e);
@@ -37,7 +37,7 @@ const AllSearch: React.FC = () => {
 
   return (
     <div>
-      <StudySearchSection />
+      <StudySearchSection studies={studies}/>
       {!isLoading && <PostSearchSection posts={posts} />}
     </div>
   );

@@ -1,145 +1,53 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./StudySearchSection.css";
 import noImg from "../../assets/study_noimg.png";
+import { searchAll } from "../../api/Search/SearchAll";
+import { type SearchStudyItemComponent } from "../../api/Search/SearchStudy";
 
-type StudyItem = {
-  studyId: number;
-  studyName: string;
-  coverImage?: string | null;
-  isPublic?: boolean;
-  categoryLabel?: string;
 
-  // 정렬용 (백에서 내려주면 그대로 사용)
-  createdAt?: string; 
-  memberCount?: number; 
-};
+interface StudySearchSectionProps {
+  studies: SearchStudyItemComponent[];
+}
 
 function useQuery() {
   const { search } = useLocation();
   return useMemo(() => new URLSearchParams(search), [search]);
 }
 
-type SortKey = "popular" | "latest";
-const sortLabel: Record<SortKey, string> = {
-  popular: "인기순",
-  latest: "최신순",
-};
-
-/** 목업 */
-const USE_MOCK = true;
-const MOCK_STUDIES: StudyItem[] = [
-  {
-    studyId: 1,
-    studyName: "같이 공부해요",
-    coverImage: null,
-    isPublic: true,
-    categoryLabel: "기타",
-    createdAt: "2026-01-10T10:00:00Z",
-    memberCount: 12,
-  },
-  {
-    studyId: 2,
-    studyName: "공무원 한국사",
-    coverImage: null,
-    isPublic: true,
-    categoryLabel: "공무원",
-    createdAt: "2026-01-08T10:00:00Z",
-    memberCount: 44,
-  },
-  {
-    studyId: 3,
-    studyName: "토익 900+",
-    coverImage: null,
-    isPublic: true,
-    categoryLabel: "어학",
-    createdAt: "2026-01-11T08:00:00Z",
-    memberCount: 21,
-  },
-];
-
-export default function StudySearchSection() {
+export default function StudySearchSection({ studies }: StudySearchSectionProps) {
   const q = useQuery();
   const navigate = useNavigate();
   const keyword = (q.get("keyword") ?? "").trim();
 
   const [loading, setLoading] = useState(false);
-  const [items, setItems] = useState<StudyItem[]>([]);
+  const [items, setItems] = useState<SearchStudyItemComponent[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // 정렬 상태
-  const [sortKey, setSortKey] = useState<SortKey>("popular");
-
-  // 커스텀 드롭다운 열림/닫힘
-  const [sortOpen, setSortOpen] = useState(false);
-  const sortRef = useRef<HTMLDivElement | null>(null);
-
-  // 바깥 클릭하면 드롭다운 닫기
-  useEffect(() => {
-    const onDown = (e: MouseEvent) => {
-      if (!sortRef.current) return;
-      if (!sortRef.current.contains(e.target as Node)) setSortOpen(false);
-    };
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-  }, []);
-
-  // ESC로 닫기
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSortOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, []);
 
   useEffect(() => {
+    if (!keyword) return;
+
     let mounted = true;
     setErrorMsg(null);
     setLoading(true);
 
-    if (USE_MOCK) {
-      const lower = keyword.toLowerCase();
-      const filtered = keyword
-        ? MOCK_STUDIES.filter((s) => s.studyName.toLowerCase().includes(lower))
-        : MOCK_STUDIES;
-
-      if (!mounted) return;
-      setItems(filtered);
-      setLoading(false);
-      return;
-    }
-
-    // TODO: 백엔드 검색 API 붙이기
-    setLoading(false);
-
-    return () => {
-      mounted = false;
-    };
-  }, [keyword]);
-
-  // 정렬 (백에서 정렬해주면 제거 가능)
-  const sortedItems = useMemo(() => {
-    const arr = [...items];
-
-    if (sortKey === "latest") {
-      arr.sort((a, b) => {
-        const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return tb - ta;
+    searchAll(keyword)
+      .then(res => {
+        if (!mounted) return;
+        setItems(res.data.data.studies);
+      })
+      .catch(()=> {
+        if (!mounted) return;
+        setErrorMsg('검색 중 오류가 발생했습니다.');
+      })
+      .finally(() => {
+        if (!mounted) return;
+        setLoading(false);
       });
-      return arr;
-    }
 
-    // popular
-    arr.sort((a, b) => (b.memberCount ?? 0) - (a.memberCount ?? 0));
-    return arr;
-  }, [items, sortKey]);
-
-  const chooseSort = (k: SortKey) => {
-    setSortKey(k);
-    setSortOpen(false);
-  };
+      return () => { mounted = false };
+  },[keyword]);
 
   return (
     <section className="searchSection">
@@ -153,59 +61,17 @@ export default function StudySearchSection() {
             <div className="searchSectionMeta">전체 스터디</div>
           )}
         </div>
-
-        {/* 커스텀 드롭다운 (전체/게시글/스터디 스타일) */}
-        <div className="searchHeaderRight">
-          <div className="dd" ref={sortRef}>
-            <button
-              type="button"
-              className={`ddBtn ${sortOpen ? "open" : ""}`}
-              onClick={() => setSortOpen((v) => !v)}
-              aria-haspopup="listbox"
-              aria-expanded={sortOpen}
-            >
-              <span className="ddBtnLabel">{sortLabel[sortKey]}</span>
-              <span className="ddArrow" aria-hidden="true">
-                ▾
-              </span>
-            </button>
-
-            {sortOpen && (
-              <div className="ddMenu" role="listbox" aria-label="스터디 정렬">
-                <button
-                  type="button"
-                  className={`ddItem ${sortKey === "popular" ? "active" : ""}`}
-                  onClick={() => chooseSort("popular")}
-                  role="option"
-                  aria-selected={sortKey === "popular"}
-                >
-                  <span className="ddItemText">인기순</span>
-                </button>
-
-                <button
-                  type="button"
-                  className={`ddItem ${sortKey === "latest" ? "active" : ""}`}
-                  onClick={() => chooseSort("latest")}
-                  role="option"
-                  aria-selected={sortKey === "latest"}
-                >
-                  <span className="ddItemText">최신순</span>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
       </div>
 
-      {loading && <div className="searchState">불러오는 중…</div>}
+      {loading && <div className="searchState">불러오는 중...</div>}
       {!loading && errorMsg && <div className="searchState error">{errorMsg}</div>}
-      {!loading && !errorMsg && sortedItems.length === 0 && (
+      {!loading && !errorMsg && items.length === 0 && (
         <div className="searchState empty">검색 결과가 없어요.</div>
       )}
 
-      {!loading && !errorMsg && sortedItems.length > 0 && (
+      {!loading && !errorMsg && items.length > 0 && (
         <div className="searchStudyWrap">
-          {sortedItems.map((s) => (
+          {studies.map((s) => (
             <article
               key={s.studyId}
               className="searchStudyCard"
@@ -218,17 +84,17 @@ export default function StudySearchSection() {
             >
               <div
                 className="searchStudyThumb"
-                style={{ backgroundImage: `url(${s.coverImage ?? noImg})` }}
+                style={{ backgroundImage: `url(${s.thumbnailUrl ?? noImg})` }}
               >
                 <div className="searchStudyChips">
-                  <span className={`searchStudyChip ${s.isPublic ? "pub" : "pri"}`}>
-                    {s.isPublic ? "공개" : "비공개"}
+                  <span className={`searchStudyChip ${s.isJoined ? "pub" : "pri"}`}>
+                    {s.isJoined ? "참여중" : "미참여"}
                   </span>
-                  <span className="searchStudyChip ghost">{s.categoryLabel ?? "기타"}</span>
+                  <span className="searchStudyChip ghost">{s.category ?? "기타"}</span>
                 </div>
 
                 <div className="searchStudyTitleBar">
-                  <div className="searchStudyName">{s.studyName}</div>
+                  <div className="searchStudyName">{s.title}</div>
                 </div>
               </div>
             </article>
