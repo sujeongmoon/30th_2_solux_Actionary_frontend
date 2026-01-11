@@ -1,26 +1,46 @@
-import React from "react";
-import "./ColorPaletteModal.css";;
+import React, { useEffect, useState } from "react";
+import "./ColorPaletteModal.css";
+;
 
 interface Props {
-  onSelect: (color: string) => void;
+  selectedColor: string;
+  onConfirm: (color: string) => void;
   onClose: () => void;
 }
 
-const colors = ["#D29AFA", "#6BEBFF", "#9AFF5B", "#FFAD36", "#FF8355", "#FCDF2F", "#FF3D2F", "#FF9E97"];
+const colors = ["#D29AFA", "#6BEBFF", "#9AFF5B", "#FFAD36", 
+  "#FF8355", "#FCDF2F", "#FF3D2F", "#FF9E97"];
 
-const ColorPaletteModal: React.FC<Props> = ({ onSelect, onClose }) => {
+const ColorPaletteModal: React.FC<Props> = ({ selectedColor, onConfirm, onClose }) => {
+  const [ current, setCurrent ] = useState(selectedColor);
+
+  useEffect(() => {
+    setCurrent(selectedColor);
+  }, [selectedColor]);
+  
   return (
-    <div className="palmodal-overlay">
-      <div className="palette-modal">
+    <div className="palette-modal">
+      <h3 className="palette-title">색상</h3>
+      <div className="palette-grid">
         {colors.map(c => (
           <div
             key={c}
-            className="palette-color"
+            className={`palette-color ${
+              current === c ? "selected" : ""
+            }`}
             style={{ backgroundColor: c}}
-            onClick={() => {onSelect(c); onClose(); }}
+            onClick={() => setCurrent(c)}
           />
         ))}
       </div>
+
+      <button
+        className="palette-confirm-btn"
+        onClick={() => {
+          onConfirm(current);
+          onClose();
+        }}
+      >확인</button>
     </div>
   );
 };

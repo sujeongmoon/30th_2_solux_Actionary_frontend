@@ -33,31 +33,33 @@ const CategoryCreateModal: React.FC<Props> = ({ onClose }) => {
           onChange={(e) => setName(e.target.value)}
         />
 
-        <div className="divider" />
+        <div className="catC-color-divider" />
 
         <div className="catC-color-row">
           <span>색상</span>
-          <button
-            className="color-circle"
-            style={{ backgroundColor: color}}
-            onClick={() => setPaletteOpen(true)}
-          />
+          <div className="color-picker-wrapper">
+            <button
+              className="color-circle"
+              style={{ backgroundColor: color}}
+              onClick={() => setPaletteOpen(true)}
+            />
+            {paletteOpen && (
+              <ColorPaletteModal
+              selectedColor={color}
+              onConfirm={(selected)=> {
+                setColor(selected);
+                setPaletteOpen(false);
+              }}
+              onClose={() => setPaletteOpen(false)}
+            />
+            )}
+          </div>
         </div>
 
         <button className="catC-confirm-btn" onClick={handleSubmit}>
           확인
         </button>
       </div>
-
-      {paletteOpen && (
-        <ColorPaletteModal
-          onSelect={(c) => {
-            setColor(c);
-            setPaletteOpen(false);
-          }}
-          onClose={() => setPaletteOpen(false)}
-        />
-      )}
     </div>
   );
 };
