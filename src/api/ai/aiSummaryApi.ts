@@ -4,7 +4,7 @@ import { type SummaryListResponse } from '../../types/aiSummary';
 
 export type SummaryStatus =
   | 'PENDING'
-  | 'RUNNING'
+  | 'PROCESSING'
   | 'SUCCEEDED'
   | 'FAILED';
 
@@ -14,9 +14,8 @@ export interface SummaryJobBase {
 }
 
 export interface SummaryJobPending extends SummaryJobBase {
-  status: 'PENDING' | 'RUNNING';
+  status: 'PENDING' | 'PROCESSING';
   queuedAt: string;
-  estimateSec: number;
 }
 
 export interface SummaryJobSuccess extends SummaryJobBase {
@@ -26,9 +25,9 @@ export interface SummaryJobSuccess extends SummaryJobBase {
 
 export interface SummaryJobFailed extends SummaryJobBase {
   status: 'FAILED';
-  error: {
-    code: string;
-    message: string;
+  error: string | null | {
+    code?: string;
+    message?: string;
   };
 }
 
@@ -50,7 +49,7 @@ export const summarizeFile = (file: File) => {
   const formData = new FormData();
   formData.append('file', file);
 
-  return api.post('/api/ai-summary', formData, {
+  return api.post<SummaryJobResponse>('/api/ai-summary/file', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -58,9 +57,11 @@ export const summarizeFile = (file: File) => {
 };
 
 // URL 요약
-export const summarizeUrl = (sourceUrl: string) => {
-  return api.post('/api/ai-summary', {
+export const summarizeUrl = (sourceUrl: string, options?: { language?: string; maxTokens?: number }) => {
+  return api.post<SummaryJobResponse>('/api/ai-summary/url', {
     sourceUrl,
+    language: options?.language,
+    maxTokens: options?.maxTokens ?? 600,
   });
 };
 
@@ -77,7 +78,11 @@ export const getSummaryList = (params?: {
   sourceType?: string;
 }) => {
   return api.get<SummaryListResponse>('/api/ai-summary', {
-    params,
+    params: {
+      page: 1,
+      size: 10,
+      ...params
+    }
   });
 };
 

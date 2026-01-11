@@ -4,8 +4,7 @@ import Pagination from '../../components/Pagination/Pagination';
 import '../../pages/HomePage/HomePage.css';
 import DropdownIcon from '../../assets/Board/Dropdown.svg';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { usePosts, type Post } from '../../context/PostContext';
-//import { searchPosts, type SearchPostItem } from '../../api/Search/SearchPost'; 
+import { searchPosts, type SearchPostItem } from '../../api/Search/SearchPost'; 
 
 const SearchBoard: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -13,15 +12,13 @@ const SearchBoard: React.FC = () => {
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('말머리');
-  const { posts } = usePosts();
-  const [displayPosts, setDisplayPosts] = useState<Post[]>([]);
+  const [displayPosts, setDisplayPosts] = useState<SearchPostItem[]>([]);
   const [totalPages, setTotalPages] = useState(0);
-  //const [loading, setLoading] = useState(false);
-  //const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const location = useLocation();
-  const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '');
 
 
   // URL 쿼리에서 검색어 가져오기
@@ -36,64 +33,32 @@ const SearchBoard: React.FC = () => {
     return `${yyyy}/${mm}/${dd}`;
   };
 
-  useEffect(() => {
-    let filteredPosts = posts;
-
-    // 카테고리 필터
-    if (selectedCategory !== '말머리' && selectedCategory !== '전체') {
-      filteredPosts = filteredPosts.filter((p) => p.type === selectedCategory);
-    }
-
-    // 검색어 필터
-    if (keyword) {
-      filteredPosts = filteredPosts.filter(
-        (p) =>
-          p.title.includes(keyword) || 
-          stripHtml(p.content?.text_content || '').includes(keyword)
-    );
-    }
-
-    // 정렬
-    if (selectedSort === 'popular') {
-      filteredPosts = [...filteredPosts].sort(
-        (a, b) => (b.comment_count || 0) - (a.comment_count || 0)
-      );
-    } else {
-      filteredPosts = [...filteredPosts].sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
-    }
-
-    setDisplayPosts(filteredPosts);
-    setTotalPages(1); // MockData용, 실제 API라면 페이지 계산
-  }, [posts, currentPage, selectedSort, selectedCategory, keyword]);
-  
-  // ==========================
   // 실제 API 연동용
   // ==========================
-  /*
+  
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
       setError(null);
+
       try {
         const res = await searchPosts(
           keyword,
-          currentPage - 1, // 백엔드 페이지 0부터 시작
+          currentPage,
+          10,
           selectedSort === 'latest' ? 'LATEST' : 'POPULAR',
           selectedCategory === '전체' || selectedCategory === '말머리' ? undefined : selectedCategory
         );
 
-        // API response -> MockData 구조 맞추기
         setDisplayPosts(
           res.content.map((item) => ({
             postId: item.postId,
             type: item.type,
             title: item.title,
-            nickname: item.authorNickname,
-            created_at: item.createdAt,
-            comment_count: item.commentCount,
-            content: { text_content: '', image_urls: [] },
+            authorNickname: item.authorNickname,
+            createdAt: item.createdAt,
+            commentCount: item.commentCount,
+            isMine: item.isMine ?? false,
           }))
         );
         setTotalPages(res.pageInfo.totalPages);
@@ -106,7 +71,7 @@ const SearchBoard: React.FC = () => {
 
     fetchPosts();
   }, [keyword, currentPage, selectedSort, selectedCategory]);
-  */
+
 
   const handleSortChange = (sortType: 'popular' | 'latest') => {
     setSelectedSort(sortType);
@@ -169,6 +134,9 @@ const SearchBoard: React.FC = () => {
 
         {/* 게시판 테이블 */}
         <div className="table-card">
+          {loading && <div className='search-board-loading'>게시글 불러오는 중 ... </div>}
+          {error && <div className='search-board-error'>{error}</div>}
+
           <table className="board-table">
             <thead>
               <tr>
@@ -224,9 +192,9 @@ const SearchBoard: React.FC = () => {
                     </div>
                   </td>
                   <td>{item.title}</td>
-                  <td className="author-cell">{item.nickname}</td>
-                  <td className="date-cell">{formatDate(item.created_at)}</td>
-                  <td className="comment-count">{item.comment_count}</td>
+                  <td className="author-cell">{item.authorNickname}</td>
+                  <td className="date-cell">{formatDate(item.createdAt)}</td>
+                  <td className="comment-count">{item.commentCount}</td>
                 </tr>
               ))}
             </tbody>

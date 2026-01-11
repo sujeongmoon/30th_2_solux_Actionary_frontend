@@ -20,7 +20,7 @@ const Searchbar = () => {
           navigate(`/search/board`);
           break;
         case '스터디':
-          navigate("여기에다 링크 넣어주세요!");
+          navigate(`/search/study`);
           break;
         case '전체':
           navigate(`/search/all?category=${category}`);
@@ -33,7 +33,7 @@ const Searchbar = () => {
     if (category === '게시글') {
       navigate(`/search/board?keyword=${encodeURIComponent(keyword)}`);
     } else if (category==='스터디') {
-      navigate('여기에다 추가해주세요!');
+      navigate(`/search/study?keyword=${encodeURIComponent(keyword)}`);
     } else {
       navigate(`/search/all?category=${category}&keyword=${encodeURIComponent(keyword)}`);
     }
