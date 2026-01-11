@@ -110,16 +110,12 @@ const ChatBotUI = () => {
 
   /* -------------------- 전송 -------------------- */
   const handleSend = async () => {
-    if (isLoading) return;
-    if (!inputText.trim() && !selectedFile) return;
-
-    const file = selectedFile;
-    const text = inputText;
+    if (isLoading || (!inputText.trim() && !selectedFile)) return;
 
     // 유저 메시지 추가
     const userMessage: Message = {
       id: crypto.randomUUID(),
-      text: file ? file.name : text,
+      text: selectedFile ? selectedFile.name : inputText,
       type: 'user',
     };
     setMessages(prev => [...prev, userMessage]);
@@ -129,9 +125,9 @@ const ChatBotUI = () => {
     setIsLoading(true);
 
     try {
-      const res = file 
-        ? await summarizeFile(file) 
-        : await summarizeUrl(text, { language: 'ko', maxTokens: 600 });
+      const res = selectedFile
+        ? await summarizeFile(selectedFile) 
+        : await summarizeUrl(inputText, { language: 'ko', maxTokens: 600 });
 
       const data = res.data.data;
 
@@ -150,8 +146,6 @@ const ChatBotUI = () => {
           startPolling(data.jobId);
         }
       } else if (data.status === 'FAILED') {
-        clearInterval(pollingRef.current);
-        setIsLoading(true);
         const errorText = typeof data.error ==='string'
         ? data.error
         : '요약에 실패했습니다';
@@ -188,7 +182,7 @@ const ChatBotUI = () => {
   useEffect(() => {
     const fetchSummaryList = async () => {
       try {
-        const res = await getSummaryList();
+        const res = await getSummaryList(1, 10);
         setSummaryList(res.data.data.content);
       } catch (e) {
         console.error('요약 목록 조회 실패', e);

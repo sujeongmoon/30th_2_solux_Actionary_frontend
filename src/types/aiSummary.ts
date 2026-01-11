@@ -9,12 +9,12 @@ export type SourceType = 'FILE' | 'URL';
 export interface SummaryListItem {
   jobId: string;
   status: SummaryStatus;
-  sourceType: SourceType;
+  sourceType: 'FILE' | 'URL';
   title: string;
-  fileName: string | null;
-  sourceUrl: string | null;
+  fileName?: string | null;
+  sourceUrl?: string | null;
   createdAt: string;
-  finishedAt: string | null;
+  finishedAt?: string | null;
   language: string;
   hasFullSummary: boolean;
 }
@@ -35,10 +35,11 @@ export interface FileSummaryResponse {
   success: boolean;
   message: string;
   data: {
+    jobId: string;
     status: SummaryStatus;
-    summary: string | null;
-    jobId: string | null;
-    queuedAt: string | null;
-    error: string | null;
+    summary?: string | null;
+    createdAt: string;
+    finshedAt?: string | null;
+    error?: string | null;
   };
 }
