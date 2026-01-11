@@ -29,7 +29,7 @@ const ChatBotUI = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const pollingRef = useRef<number | null>(null);
+  const pollingRef = useRef<number | undefined>(undefined);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const location = useLocation();
@@ -150,11 +150,14 @@ const ChatBotUI = () => {
           startPolling(data.jobId);
         }
       } else if (data.status === 'FAILED') {
+        clearInterval(pollingRef.current);
+        setIsLoading(true);
+        const errorText = typeof data.error ==='string'
+        ? data.error
+        : '요약에 실패했습니다';
         setMessages(prev => [
           ...prev,
-          { id: crypto.randomUUID(), 
-            text: data.error ?? '요약에 실패했습니다',
-            type: 'bot' },
+          { id: crypto.randomUUID(), text: errorText, type:'bot'},
         ]);
         setIsLoading(false);
       }
