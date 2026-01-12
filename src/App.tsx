@@ -17,7 +17,6 @@ import Login from "./pages/Login/Login";
 import BoardCreatePage from "./pages/BoardPage/BoardCreatePage";
 import BoardEditPage from './pages/BoardPage/BoardEditPage';
 import StudyTime from './pages/StudyTime/StudyTime';
-import RightSidebar from "./components/Sidebar/Sidebar";
 import ChatRoom from './pages/ChatRoom/ChatRoom';
 import Signup from "./pages/Siginup/Signup";
 import SignupComplete from "./pages/Siginup/SignupComplete";
@@ -65,8 +64,6 @@ function App() {
           <Route path="/signup/complete" element={<SignupComplete />} />
         </Route>
       </Routes>
-
-      <RightSidebar />
     </BrowserRouter>
     </PostProvider>
     </AuthProvider>
