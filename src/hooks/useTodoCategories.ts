@@ -17,8 +17,16 @@ export const useTodoCategories = () => {
   
   const fetchCategories = async () => {
     try {
-      const data = await getTodoCategories();
-      setCategories(data || []);
+      const res = await getTodoCategories();
+      
+      if (Array.isArray(res)) {
+        setCategories(res);
+      } else if (Array.isArray(res.data)) {
+        setCategories(res.data);
+      } else {
+        setCategories([]);
+      }
+
     } catch (error) {
       console.error("카테고리 조회 실패:",error);
       setCategories([]);

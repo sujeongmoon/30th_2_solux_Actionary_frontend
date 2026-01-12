@@ -1,8 +1,250 @@
 /* 전체 페이지 */
 .todo-page {
-  position: relative;
-  width: 100vw;
+  display: flex;
   height: 100vh;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 30px;
+  padding: 30px;
   background-color: #f8f8f6;
+  min-height: 100vh;
   overflow: hidden;
+}
+
+/* 캘린더 컨테이너 */
+.calendar-container {
+  width: 50%;
+  height: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: stretch;
+  padding: 40px;
+  box-sizing: border-box;
+}
+
+.react-calendar {
+  width: 100% !important;
+  height: 100%;
+  max-width: 750px;
+  background: none;
+}
+
+.react-calendar__navigation {
+  width: 95%;
+  box-sizing: border-box;
+  background-color: #262627;
+  color: #ffffff;
+  border-radius: 999px;
+  padding: 20px 40px;
+  margin-bottom: 25px;
+  margin: 0 auto 25px;
+  display: flex;
+}
+
+.react-calendar__navigation__label {
+  margin-right: auto;
+  color: #ffffff !important;
+  font-size: 25px;
+  font-weight: 550;
+  text-align: left;
+}
+
+.todo-container {
+  width: 50%;
+  max-width: 600px;
+  height: calc(100% - 80px);
+  margin-top: 40px;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  border: #fa785b;
+  border-radius: 30px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+
+.todo-header {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  flex-shrink: 0;
+  padding: 0 10px;
+}
+
+.todo-header span {
+  font-size: 25px;
+  font-weight: 600;
+}
+
+.category-dropdown-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.category-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #1e1e1e;
+  border-radius: 25px;
+  list-style: none;
+  padding: 5px 0;
+  margin-top: 5px;
+  width: 150px;
+}
+
+.category-dropdown-wrapper {
+  position: relative;
+}
+
+.category-dropdown li {
+  color: #ffffff;
+  padding: 8px 12px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 15px;
+  list-style: none;
+}
+
+/* 카테고리 영역 */
+.categories-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* 카테고리 블록 */
+.category-block {
+  margin-bottom: 15px;
+}
+
+.category-header { 
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.category-name {
+  padding: 5px 10px;
+  border-radius: 999px;
+  border-color: #ff9e97;
+  border: 999px;
+  color: #ffffff; 
+  font-weight: 500;
+}
+
+.add-cat-button {
+  background-color: #262627;
+  color: #ffffff;
+  border: none;
+  padding: 2px 8px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.add-cat-button:hover {
+  background-color: #333333;
+}
+
+.todo-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+  padding: 5px 8px;
+}
+
+.todo-item input[type="text"] {
+  flex: 1;
+  padding: 4px 6px;
+}
+
+.todo-item span {
+  flex: 1;
+  cursor: pointer;
+}
+
+/* 버튼 그룹 */
+.btn-group {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.todo-status-btn {
+  padding: 2px 8px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.todo-status-btn.success {
+  background-color: linear-gradient(
+    90deg, #FA785B 0%, #FF3761 100%
+  );
+  color: #ffffff;
+}
+
+.todo-status-btn.fail {
+  background-color: linear-gradient(
+    90deg, #FA785B 0%, #FF3761 100%
+  );
+  color: #ffffff; 
+}
+
+.todo-status-btn.active {
+  background-color: #FA785B;
+}
+
+/* 투두 드롭다운 */
+.todo-dropdown-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.todo-dropdown {
+  position: absolute;
+  background-color: #1e1e1e;
+  border-radius: 25px;
+  list-style: none;
+  padding: 5px 0;
+  margin-top: 5px;
+  width: 90px;
+}
+
+.category-dropdown li,
+.todo-dropdown li {
+  position: relative;
+  color: #f8f8f6;
+  padding: 8px 12px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 14px;
+  list-style: none;
+}
+
+.category-dropdown li:not(:last-child)::after,
+.todo-dropdown li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 0;
+  height: 0.5px;
+  background-color:#f8f8f6;
+}
+
+/* 로딩 표시 */
+.loading {
+  text-align: center;
+  margin-top: 10px;
+  font-weight: bold;
+  color: #555;
 }

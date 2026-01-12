@@ -1,0 +1,68 @@
+/* 백드롭 */
+.catMmodal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* 모달 박스 */
+.manage-modal {
+  background-color: #ffffff;
+  border-radius: 25px;
+  width: 450px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* 모달 타이틀 */
+.catmodal-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+/* 구분선 */
+.catM-divider, .divider {
+  width: calc(100% + 48px);
+  height: 1px;
+  background-color: #b3b3b3;
+  margin-left: -24px;
+  margin-bottom: 25px;
+}
+
+/* 카테고리 목록 영역 */
+.category-grid {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* 생성된 카테고리들 */
+.category-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 2px solid;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+}
+
+.category-pill:hover {
+  background-color: rgba(0,0,0,0.05);
+}
+
