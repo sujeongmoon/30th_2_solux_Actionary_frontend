@@ -85,6 +85,7 @@ const StudyTime: React.FC = () => {
         <Calendar
           onChange={setValue}
           value={value}
+          className='study-calendar'
           formatDay={(_, date) => date.getDate().toString()}
           formatShortWeekday={(_, date) =>
             ['일', '월', '화', '수', '목', '금', '토'][date.getDay()]
