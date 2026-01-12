@@ -2,7 +2,48 @@
   padding: 18px 0 50px;
 }
 
-/* ===== 게스트 상단 배너 ===== */
+/* ==========================================================상단 네비(스터디 | 홈 | 게시판) - 다른 페이지와 통일========================================================== */
+.pageShell{
+  width: 100%;
+}
+.sub-navigation {
+  vertical-align: middle;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  margin: 40px 0 5px 80px;
+  align-items: center;
+}
+.nav-link {
+  font-size: 18px;
+  font-weight: 400;
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-style: normal;
+  color: #B3B3B3;
+  text-decoration: none;
+}
+.nav-link-home-link {
+  font-size: 30px;
+  color: #000;
+  font-weight: 500;
+  text-decoration: none;
+}
+.nav-divider {
+  color: #CCCCCC;
+  margin: 0 5px;
+  font-weight: 200;
+  font-size: 13px;
+  align-items: center;
+  line-height: 18px;
+}
+.divider {
+  width: 93%;
+  height: 1px;
+  background-color: #B3B3B3;
+  margin: 0 auto 21px auto;
+}
+
+/* ==========================================================게스트 상단 배너========================================================= */
 .studyHero{
   display:flex;
   justify-content:center;
@@ -20,8 +61,8 @@
   justify-content:space-between;
 }
 .studyHeroLeft{ color:#fff; }
-.studyHeroKicker{ font-weight: 900; opacity:.9; margin-bottom: 6px; }
-.studyHeroTitle{ font-size: 22px; font-weight: 900; letter-spacing: -.3px; }
+.studyHeroKicker{ font-weight: 700; opacity:.9; margin-bottom: 6px; }
+.studyHeroTitle{ font-size: 22px; font-weight: 700; letter-spacing: -.3px; }
 .studyHeroSub{ opacity:.9; margin-top: 6px; }
 
 .studyHeroPlus{
@@ -30,55 +71,144 @@
   border: none;
   cursor:pointer;
   font-size: 28px;
-  font-weight: 900;
+  font-weight: 700;
   background: rgba(255,255,255,.92);
 }
 
-/* ===== 필터 ===== */
-.studyFilters{
+/* ========================================================== 상단 로그인 전/후 공통으로 쓰는 큰 배너======================================================== */
+.studyCta{
+  width: min(1200px, 92vw);
+  margin: 0 auto;
+  padding: 14px 0 18px;
+}
+
+.studyCtaBox{
+  width: 100%;
+  padding: 56px 40px;
+  border-radius: 50px;
+  background: linear-gradient(90deg, #FA785B, #FF3761);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0px 2px 15px 5px #0000001A;
+  cursor: pointer;
+}
+
+.studyCtaPlus{
+  width: 70px;
+  height: 70px;
+  background: #fff;
+  border-radius: 50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size: 48px;
+  font-weight: 300;
+  color: #e65c82;
+}
+
+.studyCtaText{
+  margin: 0;
+  font-size: 18px;
+  font-weight: 400;
+  color: #fff;
+  display:flex;
+  align-items:center;
+  gap: 8px;
+}
+
+.studyCtaLogo{
+  width: 19.4px;
+  height: 17px;
+}
+
+/* ==========================================================필터바========================================================= */
+.studyFilterBar{
   width: min(1200px, 92vw);
   margin: 0 auto;
   padding: 10px 0 8px;
 }
-.pillRow{ display:flex; gap: 10px; align-items:center; }
-.pillRow.scroll{ flex-wrap: wrap; margin-top: 10px; }
 
-.pill{
-  height: 38px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(0,0,0,.12);
-  background: #fff;
-  cursor:pointer;
-  font-weight: 800;
-  color:#333;
-}
-.pill.active{
-  background:#111;
-  color:#fff;
-  border-color:#111;
-}
-.pill.sm{ height: 32px; padding: 0 12px; font-weight: 800; }
-
-/* 로그인뷰 우측 정렬 느낌 */
-.pillRow.rightAlign{
+.studyFilterTop{
+  display:flex;
+  align-items:flex-start;
   justify-content: space-between;
-  align-items: flex-start;
+  gap: 18px;
 }
-.totalCount{
-  font-weight: 900;
+
+.visTabs{
+  display:flex;
+  align-items:center;
+  gap: 12px;
+  font-size: 18px;
+}
+
+.visTab{
+  border: 0;
+  background: transparent;
+  cursor:pointer;
+  color:#999;
+  padding: 6px 0;
+  font-weight: 400;
+}
+.visTab.active{
   color:#111;
-  padding-top: 6px;
 }
-.catRow{
+.visSep{
+  color:#bbb;
+  font-size: 14px;
+}
+
+.studyRightInfo{
+  text-align:right;
+}
+
+.studyTotal{
+  font-size: 20px;
+  color:#111;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.studyCats{
   display:flex;
   flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-end;
-  max-width: 820px;
+  gap: 6px;
+  justify-content:flex-end;
+  color:#B7B7B7;
+  font-size: 12px;
+}
+.catTextItem{
+  display:inline-flex;
+  align-items:center;
+}
+.catCheck{
+  display:inline-flex;
+  width: 14px;
+  justify-content:center;
+  color: transparent;
+  margin-right: 2px;
+}
+.catCheck.on{ color:#FF3761; }
+.catDot{
+  color:#D0D0D0;
+  margin: 0 4px;
+}
+.catDotBtn{
+  border:0;
+  background:transparent;
+  cursor:pointer;
+  color:#B7B7B7;
+  font-weight: 400;
+  padding: 0;
+}
+.catDotBtn.active{
+  color:#111;
+  font-weight: 600;
 }
 
-/* ===== 목록 ===== */
+/* ==========================================================목록 영역========================================================== */
 .studyContent{
   width: min(1200px, 92vw);
   margin: 0 auto;
@@ -86,25 +216,27 @@
 }
 
 .state{ padding: 28px 0; text-align:center; color:#666; }
-.state.error{ color:#e74a62; font-weight: 800; }
+.state.error{ color:#e74a62; font-weight: 700; }
 .state.empty{ color:#777; }
 
 .studyGrid{
   display:grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
+  gap: 22px;
 }
 
 .studyCard{
-  border-radius: 18px;
-  overflow:hidden;
-  box-shadow: 0 14px 30px rgba(0,0,0,.08);
+  position: relative;
+  border-radius: 26px;
+  overflow: hidden;
   background: #eee;
+  box-shadow: 0 14px 30px rgba(0,0,0,.08);
   cursor:pointer;
 }
+
 .studyThumb{
   position: relative;
-  height: 190px;
+  height: 260px;          
   background: #dcdcdc;
 }
 .studyThumb img{
@@ -113,49 +245,35 @@
   object-fit: cover;
   display:block;
 }
-.thumbFallback{
-  width:100%;
-  height:100%;
-  background: #d8d8d8;
-}
-.thumbDim{
-  position:absolute; inset:0;
-  background: linear-gradient(to bottom, rgba(0,0,0,.0), rgba(0,0,0,.35));
-}
 
-.thumbChips{
+.titlePill{
   position:absolute;
-  left: 12px;
-  top: 12px;
-  display:flex;
-  gap: 8px;
-}
-.chip{
-  height: 26px;
-  padding: 0 10px;
+  left: 16px;
+  right: 16px;
+  bottom: 14px;
+
+  height: 62px;
+  background: #1f1f1f;
   border-radius: 999px;
-  display:inline-flex;
+
+  display:flex;
   align-items:center;
-  justify-content:center;
-  font-size: 12px;
-  font-weight: 900;
-  border: 1px solid rgba(255,255,255,.25);
-}
-.chipPublic{ background: rgba(255,255,255,.9); color:#111; border-color: transparent; }
-.chipPrivate{ background: rgba(255,255,255,.9); color:#111; border-color: transparent; }
-.chipGhost{ background: rgba(255,255,255,.35); color:#fff; }
+  padding: 0 18px;
 
-.studyBottomBar{
-  background: #101010;
+  box-shadow: 0 10px 20px rgba(0,0,0,.18);
+  border: 1px solid rgba(255, 55, 97, .45);
+}
+
+.titlePillText{
   color:#fff;
-  padding: 12px 14px;
-}
-.studyName{
-  font-weight: 900;
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  overflow:hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-/* ===== 페이지네이션 ===== */
+/* ==========================================================페이지네이션========================================================== */
 .pager{
   width: min(1200px, 92vw);
   margin: 18px auto 6px;
@@ -180,7 +298,7 @@
   border: 1px solid rgba(0,0,0,.12);
   background:#fff;
   cursor:pointer;
-  font-weight: 900;
+  font-weight: 700;
 }
 .pageNumBtn.active{
   background: linear-gradient(90deg, #f28a63, #e74a62);
@@ -188,11 +306,11 @@
   color:#fff;
 }
 
-/* ===== 로그인 후 “나만의 스터디” ===== */
+/* ==========================================================로그인 후 “나만의 스터디” 섹션========================================================= */
 .myStudySection{
-  width: min(1200px, 92vw);
+  width: min(1200px, 102vw);
   margin: 0 auto 14px;
-  padding: 8px 0 18px;
+  padding: 18px 0 28px;
   background: linear-gradient(90deg, rgba(242,138,99,.14), rgba(231,74,98,.10));
   border-radius: 12px;
 }
@@ -205,7 +323,7 @@
 }
 
 .myStudyTitle{
-  font-weight: 900;
+  font-weight: 700;
   font-size: 18px;
   color:#111;
 }
@@ -213,14 +331,33 @@
 .myStudyMeta{
   font-size: 12px;
   color:#777;
-  font-weight: 800;
+  font-weight: 600;
   display:flex;
   align-items:center;
   gap: 8px;
 }
 .dotOn{
   color:#e74a62;
-  font-weight: 900;
+  font-weight: 700;
+}
+.metaBtn{
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0 2px;
+  font: inherit;
+  color: inherit;
+  opacity: .85;
+}
+.metaBtn:hover{ opacity: 1; text-decoration: underline; }
+.metaBtn.active{
+  opacity: 1;
+  font-weight: 700;
+  text-decoration: underline;
+}
+.metaSep{
+  opacity: .6;
+  margin: 0 6px;
 }
 
 .myStudyCarousel{
@@ -250,14 +387,15 @@
 }
 
 .myStudyCard{
-  border-radius: 18px;
+  border-radius: 22px;
   overflow:hidden;
   background: #ededed;
   box-shadow: 0 14px 28px rgba(0,0,0,.08);
   cursor:pointer;
 }
+
 .myStudyThumb{
-  height: 130px;
+  height: 160px;
   background:#cfcfcf;
   display:flex;
   align-items:center;
@@ -265,115 +403,144 @@
 }
 .myStudyThumb img{ width:100%; height:100%; object-fit:cover; display:block; }
 .myStudyFallback{ font-size: 26px; opacity:.9; }
+
 .myStudyBar{
-  background:#222;
-  color:#fff;
-  padding: 10px 12px;
-  font-weight: 900;
-  font-size: 13px;
-}
-/* 카드 썸네일 비율 고정 */
-.studyThumb {
-  width: 100%;
-  aspect-ratio: 1 / 1;   /* ✅ 정사각형 느낌 */
-  border-radius: 22px;
-  overflow: hidden;
-  background: #d9d9d9;
   position: relative;
+  padding: 16px 16px 18px;
+  background: transparent;
 }
-
-.studyThumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;     
-  display: block;
-}
-
-/* 아래 제목 바 */
-.studyBottomBar{
-  margin-top: -18px;      /* 썸네일 아래에 붙는 느낌 */
-  height: 44px;
+.myStudyBarInner{
+  height: 56px;
   border-radius: 999px;
-  background: #222;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  padding: 0 14px;
-  width: calc(100% - 24px);
-  margin-left: 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,.12);
-}
-
-.studyName{
-  font-weight: 800;
+  background: #1f1f1f;
+  border: 1px solid rgba(255, 55, 97, .45);
+  box-shadow: 0 10px 20px rgba(0,0,0,.18);
+  display:flex;
+  align-items:center;
+  padding: 0 18px;
+  color:#fff;
+  font-weight: 700;
   font-size: 14px;
 }
-
-/* 나만의 스터디 - 체크(✓) 필터 텍스트 버튼 */
-.metaBtn{
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  padding: 0 2px;
-  font: inherit;
-  color: inherit;
-  opacity: .85;
+.catTextBtn{
+  border:0;
+  background:transparent;
+  cursor:pointer;
+  color:#B7B7B7;
+  font-weight:400;
+  padding:0;
 }
-.metaBtn:hover{ opacity: 1; text-decoration: underline; }
-.metaBtn.active{
-  opacity: 1;
-  font-weight: 900;
-  text-decoration: underline;
+.catTextBtn.active{
+  color:#111;
+  font-weight:600;
 }
-
-.metaSep{
-  opacity: .6;
-  margin: 0 6px;
-}
-
-/* ✅ 아래 카드(그리드) 크기 고정 */
-.studyGrid{
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 22px;
-}
-
-.studyCard{
-  border-radius: 22px;
-  overflow: hidden;
-}
-
-/* 썸네일 영역 비율 고정 (원하는 비율로 조절 가능) */
-.studyThumb{
-  position: relative;
-  width: 100%;
-  aspect-ratio: 4 / 3;   
-  overflow: hidden;
-  border-radius: 22px;
-}
-
-.studyThumb img{
-  width: 100%;
-  height: 100%;
-  object-fit: cover;  
-  display: block;
-}
-
-/* 하단 바는 높이 고정 */
-.studyBottomBar{
-  height: 54px;
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
-}
-
-
-/* 반응형 */
+/* ==========================================================반응형========================================================== */
 @media (max-width: 1100px){
   .studyGrid{ grid-template-columns: repeat(3, 1fr); }
 }
+
 @media (max-width: 820px){
   .studyGrid{ grid-template-columns: repeat(2, 1fr); }
   .myStudyCards{ grid-template-columns: 1fr; width: min(520px, 70vw); }
-  .pillRow.rightAlign{ flex-direction: column; align-items:flex-start; gap: 10px; }
+  .studyFilterTop{ flex-direction: column; align-items:flex-start; }
+  .studyRightInfo{ text-align:left; }
+  .studyCats{ justify-content:flex-start; }
+}
+
+@media (max-width: 520px){
+  .studyGrid{ grid-template-columns: 1fr; }
+}
+
+.studyCard { position: relative !important; overflow: hidden !important; border-radius: 26px !important; }
+.studyThumb { position: relative !important; height: 260px !important; }
+.studyThumb img { width:100% !important; height:100% !important; object-fit: cover !important; display:block !important; }
+.titlePill{
+  position:absolute !important;
+  left:16px !important;
+  right:16px !important;
+  bottom:14px !important;
+  height:62px !important;
+  border-radius:999px !important;
+  background:#1f1f1f !important;
+  border:1px solid rgba(255,55,97,.45) !important;
+  box-shadow:0 10px 20px rgba(0,0,0,.18) !important;
+  display:flex !important;
+  align-items:center !important;
+  padding:0 18px !important;
+  z-index: 3 !important;
+}
+.titlePillText{
+  color:#fff !important;
+  font-size:16px !important;
+  font-weight:700 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+.studyBottomBar,
+.myStudyBar{
+  display:none !important;
+}
+
+.myStudyCard { position: relative !important; overflow:hidden !important; border-radius:22px !important; }
+.myStudyThumb { position: relative !important; height:250px !important; overflow:hidden !important; border-radius:22px !important; }
+.myStudyThumb img{ width:100% !important; height:100% !important; object-fit:cover !important; display:block !important; }
+
+/* ================================
+   로그인뷰 하단 필터(listWrap/listTop) 정렬 FIX
+================================ */
+.listWrap{
+  width: min(1200px, 92vw);
+  margin: 0 auto;
+  padding: 10px 0 0;
+}
+
+.listTop{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 10px 0 8px;
+}
+
+/* 오른쪽 블록(총 n개 + 카테고리) */
+.rightInfo{
+  text-align: right;
+}
+
+.totalText{
+  font-size: 20px;
+  color: #111;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* 카테고리 row */
+.catTextRow{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  color: #B7B7B7;
+  font-size: 12px;
+}
+
+.catTextItem{
+  display: inline-flex;
+  align-items: center;
+}
+
+.catTextBtn{
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: #B7B7B7;
+  font-weight: 400;
+  padding: 0;
+}
+
+.catTextBtn.active{
+  color: #111;
+  font-weight: 600;
 }

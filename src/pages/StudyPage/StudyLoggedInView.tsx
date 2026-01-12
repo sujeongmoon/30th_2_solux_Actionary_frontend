@@ -6,6 +6,8 @@ type Props = any;
 
 export default function StudyLoggedInView(props: Props) {
   const {
+    navigate,
+
     myStudies,
     myFilter,
     setMyFilter,
@@ -29,7 +31,7 @@ export default function StudyLoggedInView(props: Props) {
     onOpenStudy,
   } = props;
 
-  // “나만의 스터디” 캐러셀(3개씩)
+  // 나만의 스터디 캐러셀
   const [myIndex, setMyIndex] = useState(0);
   const visibleMy = 3;
 
@@ -41,7 +43,6 @@ export default function StudyLoggedInView(props: Props) {
   const canPrev = myIndex > 0;
   const canNext = (myStudies?.length ?? 0) > myIndex + visibleMy;
 
-  // myFilter 바뀌면 캐러셀 인덱스 0으로
   const setFilterSafe = (f: any) => {
     setMyIndex(0);
     setMyFilter(f);
@@ -51,18 +52,29 @@ export default function StudyLoggedInView(props: Props) {
     if (f === "ALL") return "전체";
     if (f === "CREATED") return "개설한 스터디";
     if (f === "JOINED") return "참가한 스터디";
-    if (f === "LIKED") return "즐겨찾기";
+    if (f === "FAVORITE") return "즐겨찾기";
     return f;
   };
 
   return (
     <>
-      {/* 로그인 후 상단: “나만의 스터디” */}
-      <section className="myStudySection">
+      {/* 상단바 */}
+      <div className="pageShell">
+        <nav className="sub-navigation">
+          <a href="/studies" className="nav-link-home-link">스터디</a>
+          <span className="nav-divider">|</span>
+          <a href="/" className="nav-link">홈</a>
+          <span className="nav-divider">|</span>
+          <a href="/board" className="nav-link">게시판</a>
+        </nav>
+        <div className="divider" />
+      </div>
+
+      {/* ===== 나만의 스터디 ===== */}
+      <section className="myStudySection likeMock">
         <div className="myStudyHeader">
           <div className="myStudyTitle">나만의 스터디</div>
 
-          {/* 체크(✓) 형태 + 클릭 가능 */}
           <div className="myStudyMeta">
             <span className="dotOn">✓</span>
 
@@ -95,10 +107,10 @@ export default function StudyLoggedInView(props: Props) {
 
             <button
               type="button"
-              className={`metaBtn ${myFilter === "LIKED" ? "active" : ""}`}
-              onClick={() => setFilterSafe("LIKED")}
+              className={`metaBtn ${myFilter === "FAVORITE" ? "active" : ""}`}
+              onClick={() => setFilterSafe("FAVORITE")}
             >
-              {filterLabel("LIKED")}
+              {filterLabel("FAVORITE")}
             </button>
           </div>
         </div>
@@ -127,8 +139,11 @@ export default function StudyLoggedInView(props: Props) {
                     alt=""
                     className={!s.coverImage ? "noImage" : ""}
                   />
+                  {/* ✅ 캡슐을 thumb 안으로 넣어서 카드랑 동일 룩 */}
+                  <div className="titlePill">
+                    <div className="titlePillText">{s.studyName || "제목"}</div>
+                  </div>
                 </div>
-                <div className="myStudyBar">{s.studyName || "제목"}</div>
               </div>
             ))}
 
@@ -149,84 +164,120 @@ export default function StudyLoggedInView(props: Props) {
         </div>
       </section>
 
-      {/* 아래는 게스트와 동일: 필터 + 그리드 */}
-      <section className="studyFilters loggedIn">
-        <div className="pillRow">
-          <button type="button" className={`pill ${visibility === "public" ? "active" : ""}`} onClick={() => onChangeVisibility("public")}>
-            공개
-          </button>
-          <button type="button" className={`pill ${visibility === "private" ? "active" : ""}`} onClick={() => onChangeVisibility("private")}>
-            비공개
-          </button>
+      {/* ===== 전체 스터디 ===== */}
+      <section className="listWrap">
+        <div className="listTop">
+          <div className="visTabs">
+            <button
+              type="button"
+              className={`visTab ${visibility === "public" ? "active" : ""}`}
+              onClick={() => onChangeVisibility("public")}
+            >
+              공개
+            </button>
+            <span className="visSep">|</span>
+            <button
+              type="button"
+              className={`visTab ${visibility === "private" ? "active" : ""}`}
+              onClick={() => onChangeVisibility("private")}
+            >
+              비공개
+            </button>
+          </div>
+
+          {/* ✅ 게스트랑 동일 구조 */}
+          <div className="rightInfo">
+            <div className="totalText">총 {totalElements}개 스터디</div>
+            <div className="catTextRow">
+              {CATEGORY_OPTIONS.map((opt: any, idx: number) => (
+                <span key={opt.label} className="catTextItem">
+                  {idx === 0 ? (
+                    <span className={`catCheck ${categoryLabel === opt.label ? "on" : ""}`}>✓</span>
+                  ) : (
+                    <span className="catDot">·</span>
+                  )}
+
+                  <button
+                    type="button"
+                    className={`catTextBtn ${categoryLabel === opt.label ? "active" : ""}`}
+                    onClick={() => onChangeCategory(opt.label, opt.value)}
+                  >
+                    {opt.label}
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <div className="pillRow scroll rightAlign">
-          <div className="totalCount">총 {totalElements}개 스터디</div>
+        <section className="studyContent">
+          {loading && <div className="state">불러오는 중…</div>}
+          {!loading && errorMsg && <div className="state error">{errorMsg}</div>}
+          {!loading && !errorMsg && items.length === 0 && (
+            <div className="state empty">조건에 맞는 스터디가 없어요.</div>
+          )}
 
-          <div className="catRow">
-            {CATEGORY_OPTIONS.map((opt: any) => (
+          {!loading && !errorMsg && items.length > 0 && (
+            <div className="studyGrid">
+              {items.map((s: any) => (
+                <article
+                  key={s.studyId}
+                  className="studyCard"
+                  onClick={() => onOpenStudy(s.studyId)}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <div className="studyThumb">
+                    <img
+                      src={s.coverImage || StudyNoImg}
+                      alt=""
+                      className={!s.coverImage ? "noImage" : ""}
+                    />
+                    <div className="titlePill">
+                      <div className="titlePillText">{s.studyName}</div>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* 페이지네이션 */}
+        <div className="pager">
+          <button
+            className="pageBtn"
+            type="button"
+            onClick={() => setPage((p: number) => Math.max(1, p - 1))}
+            disabled={page <= 1 || loading}
+          >
+            ‹
+          </button>
+
+          <div className="pageNums">
+            {pageNumbers.map((p: number) => (
               <button
-                key={opt.label}
+                key={p}
                 type="button"
-                className={`pill sm ${categoryLabel === opt.label ? "active" : ""}`}
-                onClick={() => onChangeCategory(opt.label, opt.value)}
+                className={`pageNumBtn ${p === page ? "active" : ""}`}
+                onClick={() => setPage(p)}
+                disabled={loading}
               >
-                {opt.label}
+                {p}
               </button>
             ))}
           </div>
+
+          <button
+            className="pageBtn"
+            type="button"
+            onClick={() => setPage((p: number) => p + 1)}
+            disabled={page >= totalPages || loading}
+          >
+            ›
+          </button>
         </div>
       </section>
-
-      <section className="studyContent">
-        {loading && <div className="state">불러오는 중…</div>}
-        {!loading && errorMsg && <div className="state error">{errorMsg}</div>}
-        {!loading && !errorMsg && items.length === 0 && <div className="state empty">조건에 맞는 스터디가 없어요.</div>}
-
-        {!loading && !errorMsg && items.length > 0 && (
-          <div className="studyGrid">
-            {items.map((s: any) => (
-              <article key={s.studyId} className="studyCard" onClick={() => onOpenStudy(s.studyId)} role="button" tabIndex={0}>
-                <div className="studyThumb">
-                  <img
-                    src={s.coverImage || StudyNoImg}
-                    alt=""
-                    className={!s.coverImage ? "noImage" : ""}
-                  />
-                  <div className="thumbDim" />
-                  <div className="thumbChips">
-                    <span className={`chip ${s.isPublic ? "chipPublic" : "chipPrivate"}`}>{s.isPublic ? "공개" : "비공개"}</span>
-                    <span className="chip chipGhost">{categoryLabel}</span>
-                  </div>
-                </div>
-
-                <div className="studyBottomBar">
-                  <div className="studyName">{s.studyName}</div>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* 페이지네이션 */}
-      <div className="pager">
-        <button className="pageBtn" type="button" onClick={() => setPage((p: number) => Math.max(1, p - 1))} disabled={page <= 1 || loading}>
-          ‹
-        </button>
-
-        <div className="pageNums">
-          {pageNumbers.map((p: number) => (
-            <button key={p} type="button" className={`pageNumBtn ${p === page ? "active" : ""}`} onClick={() => setPage(p)} disabled={loading}>
-              {p}
-            </button>
-          ))}
-        </div>
-
-        <button className="pageBtn" type="button" onClick={() => setPage((p: number) => p + 1)} disabled={page >= totalPages || loading}>
-          ›
-        </button>
-      </div>
     </>
   );
 }

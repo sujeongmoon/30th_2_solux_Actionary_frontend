@@ -39,15 +39,6 @@ const PostSearchSection: React.FC<Props> = ({ posts= [] }) => {
   return (
     <div className="board-container">
       {/* 네비게이션 */}
-      <nav className="sub-navigation">
-        <a href="/board" className="nav-link-home-link">스터디</a>
-        <span className="nav-divider">|</span>
-        <a href="/" className="nav-link">홈</a>
-        <span className="nav-divider">|</span>
-        <a href="/studies" className="nav-link">게시판</a>
-      </nav>
-
-      <div className="divider" />
 
       <div className="pss-content-section">
         {/* 게시판 헤더 */}
