@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import "./StudyPage.css";
+import '../HomePage/HomePage.css';
 import StudyNoImg from "../../assets/study_noimg.png";
 
 type Props = any;
@@ -59,16 +60,14 @@ export default function StudyLoggedInView(props: Props) {
   return (
     <>
       {/* 상단바 */}
-      <div className="pageShell">
-        <nav className="sub-navigation">
-          <a href="/studies" className="nav-link-home-link">스터디</a>
-          <span className="nav-divider">|</span>
-          <a href="/" className="nav-link">홈</a>
-          <span className="nav-divider">|</span>
-          <a href="/board" className="nav-link">게시판</a>
-        </nav>
-        <div className="divider" />
-      </div>
+      <nav className="sub-navigation">
+        <a href="/" className="nav-link-home-link">홈</a>
+        <span className="nav-divider">|</span>
+        <a href="/studies" className="nav-link">스터디</a>
+        <span className="nav-divider">|</span>
+        <a href="/board" className="nav-link">게시판</a>
+      </nav>
+      <div className="divider"></div>
 
       {/* ===== 나만의 스터디 ===== */}
       <section className="myStudySection likeMock">
