@@ -1,6 +1,6 @@
 import Lv1 from '../assets/StudyTime/under2.svg';
 import Lv2 from '../assets/StudyTime/under4.svg';
-import Lv3 from '../assets/MyPage/Pencil.svg';
+import Lv3 from '../assets/StudyTime/under6.svg';
 import Lv4 from '../assets/StudyTime/under8.svg';
 import Lv5 from '../assets/StudyTime/over8.svg';
 

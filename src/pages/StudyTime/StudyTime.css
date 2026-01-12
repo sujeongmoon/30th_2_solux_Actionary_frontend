@@ -5,7 +5,14 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(90deg, rgba(250, 120, 91, 0.133) 0%, rgba(240, 175, 161, 0.126) 11.54%, rgba(230, 230, 230, 0) 37.98%, rgba(230, 230, 230, 0.168) 77.4%, rgba(255, 55, 97, 0.049) 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(250, 120, 91, 0.133) 0%,
+    rgba(240, 175, 161, 0.126) 11.54%,
+    rgba(230, 230, 230, 0) 37.98%,
+    rgba(230, 230, 230, 0.168) 77.4%,
+    rgba(255, 55, 97, 0.049) 100%
+  );
   margin: 0;
 }
 
@@ -19,32 +26,34 @@
 }
 
 /* 라이브러리 기본 테두리 제거 */
-.react-calendar {
+.study-calendar {
   border: none !important;
   width: 100% !important;
   font-family: 'Pretendard', sans-serif;
 }
 
 /* 상단 네비게이션: 텍스트 왼쪽, 버튼 오른쪽 */
-.react-calendar__navigation {
+.study-calendar.react-calendar .react-calendar__navigation {
   display: flex;
   align-items: center;
   margin-bottom: 30px;
+  background-color: transparent;
+  padding: 0;
 }
 
-.react-calendar__navigation__label {
+.study-calendar .react-calendar__navigation__label {
   order: 1;
   margin-right: auto !important;
   flex-grow: 0 !important;
   font-size: 24px !important;
   font-weight: 700;
   background: none !important;
-  color: #1A1A1A !important;
+  color: #1a1a1a !important;
 }
 
 /* 이동 버튼 공통 (이전, 다음) */
-.react-calendar__navigation__prev-button,
-.react-calendar__navigation__next-button {
+.study-calendar .react-calendar__navigation__prev-button,
+.study-calendar .react-calendar__navigation__next-button {
   min-width: 30px !important; /* 버튼 자체의 너비를 줄여야 화살표가 가까워집니다 */
   background: none;
   display: flex;
@@ -52,16 +61,16 @@
   align-items: center;
 }
 
-.react-calendar__navigation__prev-button {
+.study-calendar .react-calendar__navigation__prev-button {
   order: 2;
 }
 
-.react-calendar__navigation__next-button {
+.study-calendar .react-calendar__navigation__next-button {
   order: 3;
-  margin-left: 0px !important; /* 두 버튼 사이의 간격을 0으로 (필요시 5px 정도만) */
+  margin-left: 0px !important; /* 두 버튼 사이의 간격을 0으로 */
 }
 
-.react-calendar__navigation button {
+.study-calendar .react-calendar__navigation button {
   background: none;
   border: none;
   font-size: 24px;
@@ -70,25 +79,25 @@
 }
 
 /* 주말 빨간색 제거 */
-.react-calendar__month-view__days__day--weekend,
-.react-calendar__month-view__weekdays__weekday--weekend abbr {
+.study-calendar .react-calendar__month-view__days__day--weekend,
+.study-calendar .react-calendar__month-view__weekdays__weekday--weekend abbr {
   color: #333 !important;
 }
 
 /* 요일 스타일 */
-.react-calendar__month-view__weekdays {
+.study-calendar .react-calendar__month-view__weekdays {
   text-align: center;
   font-weight: 700;
   font-size: 15px;
   margin-bottom: 20px;
 }
 
-.react-calendar__month-view__weekdays__weekday abbr {
+.study-calendar .react-calendar__month-view__weekdays__weekday abbr {
   text-decoration: none;
 }
 
 /* 날짜 타일 및 물방울 뱃지 정렬 */
-.react-calendar__tile {
+.study-calendar .react-calendar__tile {
   height: 95px !important;
   display: flex;
   flex-direction: column-reverse;
@@ -101,7 +110,7 @@
 }
 
 /* 날짜 숫자 */
-.react-calendar__tile abbr {
+.study-calendar .react-calendar__tile abbr {
   margin-top: auto;
   padding-bottom: 10px;
   font-size: 13px;
@@ -109,14 +118,20 @@
 }
 
 /* 오늘/선택 날짜 초기화 */
-.react-calendar__tile--now, .react-calendar__tile--active {
+.study-calendar .react-calendar__tile--now,
+.study-calendar .react-calendar__tile--active {
   background: none !important;
   font-weight: bold;
 }
 
-.react-calendar__tile--now abbr { color: #e58e72; }
+.study-calendar .react-calendar__tile--now abbr {
+  color: #e58e72;
+}
 
-.badge-placeholder { height: 38px; }
+/* 뱃지 관련 */
+.badge-placeholder {
+  height: 38px;
+}
 
 .badge-wrapper {
   position: relative;
@@ -142,7 +157,7 @@
 
   font-size: 15px;
   font-weight: 600;
-  color: #1A1A1A;
+  color: #1a1a1a;
   pointer-events: none;
   white-space: nowrap;
 }
