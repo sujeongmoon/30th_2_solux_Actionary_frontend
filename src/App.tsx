@@ -26,6 +26,7 @@ import AllSearch from './pages/SearchPage/AllSearch';
 import SearchStudy from "./pages/SearchPage/SearchStudy";
 import StudyEditPage from "./pages/StudyEditPage/StudyEditPage";
 import { TodoCategoriesProvider } from "./context/TodoCategoriesContext";
+import SimpleLayout from "./layouts/SimpleLayout";
 
 
 
@@ -39,22 +40,10 @@ function App() {
         {/*Navbar 있는 레이아웃 */}
         <Route element = {<HomeLayout />}>
           <Route path="/" element={<HomePage />}/>
-          <Route path="/OwnerPage" element={<MyPageOwner />}/>
-          <Route path="/" element={<HomePage />} />
           <Route path="/studies" element={<StudyPage />} />
-          <Route path= "/publicPage" element={<MyPagePublic />} /> 
-          <Route path="/studies" element={<StudyPage />} /> 
-          <Route path="/studies/new" element={<StudyCreatePage />} />
           <Route path="/studies/:studyId" element={<StudyDetailPage />} />
           <Route path="/studies/my" element={<MyStudiesPage />} />
-          <Route path="/study-room/:studyId" element={<StudyRoomPage />} />
           <Route path= "/board" element={<BoardListPage />} />
-          <Route path= "/board/:postId" element={<BoardDetailPage />} />
-          <Route path= "/board/write" element={<BoardCreatePage />} />
-          <Route path= "/board/edit/:postId" element={<BoardEditPage />} />
-          <Route path = "/studyTime" element={<StudyTime />} />
-          <Route path = "/todolistpage" element={<TodoListPage />} />
-          <Route path = "/chatroom" element={<ChatRoom />} />
           <Route path= "/search/board" element={<SearchBoard /> } />
           <Route path = "/search/all" element={<AllSearch />} />
           <Route path="/search/study" element={<SearchStudy />} />
@@ -67,6 +56,20 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/signup/complete" element={<SignupComplete />} />
           <Route path="/studies/:studyId/edit" element={<StudyEditPage />} />
+          <Route path="/study-room/:studyId" element={<StudyRoomPage />} />
+        </Route>
+        
+        {/*서치바 없는 간단한 Navbar 레이아웃 */}
+        <Route element = {<SimpleLayout />}>
+          <Route path = "/studyTime" element={<StudyTime />} />
+          <Route path = "/todolistpage" element={<TodoListPage />} />
+          <Route path="/OwnerPage" element={<MyPageOwner />}/>
+          <Route path= "/board/:postId" element={<BoardDetailPage />} />
+          <Route path= "/board/edit/:postId" element={<BoardEditPage />} />
+          <Route path = "/chatroom" element={<ChatRoom />} />
+          <Route path= "/publicPage" element={<MyPagePublic />} />
+          <Route path="/studies/new" element={<StudyCreatePage />} /> 
+          <Route path= "/board/write" element={<BoardCreatePage />} />
         </Route>
       </Routes>
     </TodoCategoriesProvider>
