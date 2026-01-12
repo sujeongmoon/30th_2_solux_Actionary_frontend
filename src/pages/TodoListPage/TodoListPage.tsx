@@ -1,14 +1,45 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import './TodoListPage.css';
-import { useTodos } from '../../hooks/useTodos';
-import { useTodoCategoriesContext } from '../../context/TodoCategoriesContext';
 import TodoCalendar from '../../components/TodoList/TodoCalendar';
 import ddd from "../../assets/TodoList/ddd.svg";
 import todoCheck from "../../assets/TodoList/todoCheck.svg";
+import { useTodoCategoriesContext } from '../../context/TodoCategoriesContext';
+import { useTodos } from '../../hooks/useTodos';
 
+// 모달 컴포넌트
 import CategoryCreateModal from '../../components/TodoList/CategoryCreateModal';
 import CategoryManageModal from '../../components/TodoList/CategoryManageModal';
+import CategoryEditModal from '../../components/TodoList/CategoryEditModal';
+
+// 목업 데이터 타입
+interface Todo {
+  todoId: number;
+  categoryId: number;
+  title: string;
+  status: 'DONE' | 'TODO' | 'FAIL';
+  date: string;
+}
+
+interface Category {
+  categoryId: number;
+  name: string;
+  color: string;
+}
+
+// 목업 데이터
+const mockCategories: Category[] = [
+  { categoryId: 1, name: '공부', color: '#FF3D2F' },
+  { categoryId: 2, name: '운동', color: '#6BEBFF' },
+];
+
+const mockTodos: Todo[] = [
+  { todoId: 1, categoryId: 1, title: '수학 공부', status: 'DONE', date: '2026-1-12' },
+  { todoId: 2, categoryId: 1, title: '영어 단어 외우기', status: 'TODO', date: '2026-1-12' },
+  { todoId: 3, categoryId: 2, title: '조깅 30분', status: 'DONE', date: '2026-1-12' },
+  { todoId: 4, categoryId: 2, title: '팔 운동', status: 'TODO', date: '2026-1-12' },
+  { todoId: 5, categoryId: 1, title: '코딩 연습', status: 'DONE', date: '2026-1-13' },
+];
 
 interface TodoDropdownPosition {
   top: number;
@@ -16,25 +47,25 @@ interface TodoDropdownPosition {
 }
 
 const TodoListPage: React.FC = () => {
-  const { todos, removeTodo } = useTodos();
-  const { categories } = useTodoCategoriesContext();
-
-  /* ======================== 날짜 상태 ======================== */
+  // 상태
   const today = new Date();
   const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-  const [selectedDate, setSelectedDate] = useState(todayString);
 
-  /* ========================= 드롭다운 상태 ======================== */
+  const [selectedDate, setSelectedDate] = useState(todayString);
+  const [categories, setCategories] = useState<Category[]>(mockCategories);
+  const [todos, setTodos] = useState<Todo[]>(mockTodos);
+
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [manageModalOpen, setManageModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editTodoId, setEditTodoId] = useState<number | null>(null);
 
   const [todoDropdownOpenId, setTodoDropdownOpenId] = useState<number | null>(null);
   const [todoDropdownPosition, setTodoDropdownPosition] = useState<TodoDropdownPosition>({ top: 0, left: 0 });
-
   const dropdownButtonRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
 
-  /* ======================== 투두 드롭다운 위치 계산 ======================== */
+  // 투두 드롭다운 위치 계산
   const handleTodoDropdownToggle = (todoId: number) => {
     const btn = dropdownButtonRefs.current[todoId];
     if (btn) {
@@ -47,7 +78,7 @@ const TodoListPage: React.FC = () => {
     setTodoDropdownOpenId(prev => (prev === todoId ? null : todoId));
   };
 
-  /* ======================== 외부 클릭 시 드롭다운 닫기 ======================== */
+  // 외부 클릭 시 드롭다운 닫기
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -61,12 +92,48 @@ const TodoListPage: React.FC = () => {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  /* ======================== 날짜 포맷 ======================== */
+  // 날짜 포맷
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const days = ["일요일","월요일","화요일","수요일","목요일","금요일","토요일"];
     return `${date.getFullYear()} / ${date.getMonth() + 1} / ${date.getDate()} / ${days[date.getDay()]}`;
   };
+
+  // 투두 상태 토글
+  const toggleTodoStatus = (todoId: number, status: 'DONE' | 'FAIL') => {
+    setTodos(prev =>
+      prev.map(todo =>
+        todo.todoId === todoId
+          ? { ...todo, status: todo.status === 'DONE' ? 'TODO' : 'DONE' }
+          : todo
+      )
+    );
+  };
+
+
+  // 투두 삭제
+  const removeTodo = (todoId: number) => {
+    setTodos(prev => prev.filter(todo => todo.todoId !== todoId));
+    setTodoDropdownOpenId(null);
+  };
+
+  // 투두 추가 (간단한 목업)
+  const addTodo = (categoryId: number) => {
+    const newTodo: Todo = {
+      todoId: Date.now(),
+      categoryId,
+      title: '',
+      status: 'TODO',
+      date: selectedDate,
+    };
+    setTodos(prev => [...prev, newTodo]);
+    setEditingTodoId(newTodo.todoId);
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, todoId: number) => {
+    if (e.key === 'Enter') {
+      setEditingTodoId(null);
+    }
+  };
+
 
   return (
     <div className="todo-page">
@@ -78,11 +145,10 @@ const TodoListPage: React.FC = () => {
           todos={todos}
         />
 
-        {/* ========================= 투두 리스트 ======================== */}
+        {/* 투두리스트 */}
         <div className="todo-container">
           <div className="todo-header">
             <span>{formatDate(selectedDate)}</span>
-
             <button
               className="category-dropdown-button"
               onClick={() => setCategoryDropdownOpen(v => !v)}
@@ -99,40 +165,65 @@ const TodoListPage: React.FC = () => {
           </div>
 
           {categories.map(cat => (
-            <div key={cat.categoryId}>
-              {todos
-                .filter(t => t.categoryId === cat.categoryId && t.date === selectedDate)
-                .map(todo => (
-                  <div key={todo.todoId} className="todo-item">
-                    <img src={todoCheck} />
-                    <span>{todo.title}</span>
+            <div key={cat.categoryId} className="category-block">
+              <div className="category-header">
+                <div
+                  className="category-name"
+                  style={{borderColor: cat.color, color: cat.color}}
+                >
+                  {cat.name}
+                </div>
+
+                <button className="add-cat-button" onClick={() => addTodo(cat.categoryId)}>+</button>
+              </div>
+
+            {todos
+              .filter(t => t.categoryId === cat.categoryId && t.date === selectedDate)
+              .map(todo => (
+                <div key={todo.todoId} className="todo-item">
+                  <img src={todoCheck} className="todo-check-icon" alt="체크"/>
+
+                  <span>{todo.title}</span>
+                  <div className="btn-group">
+                    <button
+                      className={`todo-status-btn success ${todo.status === 'DONE' ? 'active' : ''}`}
+                      onClick={() => toggleTodoStatus(todo.todoId, 'DONE')}
+                    >
+                      달성
+                    </button>
+                    <button
+                      className={`todo-status-btn fail ${todo.status === 'FAIL' ? 'active' : ''}`}
+                      onClick={() => toggleTodoStatus(todo.todoId, 'FAIL')}
+                    >
+                      실패
+                    </button>
 
                     <button
                       className="todo-dropdown-button"
-                      ref={(el) => {
-                        dropdownButtonRefs.current[todo.todoId] = el;
-                      }}
+                      ref={(el) => {dropdownButtonRefs.current[todo.todoId] = el; }}
                       onClick={() => handleTodoDropdownToggle(todo.todoId)}
                     >
-                      <img src={ddd} />
+                      <img src={ddd} className="todo-dropdown-button" alt="옵션" />
                     </button>
                   </div>
-                ))}
+                </div>
+              ))}             
             </div>
           ))}
         </div>
       </div>
 
-
-      {todoDropdownOpenId && ReactDOM.createPortal(
-        <ul className="todo-dropdown" style={todoDropdownPosition}>
-          <li onClick={() => removeTodo(todoDropdownOpenId)}>삭제</li>
-        </ul>,
-        document.body
+      {/* 투두 드롭다운 */}
+      {todoDropdownOpenId === todo.todoId && (
+        <ul className="todo-dropdown">
+            <li onClick={startEdit}>수정</li>
+            <li onClick={() => removeTodo(todo.todoId)}>삭제</li>
+        </ul>
       )}
 
       {createModalOpen && (<CategoryCreateModal onClose={() => setCreateModalOpen(false)} />)}
       {manageModalOpen && (<CategoryManageModal onClose={() => setManageModalOpen(false)} />)}
+      
     </div>
   );
 };
