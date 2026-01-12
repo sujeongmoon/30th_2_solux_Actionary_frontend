@@ -1,11 +1,13 @@
-import { useMemo, useState } from "react";
 import "./StudyPage.css";
 import '../HomePage/HomePage.css';
 import StudyNoImg from "../../assets/study_noimg.png";
+import MyStudyCarousel from "./MyStudyCarousel";
+import CTABox from "../../components/HomePage/CTAbox";
 
 type Props = any;
 
 export default function StudyLoggedInView(props: Props) {
+
   const {
     navigate,
 
@@ -32,31 +34,6 @@ export default function StudyLoggedInView(props: Props) {
     onOpenStudy,
   } = props;
 
-  // 나만의 스터디 캐러셀
-  const [myIndex, setMyIndex] = useState(0);
-  const visibleMy = 3;
-
-  const mySlice = useMemo(() => {
-    const start = myIndex;
-    return (myStudies ?? []).slice(start, start + visibleMy);
-  }, [myIndex, myStudies]);
-
-  const canPrev = myIndex > 0;
-  const canNext = (myStudies?.length ?? 0) > myIndex + visibleMy;
-
-  const setFilterSafe = (f: any) => {
-    setMyIndex(0);
-    setMyFilter(f);
-  };
-
-  const filterLabel = (f: string) => {
-    if (f === "ALL") return "전체";
-    if (f === "CREATED") return "개설한 스터디";
-    if (f === "JOINED") return "참가한 스터디";
-    if (f === "FAVORITE") return "즐겨찾기";
-    return f;
-  };
-
   return (
     <>
       {/* 상단바 */}
@@ -67,101 +44,21 @@ export default function StudyLoggedInView(props: Props) {
         <span className="nav-divider">|</span>
         <a href="/board" className="nav-link">게시판</a>
       </nav>
-      <div className="divider"></div>
+      <div className="divider-study"></div>
 
-      {/* ===== 나만의 스터디디===== */}
-      <section className="myStudySection likeMock">
-        <div className="myStudyHeader">
-          <div className="myStudyTitle">나만의 스터디</div>
-
-          <div className="myStudyMeta">
-            <span className="dotOn">✓</span>
-
-            <button
-              type="button"
-              className={`metaBtn ${myFilter === "ALL" ? "active" : ""}`}
-              onClick={() => setFilterSafe("ALL")}
-            >
-              {filterLabel("ALL")}
-            </button>
-            <span className="metaSep">·</span>
-
-            <button
-              type="button"
-              className={`metaBtn ${myFilter === "CREATED" ? "active" : ""}`}
-              onClick={() => setFilterSafe("CREATED")}
-            >
-              {filterLabel("CREATED")}
-            </button>
-            <span className="metaSep">·</span>
-
-            <button
-              type="button"
-              className={`metaBtn ${myFilter === "JOINED" ? "active" : ""}`}
-              onClick={() => setFilterSafe("JOINED")}
-            >
-              {filterLabel("JOINED")}
-            </button>
-            <span className="metaSep">·</span>
-
-            <button
-              type="button"
-              className={`metaBtn ${myFilter === "FAVORITE" ? "active" : ""}`}
-              onClick={() => setFilterSafe("FAVORITE")}
-            >
-              {filterLabel("FAVORITE")}
-            </button>
-          </div>
-        </div>
-
-        <div className="myStudyCarousel">
-          <button
-            type="button"
-            className={`arrowBtn ${canPrev ? "" : "disabled"}`}
-            onClick={() => canPrev && setMyIndex((v) => Math.max(0, v - 1))}
-          >
-            ‹
-          </button>
-
-          <div className="myStudyCards">
-            {mySlice.map((s: any) => (
-              <div
-                key={s.studyId}
-                className="myStudyCard"
-                onClick={() => onOpenStudy(s.studyId)}
-                role="button"
-                tabIndex={0}
-              >
-                <div className="myStudyThumb">
-                  <img
-                    src={s.coverImage || StudyNoImg}
-                    alt=""
-                    className={!s.coverImage ? "noImage" : ""}
-                  />
-                  {/* ✅ 캡슐을 thumb 안으로 넣어서 카드랑 동일 룩 */}
-                  <div className="titlePill">
-                    <div className="titlePillText">{s.studyName || "제목"}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            {(myStudies?.length ?? 0) === 0 && (
-              <div className="state empty" style={{ padding: "20px 0" }}>
-                조건에 맞는 나만의 스터디가 없어요.
-              </div>
-            )}
-          </div>
-
-          <button
-            type="button"
-            className={`arrowBtn ${canNext ? "" : "disabled"}`}
-            onClick={() => canNext && setMyIndex((v) => v + 1)}
-          >
-            ›
-          </button>
-        </div>
-      </section>
+      {myStudies.length > 0 ? (
+        <MyStudyCarousel
+          myStudies={myStudies}
+          myFilter={myFilter}
+          setMyFilter={setMyFilter}
+          onOpenStudy={onOpenStudy}
+        />
+      ) : (
+        <CTABox
+          isLoggedIn={true}
+          nickname={props.nickname}
+        />
+      )}
 
       {/* ===== 전체 스터디 ===== */}
       <section className="listWrap">

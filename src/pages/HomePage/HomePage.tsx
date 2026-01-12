@@ -11,7 +11,9 @@ import { useNavigate } from "react-router-dom";
 import study_noimg from '../../assets/homepage/study_noimg.svg';
 import CTAbox from '../../components/HomePage/CTAbox';
 import { api } from '../../api/client';
-
+import MyStudyCarousel from "../StudyPage/MyStudyCarousel";
+import { type StudyListItem } from "../StudyPage/StudyPage";
+import StudyViewModal from "../StudyDetailPage/StudyViewModal";
 
 const studyList = [
   {
@@ -56,7 +58,12 @@ const boardList = mockPopularPosts;
 const HomePage: React.FC = () => {
 
   const isLoggedIn = Boolean(localStorage.getItem('accessToken'));
+  const [myStudies, setMyStudies] = useState<StudyListItem[]>([]);
   const [nickname, setNickname] = useState<string | undefined>();
+  const [myFilter, setMyFilter] = useState<string>("ALL");
+  const [selectedStudyId, setSelectedStudyId] = useState<number | null>(null);
+
+
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -68,11 +75,38 @@ const HomePage: React.FC = () => {
           setNickname(response.data.data.nickname);
         }
       } catch (error) {
-        console.error('우저 정보 조회 실패', error);
+        console.error('유저 정보 조회 실패', error);
       }
     };
     fetchMemberInfo();
   }, [isLoggedIn]);
+
+  useEffect(() => {
+    const fetchMyStudies = async () => {
+      if (!isLoggedIn) return;
+
+      try {
+        const response = await api.get("/studies/my", {
+          params: {
+            scope: 'ALL',
+            page: 0,
+          },
+        }); // 나만의 스터디 API
+        if (response.data.success) {
+          setMyStudies(response.data.data.content);
+        } else {
+          setMyStudies([]);
+        }
+      } catch (error) {
+        console.error("나만의 스터디 조회 실패", error);
+        setMyStudies([])
+      }
+    };
+
+    fetchMyStudies();
+  }, [isLoggedIn]);
+
+
 
 
   //임시로 mockData 사용
@@ -163,10 +197,25 @@ const handleCloseMenu = () => setIsMenuOpen(false);
 
       {/* ===== 2. 메인 콘텐츠 ===== */}
       <div className="home-main-content">
-        <CTAbox 
-          isLoggedIn={isLoggedIn}
-          nickname= {nickname}
-          />
+       {myStudies.length > 0 && isLoggedIn ? (
+        <MyStudyCarousel
+          myStudies={myStudies}
+          myFilter={myFilter}
+          setMyFilter={setMyFilter}
+          onOpenStudy={(id: number) => setSelectedStudyId(id)}
+        />
+      ) : (
+        <CTAbox isLoggedIn={isLoggedIn} nickname={nickname} />
+      )}
+
+      {selectedStudyId !== null && (
+        <StudyViewModal
+          open={true}
+          studyId={selectedStudyId}
+          onClose={() => setSelectedStudyId(null)} // 모달 닫기
+        />
+      )}
+
         <div className="Ai-Container">
           <p className="Ai-Container-Title">
             <span style={{color: '#FA785B'}}>Ai</span>
@@ -189,7 +238,7 @@ const handleCloseMenu = () => setIsMenuOpen(false);
               </>
             )}
 
-            <input type="file" ref={fileInputRef} style={{display: "none"}} onChange={handleFileChange}/>
+            <input type="file" ref={fileInputRef} style={{display: "none"}} onChange={handleFileChange} title="파일"/>
           </div>
         </div>
       </div>
