@@ -1,0 +1,123 @@
+.cta-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end; /* 타이틀과 필터의 바닥 라인을 맞춤 */
+  width: calc(100% - 160px); /* 컨테이너 마진 80px * 2를 제외한 너비 */
+  margin: 0 auto 20px auto;
+  gap: 20px;
+}
+
+.cta-myStudyMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0; 
+  white-space: nowrap; /* 텍스트가 한 줄로 나오게 강제 */
+}
+
+.cta-myStudyMeta .cta-metaBtn.active {
+  color: black !important;
+  font-weight: 600;
+}
+
+.cta-metaBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+  font-size: 14px;
+  padding: 0;
+  white-space: nowrap; /* 버튼 내 텍스트 줄바꿈 방지 */
+  transition: color 0.2s;
+}
+
+
+.cta-metaSep {
+  color: #DDD;
+  font-size: 20px;
+}
+
+.cta-dotOn {
+  width: 12px;
+}
+
+.cta-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* 박스는 중앙 */
+  gap: 16px; /* 타이틀과 박스 간 간격 */
+}
+
+.cta-title {
+  width: calc(100% - 180px); /* 박스와 비슷한 가로 폭 */
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0; /* 위아래 마진 제거 */
+  padding-bottom: 0;
+  text-align: left; /* 텍스트 왼쪽 정렬 */
+  color: #333;
+  display: flex;
+  flex-direction: row;
+   white-space: pre;
+}
+
+.cta-container {
+  width: calc(100% - 180px); /* 화면 중앙에 띄우면서 박스 크기 조정 */
+  padding: 60px 40px;
+  border-radius: 50px;
+  background: linear-gradient(90deg, #FA785B, #FF3761);
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* 박스 내부 중앙 정렬 */
+  gap: 24px;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+  box-shadow: 0px 2px 15px 5px #0000001A;
+}
+
+
+.cta-container:hover {
+  transform: scale(1.01); /* 마우스 오버 시 살짝 커지는 효과 */
+}
+
+.cta-plus-button {
+  width: 70px;
+  height: 70px;
+  background-color: white;
+  border-radius: 50%; /* 원형 버튼 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 48px; /* 플러스 기호 크기 */
+  font-weight: 300;
+  color: #e65c82; /* 플러스 기호 색상 (그라데이션 끝 색상) */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
+}
+
+.cta-plus-button-img {
+    width: 30px;
+}
+.cta-logo {
+    width: 19.4px;
+    height: 17px;
+}
+.cta-text {
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0; /* p 태그의 기본 마진 제거 */
+  display: flex;
+  align-items: center;
+  gap: 8px; /* 이모지와 텍스트 사이 간격 */
+}
+
+/* 닉네임 부분 색상 (주황색 포인트) */
+.cta-nickname {
+  color: #FA785B; 
+}
+
+.cta-metaBtn img {
+  margin-right: 6px; /* 체크와 텍스트 간 간격 */
+}

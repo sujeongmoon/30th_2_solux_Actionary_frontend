@@ -1,8 +1,6 @@
-import React, { useRef, useState, /*useEffect*/ } from "react";
+import React, { useEffect, useRef, useState, /*useEffect*/ } from "react";
 import "./HomePage.css";
-import MainPageLogo from '../../assets/homepage/MainPageLogo.svg';
 import SearchIcon from '../../assets/homepage/SearchIcon.svg';
-import PlusButton from '../../assets/homepage/PlusButton.svg';
 import GradientArrow from '../../assets/homepage/Gradient_Arrow.svg';
 import BlackArrow from '../../assets/homepage/BlackArrow.svg';
 import { mockPopularPosts } from '../../types/MainPagePostType';
@@ -11,6 +9,11 @@ import BookmarkSection from "../../components/Bookmark/BookmarkSection";
 //import { getPopularStudies } from "../../api/HomePage/getPopularStudies";
 import { useNavigate } from "react-router-dom";
 import study_noimg from '../../assets/homepage/study_noimg.svg';
+import CTAbox from '../../components/HomePage/CTAbox';
+import { api } from '../../api/client';
+import MyStudyCarousel from "../StudyPage/MyStudyCarousel";
+import { type StudyListItem } from "../StudyPage/StudyPage";
+import StudyViewModal from "../StudyDetailPage/StudyViewModal";
 
 const studyList = [
   {
@@ -55,6 +58,56 @@ const boardList = mockPopularPosts;
 const HomePage: React.FC = () => {
 
   const isLoggedIn = Boolean(localStorage.getItem('accessToken'));
+  const [myStudies, setMyStudies] = useState<StudyListItem[]>([]);
+  const [nickname, setNickname] = useState<string | undefined>();
+  const [myFilter, setMyFilter] = useState<string>("ALL");
+  const [selectedStudyId, setSelectedStudyId] = useState<number | null>(null);
+
+
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    const fetchMemberInfo = async() => {
+      try {
+        const response = await api.get('/members/me/info');
+        if (response.data.success) {
+          setNickname(response.data.data.nickname);
+        }
+      } catch (error) {
+        console.error('유저 정보 조회 실패', error);
+      }
+    };
+    fetchMemberInfo();
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    const fetchMyStudies = async () => {
+      if (!isLoggedIn) return;
+
+      try {
+        const response = await api.get("/studies/my", {
+          params: {
+            scope: 'ALL',
+            page: 0,
+          },
+        }); // 나만의 스터디 API
+        if (response.data.success) {
+          setMyStudies(response.data.data.content);
+        } else {
+          setMyStudies([]);
+        }
+      } catch (error) {
+        console.error("나만의 스터디 조회 실패", error);
+        setMyStudies([])
+      }
+    };
+
+    fetchMyStudies();
+  }, [isLoggedIn]);
+
+
+
 
   //임시로 mockData 사용
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -129,6 +182,7 @@ const handleCloseMenu = () => setIsMenuOpen(false);
     })
   }
 
+
   return (
     <>
     <nav className="sub-navigation">
@@ -143,15 +197,24 @@ const handleCloseMenu = () => setIsMenuOpen(false);
 
       {/* ===== 2. 메인 콘텐츠 ===== */}
       <div className="home-main-content">
-        <div className="cta-container">
-          <div className="cta-plus-button">
-            <img className="cta-plus-button-img" src={PlusButton} alt="플러스 버튼" />
-          </div>
-          <p className="cta-text">
-            <img src={MainPageLogo} alt="Actionary Logo" className="cta-logo" /> 
-            지금 로그인 하고, 나만의 스터디를 만들어보세요!
-          </p>
-        </div>
+       {myStudies.length > 0 && isLoggedIn ? (
+        <MyStudyCarousel
+          myStudies={myStudies}
+          myFilter={myFilter}
+          setMyFilter={setMyFilter}
+          onOpenStudy={(id: number) => setSelectedStudyId(id)}
+        />
+      ) : (
+        <CTAbox isLoggedIn={isLoggedIn} nickname={nickname} />
+      )}
+
+      {selectedStudyId !== null && (
+        <StudyViewModal
+          open={true}
+          studyId={selectedStudyId}
+          onClose={() => setSelectedStudyId(null)} // 모달 닫기
+        />
+      )}
 
         <div className="Ai-Container">
           <p className="Ai-Container-Title">
@@ -175,7 +238,7 @@ const handleCloseMenu = () => setIsMenuOpen(false);
               </>
             )}
 
-            <input type="file" ref={fileInputRef} style={{display: "none"}} onChange={handleFileChange}/>
+            <input type="file" ref={fileInputRef} style={{display: "none"}} onChange={handleFileChange} title="파일"/>
           </div>
         </div>
       </div>
@@ -187,7 +250,7 @@ const handleCloseMenu = () => setIsMenuOpen(false);
       <div className="popular-study-container">
         <div className="popular-study-header">
           <h2 className="popular-study-title">인기 스터디를 확인해보세요 !</h2>
-          <button className="popular-study-more">더보기</button>
+          <button className="popular-study-more" onClick={() => navigate("/studies")}>더보기</button>
         </div>
 
         <div className="popular-study-grid">
