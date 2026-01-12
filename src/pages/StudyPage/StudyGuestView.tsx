@@ -1,6 +1,6 @@
 import "./StudyPage.css";
 // ✅ 가능하면 이거 삭제 추천 (필터/버튼 스타일 덮임 원인)
-// import "../../pages/HomePage/HomePage.css";
+import "../../pages/HomePage/HomePage.css";
 
 import StudyNoImg from "../../assets/study_noimg.png";
 import MainPageLogo from "../../assets/homepage/MainPageLogo.svg";
@@ -33,16 +33,14 @@ export default function StudyGuestView(props: Props) {
   return (
     <>
       {/* 상단바 */}
-      <div className="pageShell">
-        <nav className="sub-navigation">
-          <a href="/studies" className="nav-link-home-link">스터디</a>
-          <span className="nav-divider">|</span>
-          <a href="/" className="nav-link">홈</a>
-          <span className="nav-divider">|</span>
-          <a href="/board" className="nav-link">게시판</a>
-        </nav>
-        <div className="divider" />
-      </div>
+      <nav className="sub-navigation">
+        <a href="/studies" className="nav-link-home-link">스터디</a>
+        <span className="nav-divider">|</span>
+        <a href="/" className="nav-link">홈</a>
+        <span className="nav-divider">|</span>
+        <a href="/board" className="nav-link">게시판</a>
+      </nav>
+      <div className="divider"></div>
 
       {/* CTA */}
       <section className="studyCta">

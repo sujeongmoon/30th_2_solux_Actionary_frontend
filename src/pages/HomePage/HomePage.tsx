@@ -130,18 +130,16 @@ const handleCloseMenu = () => setIsMenuOpen(false);
   }
 
   return (
+    <>
+    <nav className="sub-navigation">
+      <a href="/" className="nav-link-home-link">홈</a>
+      <span className="nav-divider">|</span>
+      <a href="/studies" className="nav-link">스터디</a>
+      <span className="nav-divider">|</span>
+      <a href="/board" className="nav-link">게시판</a>
+    </nav>
+    <div className="divider"></div>
     <div className="homepage-content-wrapper">
-
-      {/* ===== 1. 서브 네비게이션 ===== */}
-      <nav className="sub-navigation">
-        <a href="/" className="nav-link-home-link">홈</a>
-        <span className="nav-divider">|</span>
-        <a href="/studies" className="nav-link">스터디</a>
-        <span className="nav-divider">|</span>
-        <a href="/board" className="nav-link">게시판</a>
-      </nav>
-
-      <div className="divider"></div>
 
       {/* ===== 2. 메인 콘텐츠 ===== */}
       <div className="home-main-content">
@@ -262,6 +260,7 @@ const handleCloseMenu = () => setIsMenuOpen(false);
       </div>
 
     </div>
+    </>
   );
 };
 
