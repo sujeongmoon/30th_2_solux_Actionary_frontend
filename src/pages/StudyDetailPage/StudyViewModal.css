@@ -1,34 +1,45 @@
-
-
-.svmHeroTitle{
-  margin-bottom: 14px;
-  color: #fff;
-}
-.svmHeroBig{
-  font-size: 64px;
-  font-weight: 900;
-  letter-spacing: -1px;
-  line-height: 1;
-}
-.svmHeroSmall{
-  margin-top: 8px;
-  opacity: .8;
-  letter-spacing: 1px;
+/* ===== Overlay ===== */
+.svmOverlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+  padding: 24px; /* 화면이 작을 때 가장자리 여백 */
 }
 
+/* ===== Modal Frame ===== */
+.svmWrap{
+  position: relative;
+  width: min(1280px, calc(100vw - 48px));   
+  max-height: calc(100vh - 72px);           
+}
 
+
+.svmBody{
+  display: grid;
+  grid-template-columns: 1fr 180px; /* 오른쪽 메뉴 칸 */
+  gap: 24px;
+  align-items: start;
+}
+
+/* ===== Main Card ===== */
 .svmCard{
   position: relative;
   background: #f7f6f4;
   border-radius: 34px;
-  padding: 28px;
-  box-shadow: 0 20px 55px rgba(0,0,0,.25);
+  padding: 32px; 
+  box-shadow: 0 24px 70px rgba(0,0,0,.28);
+  overflow: auto;                 
+  max-height: calc(100vh - 120px);
 }
 
+/* 케밥 */
 .svmKebab{
   position:absolute;
-  right: 22px;
-  top: 18px;
+  right: 18px;
+  top: 14px;
   width: 44px;
   height: 44px;
   border: none;
@@ -36,18 +47,36 @@
   font-size: 22px;
   cursor: pointer;
   opacity: .75;
+  border-radius: 999px;
 }
-.svmKebab:hover{ opacity: 1; }
+.svmKebab:hover{ opacity: 1; background: rgba(0,0,0,.04); }
 
+/* ===== Close Button ===== */
+.svmClose{
+  position:absolute;
+  right: 10px;
+  top: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border:none;
+  cursor:pointer;
+  font-size: 18px;
+  background: rgba(255,255,255,.65);
+  box-shadow: 0 10px 25px rgba(0,0,0,.18);
+}
+.svmClose:hover{ background: rgba(255,255,255,.85); }
+
+/* ===== Top Section ===== */
 .svmTop{
   display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 22px;
+  grid-template-columns: 360px 1fr; 
+  gap: 26px;
 }
 
 .svmCover{
-  width: 300px;
-  height: 240px;
+  width: 100%;
+  height: 280px;     
   border-radius: 26px;
   overflow: hidden;
   background: #ddd;
@@ -58,19 +87,6 @@
   object-fit: cover;
   display:block;
 }
-.svmCoverFallback{
-  width: 100%;
-  height: 100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background: #111;
-}
-.svmCoverFallback img{
-  width: 140px;
-  height: auto;
-  opacity: .9;
-}
 
 .svmInfo{ padding-top: 6px; }
 
@@ -79,6 +95,7 @@
   gap: 10px;
   margin-bottom: 12px;
 }
+
 .svmChip{
   display:inline-flex;
   align-items:center;
@@ -102,19 +119,21 @@
 }
 
 .svmTitle{
-  font-size: 26px;
+  font-size: 28px;  
   font-weight: 900;
   letter-spacing: -0.5px;
   margin-bottom: 8px;
 }
+
 .svmDesc{
   color: #777;
-  line-height: 1.35;
-  min-height: 38px;
-  margin-bottom: 14px;
+  line-height: 1.45;
+  min-height: 42px;
+  margin-bottom: 16px;
   white-space: pre-wrap;
 }
 
+/* ===== Join Row ===== */
 .svmRow{
   display:flex;
   align-items:center;
@@ -122,8 +141,8 @@
   margin-bottom: 16px;
 }
 .svmPill{
-  height: 42px;
-  padding: 0 18px;
+  height: 44px;
+  padding: 0 20px;
   border-radius: 999px;
   font-weight: 900;
   border: 2px solid #111;
@@ -158,14 +177,16 @@
   color: #e25c61;
 }
 
+/* ===== Action Buttons ===== */
 .svmActionsRow{
   display:flex;
   align-items:center;
   gap: 12px;
+  margin-top: 6px;
 }
 .svmEnterBtn{
-  height: 46px;
-  min-width: 220px;
+  height: 48px;
+  min-width: 240px;
   border: none;
   border-radius: 999px;
   cursor: pointer;
@@ -174,24 +195,27 @@
   background: linear-gradient(90deg, #f28a63, #e74a62);
 }
 .svmEnterBtn:hover{ filter: brightness(.98); }
+.svmEnterBtn:disabled{ opacity:.6; cursor:not-allowed; }
 
 .svmHeart{
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   border-radius: 999px;
   border: none;
   background: transparent;
   font-size: 26px;
   cursor:pointer;
-  opacity: .8;
+  opacity: .85;
 }
+.svmHeart:hover{ transform: scale(1.03); }
 .svmHeart.active{
   opacity: 1;
-  transform: scale(1.02);
+  transform: scale(1.05);
 }
 
+/* ===== Ranking Box ===== */
 .svmRankBox{
-  margin-top: 18px;
+  margin-top: 20px;
   border-radius: 28px;
   border: 1.5px solid rgba(231, 74, 98, .7);
   padding: 18px 18px 14px;
@@ -203,14 +227,15 @@
   display:flex;
   align-items:center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
+
 .svmRankTitlePill{
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  top: -24px;
-  height: 44px;
+  top: -26px;
+  height: 46px;
   padding: 0 22px;
   border-radius: 999px;
   background: linear-gradient(90deg, #f28a63, #e74a62);
@@ -220,10 +245,29 @@
   align-items:center;
   justify-content:center;
   box-shadow: 0 8px 22px rgba(0,0,0,.18);
+  white-space: nowrap;
 }
 
-.svmRankTab{ color:#999; font-size: 13px; }
-.svmTabBtn{ border:none; background: transparent; color:#aaa; font-weight: 800; }
+.svmMiniToggle{
+  display:flex;
+  gap: 10px;
+  justify-content:flex-start;
+}
+.svmMiniBtn{
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,.15);
+  background:#fff;
+  font-weight: 800;
+  cursor:pointer;
+  color:#666;
+}
+.svmMiniBtn.active{
+  background:#111;
+  color:#fff;
+  border-color:#111;
+}
 
 .svmTable{
   width: 100%;
@@ -250,40 +294,11 @@
   font-weight: 900;
 }
 
-.svmMiniToggle{
-  display:flex;
-  gap: 10px;
-  justify-content:flex-end;
-  margin-top: 10px;
-}
-.svmMiniBtn{
-  height: 34px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(0,0,0,.15);
-  background:#fff;
-  font-weight: 800;
-  cursor:pointer;
-  color:#666;
-}
-.svmMiniBtn.active{
-  background:#111;
-  color:#fff;
-  border-color:#111;
-}
-
+/* ===== Side Menu ===== */
 .svmSide{ position: relative; }
-.svmSideBox{
-  background: transparent !important;
-  border: 0 !important;
-  padding: 0 !important;
-  box-shadow: none !important;
-}
-.svmSideTitle{
-  font-weight: 900;
-  color:#444;
-  margin-bottom: 10px;
-}
+
+
+
 .svmSideMenu{
   background:#1e1e1e;
   border-radius: 18px;
@@ -291,7 +306,10 @@
   display:flex;
   flex-direction: column;
   gap: 8px;
+  position: sticky;    
+  top: 12px;
 }
+
 .svmSideBtn{
   height: 44px;
   border-radius: 14px;
@@ -303,90 +321,36 @@
 }
 .svmSideBtn:hover{ background: rgba(255,255,255,.08); }
 .svmSideBtn.danger{ color: #ff6b78; }
+
 .svmLine{ height: 1px; background: rgba(255,255,255,.2); }
 
-.svmClose{
-  position:absolute;
-  right: -4px;
-  top: -4px;
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
-  border:none;
-  cursor:pointer;
-  font-size: 18px;
-  background: rgba(255,255,255,.2);
-  color:#fff;
+/* ===== loading/error ===== */
+.svmLoading{
+  padding: 18px 0;
+  text-align: center;
+  color:#666;
+  font-weight: 700;
 }
-.svmClose:hover{ background: rgba(255,255,255,.3); }
-
-@media (max-width: 980px){
-  .svmBody{ grid-template-columns: 1fr; }
-  .svmSide{ display:none; }
-  .svmTop{ grid-template-columns: 1fr; }
-  .svmCover{ width: 100%; height: 220px; }
-  .svmHeroBig{ font-size: 44px; }
-}
-
-/* ===== 비번 모달 최소 스타일 ===== */
-.svpOverlay{
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.35);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index: 9999;
-}
-.svpModal{
-  width: 560px;
-  border-radius: 20px;
-  background: #1f2023;
-  color: #fff;
-  padding: 22px 26px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.35);
-}
-.svpTitleRow{ display:flex; align-items:center; gap:10px; margin-bottom: 10px; }
-.svpDot{ width:10px; height:10px; border-radius:999px; background:#ff4d6d; }
-.svpTitle{ font-weight: 800; }
-.svpLabel{ opacity:.85; margin: 8px 0 10px; }
-.svpInput{
-  width: 100%;
-  height: 44px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.22);
-  background: #fff;
-  color:#111;
-  padding: 0 14px;
-  outline: none;
-}
-.svpError{ margin-top: 10px; color:#ff6b6b; font-size: 13px; }
-.svpBtnRow{ display:flex; gap: 10px; justify-content:flex-end; margin-top: 18px; }
-.svpBtnCancel, .svpBtnOk{
-  height: 40px;
-  min-width: 92px;
-  border-radius: 999px;
-  border: none;
+.svmErrorBox{
+  padding: 18px 0;
+  text-align: center;
+  color:#e74a62;
   font-weight: 800;
-  cursor:pointer;
 }
-.svpBtnCancel{ background:#d9d9d9; color:#222; }
-.svpBtnOk{ background: linear-gradient(90deg, #ff7a59, #ff3d6e); color:#fff; }
-.svpBtnOk:disabled{ opacity:.5; cursor:not-allowed; }
 
+/* ===== Private Password Modal ===== */
 .pwOverlay{
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.35);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index: 9999;
+  background: rgba(0,0,0,.45);
+  display: grid;
+  place-items: center;
+  z-index: 10000;
+  padding: 20px;
 }
 
 .pwModal{
-  width: 720px;
-  max-width: calc(100vw - 40px);
+  width: min(720px, calc(100vw - 40px));
   border-radius: 26px;
   background: #1f2126;
   color: #fff;
@@ -402,6 +366,7 @@
   margin-bottom: 18px;
 }
 .pwDot{ width: 12px; height: 12px; border-radius: 999px; background: #ff4d6d; }
+.pwTitle{ font-weight: 900; }
 
 .pwSub{ opacity: .85; margin-bottom: 14px; }
 
@@ -416,6 +381,7 @@
   outline: none;
   font-size: 16px;
 }
+.pwError{ margin-top: 10px; color: #ff6b6b; font-size: 13px; }
 
 .pwBtns{
   display:flex;
@@ -432,31 +398,9 @@
   font-weight: 800;
   cursor:pointer;
 }
-
 .pwCancel{ background: #d8d8d8; color:#222; }
 .pwOk{ background: linear-gradient(90deg, #ff7a59, #ff3d6e); color:#fff; }
 
-.pwError{ margin-top: 10px; color: #ff6b6b; font-size: 13px; }
-
-.svmOverlay{
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.svmWrap{
-  position: relative;
-  width: min(1100px, 92vw);
-  max-height: 90vh;
-}
-
-.svmBody{
-  display: flex;
-  gap: 24px;
-  align-items: flex-start;
-}
-
-/* ====== Modal Overlay (FIX) ====== */
 .svmOverlay{
   position: fixed;
   inset: 0;
@@ -465,24 +409,137 @@
   place-items: center;
   z-index: 9999;
 }
-
-/* modal frame */
 .svmWrap{
   position: relative;
   width: min(1100px, calc(100vw - 48px));
   max-height: calc(100vh - 80px);
 }
 
-/* body layout: 카드 + 사이드 (kebab 메뉴) */
 .svmBody{
-  display: grid;
-  grid-template-columns: 1fr 180px; /* 오른쪽 메뉴 영역 */
-  gap: 24px;
-  align-items: start;
+  position: relative;
+  display: block;          
 }
 
-/* 모바일에서는 사이드 숨김 */
+
+.svmCard{
+  position: relative;
+  background: #f7f6f4;
+  border-radius: 34px;
+  padding: 28px;
+  box-shadow: 0 20px 55px rgba(0,0,0,.25);
+}
+
+.svmClose{
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,.10);
+  background: rgba(255,255,255,.85);
+  color: #111;
+  cursor: pointer;
+  font-size: 18px;
+  display: grid;
+  place-items: center;
+  z-index: 20;             
+}
+.svmClose:hover{
+  background: rgba(255,255,255,.95);
+}
+
+.svmKebab{
+  position: absolute;
+  top: 14px;
+  right: 62px;             /* X(42) + 여백 */
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  cursor: pointer;
+  opacity: .75;
+  z-index: 20;
+}
+.svmKebab:hover{ opacity: 1; }
+
+
+.svmSide{
+  position: absolute;
+  top: 62px;              
+  right: 14px;
+  width: 220px;
+  z-index: 30;           
+  display: block;
+}
+
+
+.svmSideBox{
+  background: transparent;
+  border: 0;
+  padding: 0 ;
+  box-shadow: none;
+  min-width: 100px;
+}
+
+/* 드롭다운 박스 */
+.svmSideMenu{
+  background: rgba(20,20,20,.92);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 18px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 18px 40px rgba(0,0,0,.25);
+}
+
+/* 버튼 스타일은 유지 */
+.svmSideBtn{
+  height: 44px;
+  border-radius: 14px;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+.svmSideBtn:hover{ background: rgba(255,255,255,.10); }
+.svmSideBtn.danger{ color: #ff6b78; }
+
+.svmLine{ height: 1px; background: rgba(255,255,255,.20); }
+
 @media (max-width: 980px){
+  .svmSide{
+    right: 12px;
+    width: 200px;
+  }
+  .svmKebab{ right: 58px; }
+  .svmClose{ right: 12px; top: 12px; }
+}
+
+
+
+@media (max-width: 980px){
+  .svmWrap{
+    width: min(920px, calc(100vw - 32px));
+  }
   .svmBody{ grid-template-columns: 1fr; }
   .svmSide{ display:none; }
+  .svmCard{ max-height: calc(100vh - 120px); }
+
+  .svmTop{ grid-template-columns: 1fr; }
+  .svmCover{ height: 220px; }
+  .svmEnterBtn{ min-width: 200px; width: 100%; }
+  .svmActionsRow{ align-items: stretch; }
 }
+
+@media (max-width: 520px){
+  .svmOverlay{ padding: 14px; }
+  .svmCard{ padding: 22px; border-radius: 26px; }
+  .svmTitle{ font-size: 22px; }
+  .svmTable thead{ display:none; } 
+}
+

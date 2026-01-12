@@ -55,26 +55,25 @@ function PomoRing({
   const cx = size / 2;
   const cy = size / 2;
 
-  const r = 130;
-  const stroke = 18;
+  const r = 128;
+  const stroke = 28; 
   const C = 2 * Math.PI * r;
-  const visible = C * 0.82; // 보이는 길이(82%)
-  const p = totalSec <= 0 ? 0 : Math.max(0, Math.min(1, remainSec / totalSec));
-  const dashoffset = visible * (1 - p);
 
-  // 중앙 시간: 00:50:01 형태 그대로 원하면 formatHMS(remainSec) 사용
+  // 시간 줄수록 링 감소
+  const p = totalSec <= 0 ? 0 : Math.max(0, Math.min(1, remainSec / totalSec));
+  const dashoffset = C * (1 - p);
+
   const centerText = formatHMS(remainSec);
 
-  // 0~55, 5분 단위 숫자
+  // 0~55, 5분 단위
   const ticks = useMemo(() => {
     const arr = [];
     for (let m = 0; m <= 55; m += 5) arr.push(m);
     return arr;
   }, []);
 
-  const tickR = r + 28;
+  const tickR = r + 36;
 
-  // 0이 위(12시), 30이 아래(6시)로 오도록 -90도 시작
   const pos = (idx: number, len: number) => {
     const deg = -90 + (360 * idx) / len;
     const rad = (deg * Math.PI) / 180;
@@ -89,58 +88,63 @@ function PomoRing({
       <div className="srPomoTopPill" />
 
       <div className="srPomoCardBox">
-        <svg className="srPomoSvg" viewBox={`0 0 ${size} ${size}`} aria-label="pomodoro">
-          {/* ticks */}
+        <svg className="srPomoSvg" viewBox={`0 0 ${size} ${size}`}>
+          <defs>
+            <linearGradient id="pomoGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#ff3b6a" />
+              <stop offset="50%" stopColor="#ff6f61" />
+              <stop offset="100%" stopColor="#ff9f5a" />
+            </linearGradient>
+          </defs>
+
           {ticks.map((m, i) => {
             const { x, y } = pos(i, ticks.length);
             return (
               <text
                 key={m}
-                className="srPomoTick"
                 x={x}
                 y={y}
                 textAnchor="middle"
                 dominantBaseline="middle"
+                className="srPomoTick"
               >
                 {m}
               </text>
             );
           })}
 
-          {/* track */}
           <circle
-            className="srPomoTrack"
             cx={cx}
             cy={cy}
             r={r}
             fill="none"
+            stroke="rgba(255,255,255,.12)"
             strokeWidth={stroke}
           />
 
-          {/* progress */}
           <circle
-            className="srPomoProgress"
             cx={cx}
             cy={cy}
             r={r}
             fill="none"
+            stroke="url(#pomoGrad)"
             strokeWidth={stroke}
             strokeLinecap="round"
             strokeDasharray={C}
             strokeDashoffset={dashoffset}
             style={{
-              transform: "rotate(-90deg) scaleX(-1)",   
+              transform: "rotate(-90deg) scaleY(-1)",
               transformOrigin: `${cx}px ${cy}px`,
+              transition: "stroke-dashoffset .3s linear",
             }}
           />
 
-          {/* center time */}
           <text
-            className="srPomoTimeText"
             x={cx}
             y={cy + 10}
             textAnchor="middle"
             dominantBaseline="middle"
+            className="srPomoTimeText"
           >
             {centerText}
           </text>
@@ -234,7 +238,7 @@ export default function StudyRoomPage() {
   };
 
 
-  const POMO_TOTAL = 50 * 60;
+  const POMO_TOTAL = 60 * 60;
   const [pomoRunning, setPomoRunning] = useState(false);
   const [pomoRemainSec, setPomoRemainSec] = useState(POMO_TOTAL);
   const timerRef = useRef<number | null>(null);

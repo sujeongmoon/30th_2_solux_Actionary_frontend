@@ -101,16 +101,16 @@ const BoardListPage: React.FC = () => {
    * 렌더링
    ====================== */
   return (
-    <div className="board-container">
-      <nav className="sub-navigation">
+    <>
+    <nav className="sub-navigation">
         <a href="/board" className="nav-link-home-link">게시판</a>
         <span className="nav-divider">|</span>
         <a href="/" className="nav-link">홈</a>
         <span className="nav-divider">|</span>
         <a href="/studies" className="nav-link">스터디</a>
       </nav>
-
       <div className="divider" />
+    <div className="board-container">
 
       <div className="content-section">
         {/* 정렬 드롭다운 */}
@@ -227,6 +227,7 @@ const BoardListPage: React.FC = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
