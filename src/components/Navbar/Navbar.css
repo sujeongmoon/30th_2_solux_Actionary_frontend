@@ -85,3 +85,19 @@
   width: 30px;
   height: 30px;
 }
+
+
+.simple-navbar {  
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 70px;
+  padding: 0 30px;
+  border-bottom: 2px;
+}
+
+.navbar-actions-simple {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
