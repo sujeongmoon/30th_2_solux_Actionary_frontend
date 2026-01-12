@@ -1,11 +1,12 @@
 .studyPage{
-  padding: 0px 0 50px;
+  padding: 0px 0px 50px;
 }
 
 /* ==========================================================상단 네비(스터디 | 홈 | 게시판) - 다른 페이지와 통일========================================================== */
 .pageShell{
   width: 100%;
 }
+
 .sub-navigation {
   vertical-align: middle;
   display: flex;
@@ -308,10 +309,10 @@
 
 /* ==========================================================로그인 후 “나만의 스터디” 섹션========================================================= */
 .myStudySection{
-  width: min(1200px, 102vw);
+  width: 100%;
   margin: 0 auto 14px;
   padding: 18px 0 28px;
-  background: linear-gradient(90deg, rgba(242,138,99,.14), rgba(231,74,98,.10));
+  background: linear-gradient(90deg, rgba(250, 120, 91, 0.1748) 0%, rgba(240, 175, 161, 0.1656) 11.54%, rgba(230, 230, 230, 0) 37.98%, rgba(230, 230, 230, 0.2208) 77.4%, rgba(255, 55, 97, 0.0644) 100%);
   border-radius: 12px;
 }
 
@@ -324,22 +325,28 @@
 
 .myStudyTitle{
   font-weight: 700;
-  font-size: 18px;
+  font-size: 24px;
   color:#111;
+  padding-top: 20px;
+  padding-left: 80px;
+  padding-bottom: 20px;
+
 }
 
 .myStudyMeta{
-  font-size: 12px;
+  font-size: 14px;
   color:#777;
-  font-weight: 600;
+  font-weight: 400;
   display:flex;
   align-items:center;
-  gap: 8px;
+  gap: 3px;
 }
+
 .dotOn{
   color:#e74a62;
   font-weight: 700;
 }
+
 .metaBtn{
   border: 0;
   background: transparent;
@@ -349,11 +356,11 @@
   color: inherit;
   opacity: .85;
 }
+
 .metaBtn:hover{ opacity: 1; text-decoration: underline; }
 .metaBtn.active{
   opacity: 1;
   font-weight: 700;
-  text-decoration: underline;
 }
 .metaSep{
   opacity: .6;
@@ -373,7 +380,8 @@
   border-radius: 999px;
   border: none;
   background: transparent;
-  font-size: 28px;
+  font-size: 50px;
+  padding: 0px 100px;
   cursor:pointer;
   color:#666;
 }
