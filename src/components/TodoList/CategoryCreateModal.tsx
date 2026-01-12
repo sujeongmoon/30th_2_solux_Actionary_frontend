@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./CategoryCreateModal.css";
-import { useTodoCategories } from "../../hooks/useTodoCategories";
+import { useTodoCategoriesContext } from "../../context/TodoCategoriesContext";
 import ColorPaletteModal from "./ColorPaletteModal";
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
 }
 
 const CategoryCreateModal: React.FC<Props> = ({ onClose }) => {
-  const { addCategory } = useTodoCategories();
+  const { addCategory } = useTodoCategoriesContext();
 
   const [name, setName] = useState("");
   const [color, setColor] = useState("#ff3d2f");

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import './CategoryManageModal.css';
-import { useTodoCategories } from "../../hooks/useTodoCategories";
+import { useTodoCategoriesContext } from "../../context/TodoCategoriesContext";
 import CategoryEditModal from "./CategoryEditModal";
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
 }
 
 const CategoryManageModal: React.FC<Props> = ({ onClose }) => {
-  const { categories } = useTodoCategories();
+  const { categories } = useTodoCategoriesContext();
   const [selectedCategory, setSelectedCategory] = useState<null | {
     categoryId: number;
     name: string;
@@ -20,7 +20,8 @@ const CategoryManageModal: React.FC<Props> = ({ onClose }) => {
       <div 
         className="catMmodal-overlay"
         onClick={onClose}>
-        <div className="manage-modal">
+        <div className="manage-modal"
+          onClick={(e) => e.stopPropagation()}>
           <h2 className="catmodal-title">카테고리 관리</h2>
           <div className="catM-divider" />
 

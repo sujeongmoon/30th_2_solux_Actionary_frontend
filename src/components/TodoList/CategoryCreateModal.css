@@ -109,12 +109,28 @@
 /* 버튼 영역 */
 .catE-btn-row {
   display: flex;
-  gap: 12px;
+  justify-content: flex-start;
+  gap: 30px;
   margin-top: 16px;
+  align-self: center;
 }
 
 .catE-edit-btn {
-  width: 100%;
+  width: 150px;
+  height: 45px;
+  padding: 10px 20px;
+  font-size: 18px;
+  border: none;
+  border-radius: 999px;
+  background:linear-gradient(
+    90deg, #FA785B 0%, #FF3761 100%
+  );
+  color: white;
+  cursor: pointer;
+}
+
+.catE-delete-btn {
+  width: 150px;
   height: 45px;
   padding: 10px 20px;
   font-size: 18px;

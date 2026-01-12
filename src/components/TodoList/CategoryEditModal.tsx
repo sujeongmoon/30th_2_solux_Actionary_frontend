@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./CategoryCreateModal.css";
-import { useTodoCategories } from "../../hooks/useTodoCategories";
 import ColorPaletteModal from "./ColorPaletteModal";
+import { useTodoCategoriesContext } from "../../context/TodoCategoriesContext";
 
 interface Props {
   categoryId: number;
@@ -16,7 +16,7 @@ const CategoryEditModal: React.FC<Props> = ({
   initialColor,
   onClose,
 }) => {
-  const { editCategory, removeCategory } = useTodoCategories();
+  const { editCategory, removeCategory } = useTodoCategoriesContext();
 
   const [name, setName] = useState(initialName);
   const [color, setColor] = useState(initialColor);
@@ -33,7 +33,7 @@ const CategoryEditModal: React.FC<Props> = ({
     onClose();
   };
 
-  const handleDelete = async() => {
+  const handleDelete = async () => {
     const confirmDelete = window.confirm("카테고리를 삭제하겠습니까?");
     if (!confirmDelete) return;
 
@@ -41,9 +41,9 @@ const CategoryEditModal: React.FC<Props> = ({
     onClose();
   };
 
-  return ((
+  return (
     <div className="catCmodal-backdrop">
-      <div className="catCmodal">\
+      <div className="catCmodal" onClick={(e) => e.stopPropagation()}>
         <h2 className="catEmodal-title">카테고리</h2>
         <div className="catC-divider" />
 
@@ -53,16 +53,29 @@ const CategoryEditModal: React.FC<Props> = ({
           onChange={(e) => setName(e.target.value)}
         />
 
-        <div className="calC-color-divider" />
+        <div className="catC-color-divider" />
 
         <div className="catC-color-row">
           <span>색상</span>
 
-          <button
-            className="color-circle"
-            style={{ backgroundColor: color}}
-            onClick={() => setPaletteOpen}
-          />
+          <div className="color-picker-wrapper">
+            <button
+              className="color-circle"
+              style={{ backgroundColor: color }}
+              onClick={() => setPaletteOpen(true)}
+            />
+
+            {paletteOpen && (
+              <ColorPaletteModal
+                selectedColor={color}
+                onConfirm={(selected) => {
+                  setColor(selected); 
+                  setPaletteOpen(false);
+                }}
+                onClose={() => setPaletteOpen(false)} 
+              />
+            )}
+          </div>
         </div>
 
         <div className="catE-btn-row">
@@ -75,19 +88,8 @@ const CategoryEditModal: React.FC<Props> = ({
           </button>
         </div>
       </div>
-
-      {paletteOpen && (
-        <ColorPaletteModal
-          selectedColor={color}
-          onConfirm={(selected) => {
-            setColor(selected);
-            setPaletteOpen(false);
-          }}
-          onClose={() => setPaletteOpen(false)}
-        />
-      )}
     </div>
-  ));
+  );
 };
 
 export default CategoryEditModal;
