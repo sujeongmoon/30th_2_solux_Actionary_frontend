@@ -25,6 +25,7 @@ import TodoListPage from "./pages/TodoListPage/TodoListPage";
 import SearchBoard from "./pages/SearchPage/SearchBoard";
 import AllSearch from './pages/SearchPage/AllSearch';
 import SearchStudy from "./pages/SearchPage/SearchStudy";
+import { TodoCategoriesProvider } from "./context/TodoCategoriesContext";
 
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
     <AuthProvider>
     <PostProvider>
     <BrowserRouter>
+    <TodoCategoriesProvider>
       <Routes>
         {/*Navbar 있는 레이아웃 */}
         <Route element = {<HomeLayout />}>
@@ -67,6 +69,7 @@ function App() {
       </Routes>
 
       <RightSidebar />
+    </TodoCategoriesProvider>
     </BrowserRouter>
     </PostProvider>
     </AuthProvider>

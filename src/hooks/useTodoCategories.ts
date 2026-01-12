@@ -1,69 +1,55 @@
 import { useEffect, useState } from "react";
-import type {
-  TodoCategory,
-  CreateCategoryRequest,
-  UpdateCategoryRequest,
-} from '../api/Todos/todoCategoriesApi';
-import {
-  getTodoCategories,
-  createTodoCategory,
-  updateTodoCategory,
-  deleteTodoCategory,
-} from '../api/Todos/todoCategoriesApi';
-
+import type { TodoCategory } from '../api/Todos/todoCategoriesApi';
 
 export const useTodoCategories = () => {
+  // 🔧 [수정] 더미 카테고리 상태
   const [categories, setCategories] = useState<TodoCategory[]>([]);
-  
-  const fetchCategories = async () => {
-    try {
-      const res = await getTodoCategories();
-      
-      if (Array.isArray(res)) {
-        setCategories(res);
-      } else if (Array.isArray(res.data)) {
-        setCategories(res.data);
-      } else {
-        setCategories([]);
-      }
 
-    } catch (error) {
-      console.error("카테고리 조회 실패:",error);
-      setCategories([]);
-    }
+  // 🔧 [수정] 더미 초기 데이터
+  useEffect(() => {
+    setCategories([
+      {
+        categoryId: 1,
+        name: "공부",
+        color: "#FF3D2F",
+        createdAt: new Date().toISOString(),
+      },
+      {
+        categoryId: 2,
+        name: "운동",
+        color: "#6BEBFF",
+        createdAt: new Date().toISOString(),
+      },
+    ]);
+  }, []);
+
+  // 🔧 [수정] 카테고리 추가 (백엔드 X)
+  const addCategory = async ({ name, color }: { name: string; color: string }) => {
+    setCategories(prev => [
+      ...prev,
+      {
+        categoryId: Date.now(), // 임시 ID
+        name,
+        color,
+        createdAt: new Date().toISOString(),
+      },
+    ]);
   };
 
-    useEffect(() => {
-    fetchCategories();
-    }, []);
-
-  const addCategory = async (data: CreateCategoryRequest) => {
-    try {
-      await createTodoCategory(data);
-      await fetchCategories();
-    } catch (error) {
-      console.error("카테고리 수정 실패:",error);
-    }
+  // 🔧 [수정] 수정
+  const editCategory = async (categoryId: number, data: { name: string; color: string }) => {
+    setCategories(prev =>
+      prev.map(cat =>
+        cat.categoryId === categoryId ? { ...cat, ...data } : cat
+      )
+    );
   };
 
-  const editCategory = async (categoryId: number, data: UpdateCategoryRequest) => {
-    try {
-      await updateTodoCategory(categoryId, data);
-      await fetchCategories();
-    } catch (error) {
-      console.error("카테고리 수정 실패:", error);
-    }
-  };
-
+  // 🔧 [수정] 삭제
   const removeCategory = async (categoryId: number) => {
-    try{
-      await deleteTodoCategory(categoryId);
-      setCategories(prev =>
+    setCategories(prev =>
       prev.filter(cat => cat.categoryId !== categoryId)
     );
-   } catch (error) {
-    console.error("카테고리 삭제 실패:", error);
-    }
   };
 
   return {
