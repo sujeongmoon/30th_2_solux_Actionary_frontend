@@ -17,7 +17,6 @@ import Login from "./pages/Login/Login";
 import BoardCreatePage from "./pages/BoardPage/BoardCreatePage";
 import BoardEditPage from './pages/BoardPage/BoardEditPage';
 import StudyTime from './pages/StudyTime/StudyTime';
-import RightSidebar from "./components/Sidebar/Sidebar";
 import ChatRoom from './pages/ChatRoom/ChatRoom';
 import Signup from "./pages/Siginup/Signup";
 import SignupComplete from "./pages/Siginup/SignupComplete";
@@ -25,7 +24,9 @@ import TodoListPage from "./pages/TodoListPage/TodoListPage";
 import SearchBoard from "./pages/SearchPage/SearchBoard";
 import AllSearch from './pages/SearchPage/AllSearch';
 import SearchStudy from "./pages/SearchPage/SearchStudy";
+import StudyEditPage from "./pages/StudyEditPage/StudyEditPage";
 import { TodoCategoriesProvider } from "./context/TodoCategoriesContext";
+
 
 
 function App() {
@@ -65,10 +66,9 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/signup/complete" element={<SignupComplete />} />
+          <Route path="/studies/:studyId/edit" element={<StudyEditPage />} />
         </Route>
       </Routes>
-
-      <RightSidebar />
     </TodoCategoriesProvider>
     </BrowserRouter>
     </PostProvider>
