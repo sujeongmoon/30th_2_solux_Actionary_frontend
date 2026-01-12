@@ -25,6 +25,7 @@ import TodoListPage from "./pages/TodoListPage/TodoListPage";
 import SearchBoard from "./pages/SearchPage/SearchBoard";
 import AllSearch from './pages/SearchPage/AllSearch';
 import SearchStudy from "./pages/SearchPage/SearchStudy";
+import StudyEditPage from "./pages/StudyEditPage/StudyEditPage";
 
 
 function App() {
@@ -63,6 +64,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/signup/complete" element={<SignupComplete />} />
+          <Route path="/studies/:studyId/edit" element={<StudyEditPage />} />
         </Route>
       </Routes>
 
