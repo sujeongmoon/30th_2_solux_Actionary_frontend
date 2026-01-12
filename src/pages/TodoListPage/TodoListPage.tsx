@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css'
-import './TodoListPage.css'
+import 'react-calendar/dist/Calendar.css';
+import './TodoListPage.css';
 import { useTodos } from '../../hooks/useTodos';
 import { useTodoCategoriesContext } from '../../context/TodoCategoriesContext';
 import ddd from "../../assets/TodoList/ddd.svg";
@@ -10,6 +10,11 @@ import todoCheck from "../../assets/TodoList/todoCheck.svg"
 import type { CreateTodoRequest } from '../../api/Todos/todosApi';
 import CategoryCreateModal from '../../components/TodoList/CategoryCreateModal';
 import CategoryManageModal from '../../components/TodoList/CategoryManageModal';
+import icona from "../../assets/TodoList/icona.svg";
+import iconb from "../../assets/TodoList/iconb.svg";
+import iconc from "../../assets/TodoList/iconc.svg";
+import icond from "../../assets/TodoList/icond.svg";
+import icone from "../../assets/TodoList/icone.svg";
 
 interface TodoDropdownPosition {
   top: number;
@@ -73,7 +78,7 @@ const TodoListPage: React.FC = () => {
     setEditingText("");
   };
 
-  // 🔹 새로 추가됨: 투두 드롭다운 열기 및 위치 계산
+  // 투두 드롭다운 열기 및 위치 계산
   const handleTodoDropdownToggle = (todoId: number) => {
     const buttonEl = dropdownButtonRefs.current[todoId];
     if (buttonEl) {
@@ -83,7 +88,7 @@ const TodoListPage: React.FC = () => {
     setTodoDropdownOpenId(prev => prev === todoId ? null : todoId);
   }
 
-  // 🔹 새로 추가됨: 외부 클릭 시 드롭다운 닫기
+  // 외부 클릭 시 드롭다운 닫기
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (!(e.target as HTMLElement).closest('.todo-dropdown') &&
@@ -105,7 +110,33 @@ const TodoListPage: React.FC = () => {
           calendarType="gregory"
           prev2Label={null}
           next2Label={null}
-          formatDay={(_,date) => date.getDate().toString()}
+          formatDay={(_, date) => date.getDate().toString()} 
+
+          // 달성률 아이콘 표시
+          tileContent={({ date, view }) => {
+            if (view !== 'month') return null; // 월 단위만 적용
+
+            const todosOfDate = todos.filter(t => t.date === date.toISOString().split("T")[0]);
+            const total = todosOfDate.length || 1;
+            const doneCount = todosOfDate.filter(t => t.status === 'DONE').length;
+            const percent = Math.floor((doneCount / total) * 100);
+
+            let icon = icona;
+            if (percent >= 90) icon = icone;
+            else if (percent >= 60) icon = icond;
+            else if (percent >= 40) icon = iconc;
+            else if (percent >= 20) icon = iconb;
+            else icon = icona;
+
+            return (
+              <div style={{ position: 'relative' }}>
+                <div className="calendar-completion-icon">
+                  <img src={icon} alt="completion"/>
+                  <span className="calendar-completion-count">{doneCount}</span>
+                </div>
+              </div>
+            );
+          }}
         />
       </div>
 
