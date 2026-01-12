@@ -10,7 +10,6 @@ import {
   enterPrivateStudy,
 } from "../../api/studies";
 
-/** ====== 타입: API 응답 기반(필요 최소) ====== */
 type StudyDetail = {
   studyId: number;
   studyName: string;
