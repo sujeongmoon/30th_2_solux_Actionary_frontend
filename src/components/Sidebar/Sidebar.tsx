@@ -33,24 +33,35 @@ const MOCK_TODOS: SideTodoItem[] = [
 // MOCK 알림 데이터 (createdAt 형태)
 const MOCK_NOTIFICATIONS: NotificationItem[] = [
   {
-    id: 131,
+    notificationId: 131,
+    type: "COMMENT",
+    title: "내 게시글에 댓글이 달렸습니다.",
     content: "다현님이 작성한 글에 새로운 댓글이 있어요.",
     createdAt: "2025-10-31T12:55:00",
     link: "/board",
+    isRead: false, // 안읽음
   },
   {
-    id: 130,
+    notificationId: 130,
+    type: "POINT",
+    title: "포인트가 적립되었습니다.",
     content: "스터디 참여로 10P 적립!",
     createdAt: "2025-10-31T12:40:00",
     link: "/mypage/points",
+    isRead: true, // 읽음
   },
   {
-    id: 129,
+    notificationId: 129,
+    type: "DAILY_STUDY_SUMMARY",
+    title: "오늘 공부량 리포트",
     content: "오늘 총 3시간 20분 공부했어요 👏",
     createdAt: "2025-10-31T00:00:05",
     link: "/study/report",
+    isRead: true, // 읽음
   },
 ];
+
+
 
 
 const RightSidebar = () => {
@@ -63,15 +74,24 @@ const RightSidebar = () => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
+  const accessToken = localStorage.getItem('accessToken');
+  const isLoggedIn = Boolean(accessToken);
+
+  if (!isLoggedIn) return null; // 로그인 안되면 아예 렌더링 X
+
+
   // 알림 API 호출
   const fetchNotifications = async() => {
     try {
       const data: NotificationResponse[] = await getNotifications(20);
       const mapped: NotificationItem[] = data.map(n => ({
-      id: n.notificationId,
+      notificationId: n.notificationId,
+      type: n.type,
+      title: n.title,
       content: n.content,
       createdAt: n.createdAt,
       link: n.link,
+      isRead: n.isRead
     }));
 
       setNotifications(mapped);
