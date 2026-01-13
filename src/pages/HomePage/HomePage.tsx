@@ -3,7 +3,7 @@ import "./HomePage.css";
 import SearchIcon from '../../assets/homepage/SearchIcon.svg';
 import GradientArrow from '../../assets/homepage/Gradient_Arrow.svg';
 import BlackArrow from '../../assets/homepage/BlackArrow.svg';
-import { mockPopularPosts } from '../../types/MainPagePostType';
+//import { mockPopularPosts } from '../../types/MainPagePostType';
 import CommentIcon from '../../assets/homepage/HomePageCommentIcon.svg'
 import BookmarkSection from "../../components/Bookmark/BookmarkSection";
 //import { getPopularStudies } from "../../api/HomePage/getPopularStudies";
@@ -14,6 +14,8 @@ import { api } from '../../api/client';
 import MyStudyCarousel from "../StudyPage/MyStudyCarousel";
 import { type StudyListItem } from "../StudyPage/StudyPage";
 import StudyViewModal from "../StudyDetailPage/StudyViewModal";
+import { type PopularPost } from '../../types/MainPagePostType';
+import LoginAlertModal from "../../components/AlertModal/LoginAlertModal";
 
 const studyList = [
   {
@@ -53,8 +55,6 @@ const studyList = [
   }
 ];
 
-
-const boardList = mockPopularPosts;
 const HomePage: React.FC = () => {
 
   const isLoggedIn = Boolean(localStorage.getItem('accessToken'));
@@ -62,6 +62,17 @@ const HomePage: React.FC = () => {
   const [nickname, setNickname] = useState<string | undefined>();
   const [myFilter, setMyFilter] = useState<string>("ALL");
   const [selectedStudyId, setSelectedStudyId] = useState<number | null>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+const handleStudyClick = (studyId: number) => {
+  if (!isLoggedIn) {
+    setShowLoginModal(true); // 로그인 모달 띄우기
+    return;
+  }
+
+  setSelectedStudyId(studyId); // 로그인 되어 있으면 선택 처리
+};
+
 
 
 
@@ -145,6 +156,33 @@ const [selectedFile, setSelectedFile] = useState<File | null>(null);
 const bgClasses = ['study-dark', 'study-gradient', 'study-gray'];
 const handlePlusClick = () => setIsMenuOpen(prev => !prev);
 const handleCloseMenu = () => setIsMenuOpen(false);
+
+const [boardList, setBoardList] = useState<PopularPost[]>([]);
+const [boardLoading, setBoardLoading] = useState(true);
+useEffect(() => {
+  const fetchPopularPosts = async () => {
+    try {
+      setBoardLoading(true);
+      const res = await api.get('/api/posts/popular', {
+        params: { page: 0, size: 10 } // 0페이지, 10개
+      });
+      if (res.data.success) {
+        setBoardList(res.data.data.posts);
+      } else {
+        setBoardList([]);
+        console.error('인기 게시글 조회 실패:', res.data.message);
+      }
+    } catch (error) {
+      console.error('인기 게시글 조회 중 오류 발생', error);
+      setBoardList([]);
+    } finally {
+      setBoardLoading(false);
+    }
+  };
+
+  fetchPopularPosts();
+}, []);
+
 
   const handleOpenFilePicker = () => {
     if (fileInputRef.current) {
@@ -257,7 +295,8 @@ const handleCloseMenu = () => setIsMenuOpen(false);
           {paginatedStudies.map((item, index) => {
             const bgClass = bgClasses[index % bgClasses.length];
             return (
-              <div key={item.studyId} className={`study-card ${bgClass}`}>
+              <div key={item.studyId} className={`study-card ${bgClass}`} onClick={() => handleStudyClick(item.studyId)}
+                style={{ cursor: 'pointer'}}>
                 <img
                   src = {item.coverImage || study_noimg}
                   alt ={item.name}
@@ -302,25 +341,35 @@ const handleCloseMenu = () => setIsMenuOpen(false);
           <button
             className="popular-board-more"
             onClick={() => navigate('/board')}>더보기</button>
-        </div>
-          <div className="popular-board-grid">
-            {boardList.map(item => (
-              <div key={item.postId} className="board-item">
-                <span className = {`board-tag ${
-                  item.type === '소통' ? 'tag-communication' : 
-                  item.type === '멘토' ? 'tag-study' : 'tag-question'
-                  }`}>
-                    <span className="board-tag-text">{item.type}</span></span>
-                <p className="board-content">{item.title}</p>
-                <span className="board-likes">
-                  <img src = {CommentIcon} alt="댓글 아이콘" className="comment-icon-img"/>
-                  <span className="likes-count">{item.comment_count}</span>
-                </span>
-              </div>
-            ))}
-      
+            </div>
+            <div className="popular-board-grid">
+              {boardLoading ? (
+                <p>로딩중...</p>
+              ) : (
+                boardList.map(item => (
+                  <div key={item.postId} className="board-item" onClick={() => navigate(`/board/${item.postId}`)}>
+                    <span className={`board-tag ${
+                      item.type === '소통' ? 'tag-communication' :
+                      item.type === '멘토' ? 'tag-study' : 'tag-question'
+                    }`}>
+                      <span className="board-tag-text">{item.type}</span>
+                    </span>
+                    <p className="board-content">{item.title}</p>
+                    <span className="board-likes">
+                      <img src={CommentIcon} alt="댓글 아이콘" className="comment-icon-img"/>
+                      <span className="likes-count">{item.commentCount}</span>
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+
           </div>
-      </div>
+          <LoginAlertModal
+              isOpen={showLoginModal}
+              onClose={() => setShowLoginModal(false)}
+              onLogin={() => navigate("/login")} // 로그인 버튼 누르면 로그인 페이지로 이동
+          />
 
     </div>
     </>
