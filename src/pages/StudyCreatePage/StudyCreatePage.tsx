@@ -1,6 +1,8 @@
 import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./StudyCreatePage.css";
+import SuccessImg from "../../assets/Group 148.png"; 
+import LogoImg from "../../assets/로고.png";
 
 type Visibility = "public" | "private";
 
@@ -112,10 +114,8 @@ export default function StudyCreatePage() {
       {successModalOpen && (
         <div className="successOverlay" role="dialog" aria-modal="true">
           <div className="successModal">
-            <div className="successBrand">ACTIONARY</div>
-
-            {/* 로고 위치: 피그마 기준(absolute + center) */}
-            <div className="successLogo" aria-hidden="true" />
+          <img src={LogoImg} alt="ACTIONARY" className="successBrandImg"/>
+            <img className="successLogo" src={SuccessImg} alt="" aria-hidden="true" />
 
             <div className="successTitle">성공적으로 스터디가 만들어졌습니다</div>
             <div className="successSub">이제 함께 달려볼까요 ?</div>

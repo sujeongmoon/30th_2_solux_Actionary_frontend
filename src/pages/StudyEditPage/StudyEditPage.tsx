@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./StudyEditPage.css";
 import SuccessImg from "../../assets/Group 148.png";
+import LogoImg from "../../assets/로고.png";
 
 type Visibility = "public" | "private";
 
@@ -223,7 +224,7 @@ export default function StudyEditPage() {
       {successModalOpen && (
         <div className="successOverlay" role="dialog" aria-modal="true">
           <div className="successModal">
-            <div className="successBrand">ACTIONARY</div>
+          <img src={LogoImg} alt="ACTIONARY" className="successBrandImg"/>
             <img className="successLogo" src={SuccessImg} alt="" aria-hidden="true" />
 
             <div className="successTitle">성공적으로 스터디가 수정되었습니다</div>

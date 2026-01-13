@@ -161,21 +161,7 @@
   justify-content:flex-start;
 }
 
-.successBrand{
-  font-weight: 900;
-  font-size: 12px;
-  letter-spacing: .04em;
-  opacity: .95;
-}
 
-/* 피그마 CSS 참고: absolute + 가운데 정렬 */
-/* Group 148
- position: absolute;
- width: 76.12px;
- height: 71.77px;
- left: calc(50% - 76.12px/2);
- top: 424.4px;
-*/
 .successLogo{
   position: absolute;
   width: 76.12px;
@@ -186,9 +172,6 @@
   border-radius: 18px;
 }
 
-/* 로고 실제 이미지로 바꾸고 싶으면:
-.successLogo{ background: url("/assets/logo.svg") center/contain no-repeat; }
-*/
 
 .successTitle{
   margin-top: 112px;

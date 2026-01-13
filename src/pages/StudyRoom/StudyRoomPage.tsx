@@ -5,8 +5,10 @@ import "./StudyRoomPage.css";
 
 import lampIcon from "../../assets/icons/hugeicons_study-lamp.svg";
 import cameraIcon from "../../assets/icons/majesticons_camera-line.svg";
+import cameraOffIcon from "../../assets/icons/majesticons_camera-line_no.svg";
 import moonIcon from "../../assets/icons/solar_moon-sleep-linear.svg";
 import micIcon from "../../assets/icons/stash_mic-solid.svg";
+import micOffIcon from "../../assets/icons/Frame 106.svg";
 import avatarIcon from "../../assets/icons/Vector.svg";
 
 type Participant = {
@@ -495,13 +497,25 @@ export default function StudyRoomPage() {
           </div>
 
           <div className="srDockRight">
-            <button type="button" className="srCtlIcon" onClick={() => setCamOn((v) => !v)} aria-label="camera">
-              <img src={cameraIcon} alt="camera" />
-            </button>
+          <button
+            type="button"
+            className={`srCtlIcon ${camOn ? "isOn" : "isOff"}`}
+            onClick={() => setCamOn((v) => !v)}
+            aria-label="camera"
+            aria-pressed={!camOn}
+          >
+            <img src={camOn ? cameraIcon : cameraOffIcon} alt={camOn ? "camera on" : "camera off"} />
+          </button>
 
-            <button type="button" className="srCtlIcon" onClick={() => setMicOn((v) => !v)} aria-label="mic">
-              <img src={micIcon} alt="mic" />
-            </button>
+          <button
+            type="button"
+            className={`srCtlIcon ${micOn ? "isOn" : "isOff"}`}
+            onClick={() => setMicOn((v) => !v)}
+            aria-label="mic"
+            aria-pressed={!micOn}
+          >
+            <img src={micOn ? micIcon : micOffIcon} alt={micOn ? "mic on" : "mic off"} />
+          </button>
           </div>
         </div>
       </div>
