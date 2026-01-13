@@ -122,7 +122,7 @@ const BoardListPage: React.FC = () => {
         <span className="nav-divider">|</span>
         <a href="/studies" className="nav-link">스터디</a>
       </nav>
-      <div className="divider" />
+      <div className="sub-nav-divider" />
     <div className="board-container">
 
       <div className="content-section">

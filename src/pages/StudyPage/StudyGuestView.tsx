@@ -3,7 +3,7 @@ import "./StudyPage.css";
 import "../../pages/HomePage/HomePage.css";
 
 import StudyNoImg from "../../assets/study_noimg.png";
-import MainPageLogo from "../../assets/homepage/MainPageLogo.svg";
+import CTABox from "../../components/HomePage/CTAbox";
 import { useState } from "react";
 import LoginAlertModal from "../../components/AlertModal/LoginAlertModal";
 
@@ -50,25 +50,11 @@ export default function StudyGuestView(props: Props) {
         <span className="nav-divider">|</span>
         <a href="/board" className="nav-link">게시판</a>
       </nav>
-      <div className="divider"></div>
+      <div className="sub-nav-divider"></div>
 
       {/* CTA */}
-      <section className="studyCta">
-        <div
-          className="studyCtaBox"
-          role="button"
-          tabIndex={0}
-          onClick={() => navigate("/login")}
-          onKeyDown={(e: any) => e.key === "Enter" && navigate("/login")}
-        >
-          <div className="studyCtaPlus">+</div>
-
-          <p className="studyCtaText">
-            <img src={MainPageLogo} alt="Actionary" className="studyCtaLogo" />
-            지금 로그인 하고, 나만의 스터디를 만들어보세요 !
-          </p>
-        </div>
-      </section>
+      
+      <CTABox isLoggedIn={false} />
 
       {/* ✅ 필터바 (로그인뷰랑 동일 구조로 통일) */}
       <section className="studyFilterBar">
