@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./Navbar.css";
 import Searchbar from "./Searchbar";
 import LoginAlertModal from "../AlertModal/LoginAlertModal";
-
-import Nlogo from "../../assets/navbar/Nlogo.svg";
+import Nlogo from '../../assets/Navbar/Nlogo.svg';
 import ProfilePerson from "../../assets/navbar/ProfilePerson.svg";
 
 const Navbar = () => {
