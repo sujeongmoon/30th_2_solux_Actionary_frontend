@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import './Searchbar.css';
 import { useNavigate } from "react-router-dom";
 
-import SearchIcon from "../../assets/Navbar/SearchIcon.svg";
+
+import SearchIcon from '../../assets/Navbar/SearchIcon.svg';
 import Dropdown from '../../assets/Navbar/dropdown.svg';
 
 type Category = "전체" | "게시글" | "스터디";

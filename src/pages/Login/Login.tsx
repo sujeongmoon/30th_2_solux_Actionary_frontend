@@ -19,23 +19,12 @@ const Login: React.FC = () => {
   const handleLogin = async () => {
     if (!loginId || !password) return;
 
-    // 1) 테스트 로그인 (백엔드 없어도 UI 확인 가능)
-    if (loginId === "test" && password === "1234") {
-      setToken("test-access-token");
-      navigate("/studies");
-      return;
-    }
-
     // 2) 실제 로그인 (백엔드 붙었을 때)
     try {
       const data = await login({ loginId, password });
       console.log("로그인 성공:", data);
 
-      const token =
-        data?.data?.accessToken ??
-        data?.accessToken ??
-        data?.data?.token ??
-        data?.token;
+      const token = data.data.accessToken;
 
       if (!token) {
         console.log("토큰이 응답에 없습니다:", data);
