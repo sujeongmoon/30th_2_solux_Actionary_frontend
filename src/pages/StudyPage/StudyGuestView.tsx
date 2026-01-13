@@ -4,6 +4,8 @@ import "../../pages/HomePage/HomePage.css";
 
 import StudyNoImg from "../../assets/study_noimg.png";
 import MainPageLogo from "../../assets/homepage/MainPageLogo.svg";
+import { useState } from "react";
+import LoginAlertModal from "../../components/AlertModal/LoginAlertModal";
 
 type Props = any;
 
@@ -29,6 +31,14 @@ export default function StudyGuestView(props: Props) {
 
     onOpenStudy,
   } = props;
+
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const handleOpenStudy = (studyId: number) => {
+  // 로그인 안 됨 → 모달 띄움
+  setShowLoginModal(true);
+};
+
+
 
   return (
     <>
@@ -121,7 +131,7 @@ export default function StudyGuestView(props: Props) {
               <article
                 key={s.studyId}
                 className="studyCard"
-                onClick={() => onOpenStudy(s.studyId)}
+                onClick={() => handleOpenStudy(s.studyId)}
                 role="button"
                 tabIndex={0}
               >
@@ -174,6 +184,13 @@ export default function StudyGuestView(props: Props) {
         >
           ›
         </button>
+
+        <LoginAlertModal
+          isOpen={showLoginModal}
+          onClose={() => setShowLoginModal(false)}
+          onLogin={() => navigate("/login")} // 로그인 버튼 누르면 로그인 페이지로 이동
+        />
+
       </div>
     </>
   );

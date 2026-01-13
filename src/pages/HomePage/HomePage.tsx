@@ -15,6 +15,7 @@ import MyStudyCarousel from "../StudyPage/MyStudyCarousel";
 import { type StudyListItem } from "../StudyPage/StudyPage";
 import StudyViewModal from "../StudyDetailPage/StudyViewModal";
 import { type PopularPost } from '../../types/MainPagePostType';
+import LoginAlertModal from "../../components/AlertModal/LoginAlertModal";
 
 const studyList = [
   {
@@ -61,6 +62,17 @@ const HomePage: React.FC = () => {
   const [nickname, setNickname] = useState<string | undefined>();
   const [myFilter, setMyFilter] = useState<string>("ALL");
   const [selectedStudyId, setSelectedStudyId] = useState<number | null>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+const handleStudyClick = (studyId: number) => {
+  if (!isLoggedIn) {
+    setShowLoginModal(true); // 로그인 모달 띄우기
+    return;
+  }
+
+  setSelectedStudyId(studyId); // 로그인 되어 있으면 선택 처리
+};
+
 
 
 
@@ -283,7 +295,7 @@ useEffect(() => {
           {paginatedStudies.map((item, index) => {
             const bgClass = bgClasses[index % bgClasses.length];
             return (
-              <div key={item.studyId} className={`study-card ${bgClass}`} onClick={() => setSelectedStudyId(item.studyId)}
+              <div key={item.studyId} className={`study-card ${bgClass}`} onClick={() => handleStudyClick(item.studyId)}
                 style={{ cursor: 'pointer'}}>
                 <img
                   src = {item.coverImage || study_noimg}
@@ -353,6 +365,12 @@ useEffect(() => {
             </div>
 
           </div>
+          <LoginAlertModal
+              isOpen={showLoginModal}
+              onClose={() => setShowLoginModal(false)}
+              onLogin={() => navigate("/login")} // 로그인 버튼 누르면 로그인 페이지로 이동
+          />
+
     </div>
     </>
   );

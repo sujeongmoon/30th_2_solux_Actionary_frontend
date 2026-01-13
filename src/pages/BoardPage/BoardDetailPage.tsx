@@ -10,6 +10,7 @@ import send from '../../assets/homepage/Gradient_Arrow.svg';
 //import { getComments, createComment, deleteComment } from '../../api/boardDetail/comment';
 import { useNavigate } from 'react-router-dom'
 import { usePosts } from '../../context/PostContext';
+import LoginAlertModal from '../../components/AlertModal/LoginAlertModal';
 
 /* ================= MOCK DATA ================= */
 const MOCK_COMMENTS: Comment[] = [
@@ -75,12 +76,17 @@ const BoardDetailPage = () => {
 
   /** ref */
   const postMenuRef = useRef<HTMLDivElement | null>(null);
-
-  const [loginUserId] = useState<number>(1); // 로그인 사용자 설정
+ 
 
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editingCommentText, setEditingCommentText] = useState('');
   const [editingIsSecret, setEditingIsSecret] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  const accessToken = localStorage.getItem('accessToken');
+  const isLoggedIn = Boolean(accessToken);
+
+  const loginUserId = isLoggedIn ? 1: null; //mockData용
 
   /* 실제 연동용 코드 */
   {/*
@@ -111,6 +117,10 @@ const BoardDetailPage = () => {
 
   {/* 댓글 작성 기능 (MockData) */ }
   const handleCommentSubmitMock = () => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
   if (!commentText.trim()) return; // 빈 댓글 방지
 
   const newComment: Comment = {
@@ -137,6 +147,11 @@ const BoardDetailPage = () => {
 {/*댓글 작성 API 연동용 */}
 {/*
 const handleCommentSubmit = async () => {
+
+  if (!isLoggedIn) {
+    requireLogin();
+    return;
+  }
   if (!commentText.trim() || !postId) return;
 
   try {
@@ -207,6 +222,8 @@ const handleCommentSubmit = async () => {
   );
 };
 
+
+
   /** 바깥 클릭 시 드롭다운 닫기 */
 
   if (loading) return <div className="loading">로딩 중...</div>;
@@ -221,10 +238,7 @@ const handleCommentSubmit = async () => {
   return `${year}/${month}/${day}`;
 };
 
-
-
-  // mock 로그인 유저
-  const isMyPost = author.memberId === loginUserId;
+  const isMyPost = isLoggedIn && author.memberId === loginUserId;
 
   return (
     <div className="board-detail-container">
@@ -257,7 +271,9 @@ const handleCommentSubmit = async () => {
               <div className="menu-wrapper">
                 <button
                   className="more-btn"
-                  onClick={() => setIsPostMenuOpen((prev) => !prev)}
+                  onClick={() => {
+                    setIsPostMenuOpen(prev => !prev);
+                  }}
                 >
                   ⋮
                 </button>
@@ -312,7 +328,7 @@ const handleCommentSubmit = async () => {
         </h2>
         
         {comments.map((comment) => {
-          const isMyComment = loginUserId === comment.author.memberId;
+          const isMyComment = isLoggedIn && loginUserId === comment.author.memberId;
           const isPostAuthor = loginUserId === author.memberId;
 
           const commentContent =
@@ -466,6 +482,17 @@ const handleCommentSubmit = async () => {
           </button>
         </div>
       </div>
+      {showLoginModal && (
+  < LoginAlertModal
+    isOpen={showLoginModal}
+    onClose={() => setShowLoginModal(false)}
+    onLogin={() => {                       // 로그인 버튼 눌렀을 때
+    setShowLoginModal(false);              // 모달 닫기
+    navigate('/login');                     // 로그인 페이지로 이동
+  }}
+  />
+)}
+
     </div>
   );
 };
