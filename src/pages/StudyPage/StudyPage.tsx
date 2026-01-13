@@ -33,7 +33,7 @@ const CATEGORY_OPTIONS: { label: string; value?: CategoryEnum }[] = [
 // “나만의 스터디” 상단 필터 (아래 필터랑 완전 별개)
 type MyFilter = "ALL" | "CREATED" | "JOINED" | "FAVORITE";
 
-type StudyListItem = {
+export type StudyListItem = {
   studyId: number;
   studyName: string;
   coverImage?: string | null;

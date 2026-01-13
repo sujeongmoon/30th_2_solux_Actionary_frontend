@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useState, /*useEffect*/ } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./HomePage.css";
 import SearchIcon from '../../assets/homepage/SearchIcon.svg';
 import GradientArrow from '../../assets/homepage/Gradient_Arrow.svg';
 import BlackArrow from '../../assets/homepage/BlackArrow.svg';
-//import { mockPopularPosts } from '../../types/MainPagePostType';
 import CommentIcon from '../../assets/homepage/HomePageCommentIcon.svg'
 import BookmarkSection from "../../components/Bookmark/BookmarkSection";
-//import { getPopularStudies } from "../../api/HomePage/getPopularStudies";
+import { getPopularStudies } from "../../api/HomePage/getPopularStudies";
+import type {StudyPopularListItem} from '../../types/HomePageTypes';
 import { useNavigate } from "react-router-dom";
 import study_noimg from '../../assets/homepage/study_noimg.svg';
 import CTAbox from '../../components/HomePage/CTAbox';
@@ -14,46 +14,9 @@ import { api } from '../../api/client';
 import MyStudyCarousel from "../StudyPage/MyStudyCarousel";
 import { type StudyListItem } from "../StudyPage/StudyPage";
 import StudyViewModal from "../StudyDetailPage/StudyViewModal";
-import { type PopularPost } from '../../types/MainPagePostType';
+import { type PopularPostsResponse, type PopularPost } from '../../types/MainPagePostType';
 import LoginAlertModal from "../../components/AlertModal/LoginAlertModal";
 
-const studyList = [
-  {
-    studyId: 1,
-    name: "자바 공부방",
-    coverImage: "https://images.unsplash.com/photo-1513258496099-48168024aec0",
-    description: "자바를 공부하는 방입니다.",
-    count: 256
-  },
-  {
-    studyId: 2,
-    name: "A+ 가자",
-    coverImage: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f",
-    description: "시험 공부를 함께 하며 목표 달성!",
-    count: 198
-  },
-  {
-    studyId: 3,
-    name: "CPA 뿌시자",
-    coverImage: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f",
-    description: "회계 공부 집중 스터디",
-    count: 342
-  },
-  {
-    studyId: 4,
-    name: "React 스터디",
-    coverImage: "",
-    description: "React 기초부터 심화까지",
-    count: 289
-  },
-  {
-    studyId: 5,
-    name: "토익 900점 목표방",
-    coverImage: "",
-    description: "토익900점 가자아아앗",
-    count: 150
-  }
-];
 
 const HomePage: React.FC = () => {
 
@@ -64,17 +27,32 @@ const HomePage: React.FC = () => {
   const [selectedStudyId, setSelectedStudyId] = useState<number | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
+  // 스터디 불러오기
+  const [studyList, setStudyList] = useState<StudyPopularListItem[]>([]);
+  const [studyPage, setStudyPage] = useState(0);
+  const [studyPageCount, setStudyPageCount] = useState(0);
+  const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [selectedFileName, setSelectedFileName] = useState<string>("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const bgClasses = ['study-dark', 'study-gradient', 'study-gray'];
+  const handlePlusClick = () => setIsMenuOpen(prev => !prev);
+  const handleCloseMenu = () => setIsMenuOpen(false);
+
+  const [boardList, setBoardList] = useState<PopularPost[]>([]);
+  const [boardLoading, setBoardLoading] = useState(true);
+
+
+
 const handleStudyClick = (studyId: number) => {
   if (!isLoggedIn) {
     setShowLoginModal(true); // 로그인 모달 띄우기
     return;
   }
-
   setSelectedStudyId(studyId); // 로그인 되어 있으면 선택 처리
 };
-
-
-
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -93,9 +71,9 @@ const handleStudyClick = (studyId: number) => {
   }, [isLoggedIn]);
 
   useEffect(() => {
-    const fetchMyStudies = async () => {
-      if (!isLoggedIn) return;
+    if (!isLoggedIn) return;
 
+    const fetchMyStudies = async () => {
       try {
         const response = await api.get("/studies/my", {
           params: {
@@ -117,53 +95,26 @@ const handleStudyClick = (studyId: number) => {
     fetchMyStudies();
   }, [isLoggedIn]);
 
-
-
-
-  //임시로 mockData 사용
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-
-  // 스터디 페이지네이션
-  const studiesPerPage = 3;
-  const studyPageCount = Math.ceil(studyList.length / studiesPerPage);
-
-  // 스터디 불러오기
-  //const [studyList, setStudyList] = useState([]);
-  const [studyPage, setStudyPage] = useState(0);
-  //const [studyPageCount, setStudyPageCount] = useState(0);
-
-  {/*연동 시 주석 풀기*/}
-  {/*useEffect(() => {
-    const fetchPopularStudies = async () => {
-      try {
-        const res = await getPopularStudies(studyPage);
-        if (res.success) {
-          setStudyList(res.data.studies);
-          setStudyPageCount(res.data.totalPages);
-        } else {
-          console.error('인기 스터디 조회 실패:', res.message);
-        }
-      } catch (error) {
-        console.error('인기 스터디 조회 중 오류 발생:', error);
-      }
+  
+useEffect(() => {
+  const fetchPopularStudy = async () => {
+    try {
+      const res = await getPopularStudies(studyPage);
+      setStudyList(res.studies);
+      setStudyPageCount(res.totalPages);
+    } catch (err) {
+      console.error('인기 스터디 조회 실패', err);
+    }
   };
-fetchPopularStudies();
-}, [studyPage]); */}
-const [selectedFileName, setSelectedFileName] = useState<string>("");
-const [selectedFile, setSelectedFile] = useState<File | null>(null);
-const bgClasses = ['study-dark', 'study-gradient', 'study-gray'];
-const handlePlusClick = () => setIsMenuOpen(prev => !prev);
-const handleCloseMenu = () => setIsMenuOpen(false);
+  fetchPopularStudy();
+}, [studyPage])
 
-const [boardList, setBoardList] = useState<PopularPost[]>([]);
-const [boardLoading, setBoardLoading] = useState(true);
+
 useEffect(() => {
   const fetchPopularPosts = async () => {
     try {
       setBoardLoading(true);
-      const res = await api.get('/api/posts/popular', {
+      const res = await api.get<PopularPostsResponse>('/api/posts/popular', {
         params: { page: 0, size: 10 } // 0페이지, 10개
       });
       if (res.data.success) {
@@ -201,14 +152,6 @@ useEffect(() => {
   };
 
   const handleStudyPageClick = (pageIndex: number) => setStudyPage(pageIndex);
-
-
-  const paginatedStudies = studyList.slice(
-    studyPage * studiesPerPage,
-    studyPage * studiesPerPage + studiesPerPage
-  );
-
-  const navigate = useNavigate();
 
   const handleSearchClick = () => {
     if (!selectedFile) return;
@@ -292,21 +235,21 @@ useEffect(() => {
         </div>
 
         <div className="popular-study-grid">
-          {paginatedStudies.map((item, index) => {
+          {studyList.map((item, index) => {
             const bgClass = bgClasses[index % bgClasses.length];
             return (
               <div key={item.studyId} className={`study-card ${bgClass}`} onClick={() => handleStudyClick(item.studyId)}
                 style={{ cursor: 'pointer'}}>
                 <img
                   src = {item.coverImage || study_noimg}
-                  alt ={item.name}
+                  alt = {item.studyName}
                   className="study-card-img"
                 />
                 <div className="study-card-content">
-                  <h3 className="study-card-title">{item.name}</h3>
+                  <h3 className="study-card-title">{item.studyName}</h3>
                     {item.description && <p className="study-card-desc">{item.description}</p>}
                     <div className="study-card-footer">
-                      <span className="study-card-count">{item.count.toLocaleString()} 명</span>
+                      <span className="study-card-count">{Number(item.memberNow).toLocaleString()} 명</span>
                       <div className="study-card-arrow">
                       {bgClass === 'study-dark' ? (
                       <img src={GradientArrow} alt="gradient arrow" />
