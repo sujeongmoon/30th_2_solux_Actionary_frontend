@@ -1,5 +1,6 @@
 /* 전체 서치바 */
 .searchbar {
+  position: static;
   display: flex;
   align-items: center;
   width: 600px;
@@ -8,7 +9,6 @@
   border-radius: 999px;
   padding: 0 5px;
   box-sizing: border-box;
-  margin-left: -300px;
 }
 
 /* 전체 테두리 */

@@ -8,6 +8,12 @@
   border-bottom: 2px;
 }
 
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
 .navbar-actions {
   display: flex;
   align-items: center;
@@ -100,4 +106,14 @@
   display: flex;
   align-items: center;
   gap: 20px;
+}
+
+.navbar-searchbar {
+  margin-left: 80px;
+}
+
+@media (max-width: 800px) {
+  .navbar-searchbar {
+    display: none;
+  }
 }
