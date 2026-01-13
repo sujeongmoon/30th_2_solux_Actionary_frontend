@@ -230,7 +230,7 @@ useEffect(() => {
       <span className="nav-divider">|</span>
       <a href="/board" className="nav-link">게시판</a>
     </nav>
-    <div className="divider"></div>
+    <div className="sub-nav-divider"></div>
     <div className="homepage-content-wrapper">
 
       {/* ===== 2. 메인 콘텐츠 ===== */}

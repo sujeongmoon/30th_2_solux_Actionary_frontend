@@ -37,8 +37,11 @@ const CTABox: React.FC<CTABoxProps> = ({ isLoggedIn, nickname }) => {
         </div>
         <p className="cta-text">
           <img src={MainPageLogo} alt="Actionary Logo" className="cta-logo" /> 
-          지금 로그인 하고, 나만의 스터디를 만들어보세요!
+          {isLoggedIn
+            ? `${nickname}님, 나만의 스터디를 만들어보세요!`
+            : "지금 로그인 하고, 나만의 스터디를 만들어보세요!"}
         </p>
+
       </div>
     </div>
   );

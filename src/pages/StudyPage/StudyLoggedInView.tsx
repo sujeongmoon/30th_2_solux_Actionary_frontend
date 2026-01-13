@@ -44,7 +44,7 @@ export default function StudyLoggedInView(props: Props) {
         <span className="nav-divider">|</span>
         <a href="/board" className="nav-link">게시판</a>
       </nav>
-      <div className="divider-study"></div>
+      <div className="sub-nav-divider"></div>
 
       {myStudies.length > 0 ? (
         <MyStudyCarousel

@@ -5,10 +5,6 @@ body {
 
 }
 
-.home-main-content {
-  display: flex;
-  flex-direction: column;
-}
 .homepage-content-wrapper {
   width: 100%;
 
@@ -58,12 +54,20 @@ body {
 }
 
 
+.sub-nav-divider {
+  width: 93%;
+  height: 1px;
+  background-color: #B3B3B3; /* 선의 색상 */
+  margin: 0 auto 55px auto;
+}
+
+
 /* ===== 2. 메인 콘텐츠 ===== */
 .home-main-content {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px 0; /* 상단 sub-navigation과의 간격은 margin-bottom으로 처리함 */
+  flex-direction: column; /* 상단 sub-navigation과의 간격은 margin-bottom으로 처리함 */
 }
 
 .Ai-Container {
