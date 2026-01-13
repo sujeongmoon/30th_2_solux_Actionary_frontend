@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./Login.css";
 
-import Loginvector from "../../assets/login/LoginVector.svg";
+import Loginvector from "../../assets/login/Loginvector.svg";
 import LoginLogo from "../../assets/login/LoginLogo.svg";
 import { useLogin } from "../../hooks/useLogin";
 import { useNavigate } from "react-router-dom";
