@@ -1,6 +1,6 @@
 /* NickNameModal.css의 overlay 스타일을 공유하거나 복사해서 사용하세요 */
 /* 1. 배경 오버레이 */
-.login-alert-modal-overlay {
+.alert-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -13,13 +13,13 @@
   z-index: 1000;
 }
 
-.login-modal-title-icon {
+.modal-title-icon {
   display: block;
   align-items: center;
 
 }
 /* 2. 모달 본체 */
-.login-alert-modal-content {
+.alert-modal-content {
   background-color: #212228; /* 다크 테마 배경 */
   width: 330px;
   padding: 40px;
@@ -28,7 +28,7 @@
   box-shadow: 0px 2px 15px 5px #0000001A;
 }
 
-.login-alert-modal-header {
+.alert-modal-header {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -39,7 +39,7 @@
   padding: 0px;
 }
 
-.login-alert-modal {
+.alert-modal {
   min-width: 500px; /* 이미지에 명시된 너비 */
   min-height: 300px; /* 이미지에 명시된 높이 */
   display: flex;
@@ -47,20 +47,20 @@
   justify-content: space-between;
 }
 
-.login-alert-modal-buttons {
+.alert-modal-buttons {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
 }
 
-.login-alert-body {
+.alert-body {
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.login-alert-text {
+.alert-text {
   display: flex;
   align-items: center;
   font-size: 24px; 
@@ -71,13 +71,13 @@
   gap: 8px;
 }
 
-.login-alert-bold-white {
+.alert-bold-white {
   width: 200px;
   color: #FFFFFF;
 }
 
 
-.login-alert-btn-cancel {
+.alert-btn-cancel {
   padding: 10px 35px;
   min-width: 50px;
   border-radius: 25px;

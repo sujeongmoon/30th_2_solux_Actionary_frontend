@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import "./StudyViewModal.css";
+import ActionaryLoginModal from "./ActionaryLoginModal/ActionaryLoginModal";
+
 import {
   getStudyDetail,
   toggleStudyLike,
@@ -30,30 +32,28 @@ type RankingRow = {
   totalDurationSeconds: number;
 };
 
-type RankingsResponse = {
-  studyId: number;
-  isToday: boolean;
-  rankingBoards: RankingRow[];
-};
-
-/** ====== Props ====== */
 type Props = {
   open: boolean;
   onClose: () => void;
-
-  /** StudyPage에서 카드 클릭 시 넘겨줄 id */
   studyId: number | null;
 };
 
-
-/** ====== 유틸 ====== */
 function toHM(sec: number) {
   const h = Math.floor(sec / 3600);
   const m = Math.floor((sec % 3600) / 60);
-  return `${h}시간_${m}분`;
+
+  if (h === 0) {
+    return `${m}분`;
+  }
+
+  if (m === 0) {
+    return `${h}시간`;
+  }
+
+  return `${h}시간 ${m}분`;
 }
 
-// 목업 상세 데이터 (studyId별)
+/* ===== 목업 ===== */
 const MOCK_DETAIL: Record<number, StudyDetail> = {
   1: {
     studyId: 1,
@@ -75,7 +75,7 @@ const MOCK_DETAIL: Record<number, StudyDetail> = {
     description: "공무원 한국사 같이 달려요",
     memberNow: 3,
     memberLimit: 10,
-    isPublic: true, 
+    isPublic: true,
     isStudyLike: true,
     isStudyOwner: false,
   },
@@ -99,7 +99,7 @@ const MOCK_DETAIL: Record<number, StudyDetail> = {
     description: "이 스터디는 비공개입니다. 비밀번호가 필요합니다.",
     memberNow: 3,
     memberLimit: 10,
-    isPublic: false,        
+    isPublic: false,
     isStudyLike: false,
     isStudyOwner: false,
   },
@@ -129,6 +129,12 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [rankTab, setRankTab] = useState<"today" | "total">("today");
 
+  /** 액셔너리 모달 (로그인 필요 / 정원초과 공통으로) */
+  const [actionModalOpen, setActionModalOpen] = useState(false);
+  const [actionModalMode, setActionModalMode] = useState<"login_enter" | "login_like" | "capacity">(
+    "login_enter"
+  );
+
   /** 상세 데이터 */
   const [detail, setDetail] = useState<StudyDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -151,6 +157,9 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
   /** 입장 로딩 */
   const [enterLoading, setEnterLoading] = useState(false);
 
+  /** 로그인 여부: 클릭 시점마다 확인 */
+  const isLoggedInNow = () => !!localStorage.getItem("accessToken");
+
   /** ESC 닫기 */
   useEffect(() => {
     if (!open) return;
@@ -168,97 +177,94 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
     setRankTab("today");
     setPwModalOpen(false);
     setPwError(null);
+    setActionModalOpen(false);
   }, [open]);
 
-useEffect(() => {
-  if (!open || !studyId) return;
+  /** 상세 불러오기 */
+  useEffect(() => {
+    if (!open || !studyId) return;
 
-  // 목업 모드: studyId별로 detail 주입
-  if (USE_MOCK) {
-    setDetailLoading(false);
-    setDetailError(null);
+    if (USE_MOCK) {
+      setDetailLoading(false);
+      setDetailError(null);
 
-    const picked = MOCK_DETAIL[studyId];
-    setDetail(
-      picked ?? {
-        studyId,
-        studyName: `스터디 #${studyId}`,
-        coverImage: "https://picsum.photos/seed/fallback/600/600",
-        categoryLabel: "기타",
-        description: "목업 상세 데이터가 없습니다.",
-        memberNow: 0,
-        memberLimit: 10,
-        isPublic: true,
-        isStudyLike: false,
-        isStudyOwner: false,
-      }
-    );
-    return;
-  }
-
-  let mounted = true;
-
-  (async () => {
-    setDetailLoading(true);
-    setDetailError(null);
-    try {
-      const data = await getStudyDetail(studyId);
-      if (mounted) setDetail(data);
-    } catch (e: any) {
-      if (mounted) {
-        setDetailError(e?.response?.data?.message ?? "스터디 정보를 불러오지 못했습니다.");
-        setDetail(null);
-      }
-    } finally {
-      if (mounted) setDetailLoading(false);
+      const picked = MOCK_DETAIL[studyId];
+      setDetail(
+        picked ?? {
+          studyId,
+          studyName: `스터디 #${studyId}`,
+          coverImage: "https://picsum.photos/seed/fallback/600/600",
+          categoryLabel: "기타",
+          description: "목업 상세 데이터가 없습니다.",
+          memberNow: 0,
+          memberLimit: 10,
+          isPublic: true,
+          isStudyLike: false,
+          isStudyOwner: false,
+        }
+      );
+      return;
     }
-  })();
 
-  return () => {
-    mounted = false;
-  };
-}, [open, studyId]);
+    let mounted = true;
+    (async () => {
+      setDetailLoading(true);
+      setDetailError(null);
+      try {
+        const data = await getStudyDetail(studyId);
+        if (mounted) setDetail(data);
+      } catch (e: any) {
+        if (mounted) {
+          setDetailError(e?.response?.data?.message ?? "스터디 정보를 불러오지 못했습니다.");
+          setDetail(null);
+        }
+      } finally {
+        if (mounted) setDetailLoading(false);
+      }
+    })();
 
-useEffect(() => {
-  if (!open || studyId == null) return;
+    return () => {
+      mounted = false;
+    };
+  }, [open, studyId]);
 
-  if (USE_MOCK) {
-    setRankLoading(false);
-    setRankError(null);
-    setRankRows(MOCK_RANKINGS[studyId] ?? []);
-    return;
-  }
+  /** 랭킹 */
+  useEffect(() => {
+    if (!open || studyId == null) return;
 
-  let mounted = true;
-
-  (async () => {
-    try {
-      setRankLoading(true);
+    if (USE_MOCK) {
+      setRankLoading(false);
       setRankError(null);
-
-      const data = await getStudyRankings(studyId, rankTab === "today");
-
-      if (mounted) {
-        setRankRows(data.rankingBoards ?? []);
-      }
-    } catch (e: any) {
-      if (mounted) {
-        setRankError(
-          e?.response?.data?.message ?? "랭킹 데이터를 불러오지 못했습니다."
-        );
-        setRankRows([]);
-      }
-    } finally {
-      if (mounted) setRankLoading(false);
+      setRankRows(MOCK_RANKINGS[studyId] ?? []);
+      return;
     }
-  })();
 
-  return () => {
-    mounted = false;
-  };
-}, [open, studyId, rankTab]);
+    let mounted = true;
+    (async () => {
+      try {
+        setRankLoading(true);
+        setRankError(null);
+
+        const data = await getStudyRankings(studyId, rankTab === "today");
+        if (mounted) setRankRows(data.rankingBoards ?? []);
+      } catch (e: any) {
+        if (mounted) {
+          setRankError(e?.response?.data?.message ?? "랭킹 데이터를 불러오지 못했습니다.");
+          setRankRows([]);
+        }
+      } finally {
+        if (mounted) setRankLoading(false);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [open, studyId, rankTab]);
+
   const isOwner = detail?.isStudyOwner ?? false;
   const isLiked = detail?.isStudyLike ?? false;
+
   const canJoin = useMemo(() => {
     if (!detail) return false;
     return detail.memberNow < detail.memberLimit;
@@ -266,14 +272,24 @@ useEffect(() => {
 
   if (!open) return null;
 
-  console.log("RANK MOCK:", open, studyId, MOCK_RANKINGS[studyId]);
-  /**좋아요 토글 */
+  /**액셔너리 모달 열기 */
+  const openActionModal = (mode: "login_enter" | "login_like" | "capacity") => {
+    setActionModalMode(mode);
+    setActionModalOpen(true);
+  };
+
+  /** 좋아요 토글 */
   const onToggleLike = async () => {
     if (!studyId || likeLoading) return;
+
+    if (!isLoggedInNow()) {
+      openActionModal("login_like");
+      return;
+    }
+
     setLikeLoading(true);
     try {
       await toggleStudyLike(studyId);
-      // 토글 반영(프론트 낙관 업데이트)
       setDetail((prev) => (prev ? { ...prev, isStudyLike: !prev.isStudyLike } : prev));
     } catch (e: any) {
       alert(e?.response?.data?.message ?? "즐겨찾기 변경 실패");
@@ -283,71 +299,80 @@ useEffect(() => {
   };
 
   /** 입장하기 */
-  const goStudyRoom = (id: number) => {
-    navigate(`/study-room/${id}`);
-  };
-
   const onEnterClick = async () => {
     if (!detail || enterLoading) return;
-  
-    // 인원 초과면 막기
-    if (detail.memberNow >= detail.memberLimit) return;
-  
-    if (detail.isPublic) {
-      // 공개: 바로 이동 (나중에 enterPublicStudy 붙일 자리)
-      onClose();
-      navigate(`/study-room/${detail.studyId}`);
+
+    if (!isLoggedInNow()) {
+      openActionModal("login_enter");
       return;
     }
-  
-    // 비공개: 비번 모달
+
+    if (detail.memberNow >= detail.memberLimit) {
+      openActionModal("capacity");
+      return;
+    }
+
+    if (detail.isPublic) {
+      if (USE_MOCK) {
+        onClose();
+        navigate(`/study-room/${detail.studyId}`);
+        return;
+      }
+
+      try {
+        setEnterLoading(true);
+        await enterPublicStudy(detail.studyId);
+        onClose();
+        navigate(`/study-room/${detail.studyId}`);
+      } catch (e: any) {
+        alert(e?.response?.data?.message ?? "스터디 입장 실패");
+      } finally {
+        setEnterLoading(false);
+      }
+      return;
+    }
+
     setPwError(null);
     setPassword("");
     setPwModalOpen(true);
   };
-    /** 비공개 비번 확인 */
-const onConfirmPassword = async () => {
-  if (!detail || !studyId) return;
 
-  if (password.length < 6) {
-    setPwError("6자리 비밀번호를 입력해주세요.");
-    return;
-  }
+  /** 비공개 비번 확인 */
+  const onConfirmPassword = async () => {
+    if (!detail || !studyId) return;
 
-  // 목업 검증
-  if (USE_MOCK) {
-    const correct = MOCK_PRIVATE_PASSWORD[studyId] ?? "001122";
-
-    if (password !== correct) {
-      setPwError("비밀번호가 틀렸습니다.");
+    if (password.length < 6) {
+      setPwError("6자리 비밀번호를 입력해주세요.");
       return;
     }
 
-    // 비밀번호 맞으면 이동
-    setPwModalOpen(false);
-    onClose();
-    navigate(`/study-room/${studyId}`);
-    return;
-  }
+    if (USE_MOCK) {
+      const correct = MOCK_PRIVATE_PASSWORD[studyId] ?? "001122";
+      if (password !== correct) {
+        setPwError("비밀번호가 틀렸습니다.");
+        return;
+      }
+      setPwModalOpen(false);
+      onClose();
+      navigate(`/study-room/${studyId}`);
+      return;
+    }
 
-  // 나중에 실제 API 붙일 자리
-  try {
-    setPwLoading(true);
-    setPwError(null);
+    try {
+      setPwLoading(true);
+      setPwError(null);
+      await enterPrivateStudy(studyId, password);
+      setPwModalOpen(false);
+      onClose();
+      navigate(`/study-room/${studyId}`);
+    } catch (e: any) {
+      setPwError(e?.response?.data?.message ?? "비밀번호 확인 실패");
+    } finally {
+      setPwLoading(false);
+    }
+  };
 
-    await enterPrivateStudy(studyId, password);
-
-    setPwModalOpen(false);
-    onClose();
-    navigate(`/study-room/${studyId}`);
-  } catch (e: any) {
-    setPwError(e?.response?.data?.message ?? "비밀번호 확인 실패");
-  } finally {
-    setPwLoading(false);
-  }
-};
-
-  /** 수정/삭제: 일단 UI만 (API는 마지막에 붙이자) */
+  /** 수정/삭제 */
   const onEdit = () => {
     if (!studyId) return;
     onClose();
@@ -358,7 +383,23 @@ const onConfirmPassword = async () => {
     alert("삭제 API 아직입니다..");
   };
 
-  /** ====== 렌더 ====== */
+  /** 액셔너리 모달 문구 */
+  const modalTitle =
+    actionModalMode === "capacity"
+      ? "참여 불가"
+      : actionModalMode === "login_like"
+      ? "즐겨찾기 불가"
+      : "스터디 참가 불가";
+
+  const modalSub =
+    actionModalMode === "capacity"
+      ? "이미 정원이 찼습니다."
+      : actionModalMode === "login_like"
+      ? "로그인 후 즐겨찾기를 사용할 수 있어요."
+      : "로그인 후 스터디에 참여할 수 있어요.";
+
+  const showGoLogin = actionModalMode !== "capacity";
+
   return createPortal(
     <>
       <div
@@ -379,7 +420,6 @@ const onConfirmPassword = async () => {
                 ⋮
               </button>
 
-              {/* ===== 상세 로딩/에러 ===== */}
               {detailLoading ? (
                 <div className="svmLoading">불러오는 중...</div>
               ) : detailError ? (
@@ -388,7 +428,6 @@ const onConfirmPassword = async () => {
                 <div className="svmErrorBox">데이터가 없습니다.</div>
               ) : (
                 <>
-                  {/* ===== 상단 카드 ===== */}
                   <div className="svmTop">
                     <div className="svmCover">
                       <img src={detail.coverImage} alt="" />
@@ -441,7 +480,6 @@ const onConfirmPassword = async () => {
                     </div>
                   </div>
 
-                  {/* ===== 랭킹 ===== */}
                   <div className="svmRankBox">
                     <div className="svmRankHeader">
                       <div className="svmMiniToggle">
@@ -510,7 +548,6 @@ const onConfirmPassword = async () => {
               )}
             </div>
 
-            {/* ===== 오른쪽 수정/삭제 박스: 방장일 때만 ===== */}
             <div className="svmSide">
               {menuOpen && isOwner && (
                 <div className="svmSideBox">
@@ -543,11 +580,26 @@ const onConfirmPassword = async () => {
         onConfirm={onConfirmPassword}
         error={pwError}
       />
+
+      {/*로그인/정원초과 공통 모달 */}
+      <ActionaryLoginModal
+        open={actionModalOpen}
+        onClose={() => setActionModalOpen(false)}
+        onGoLogin={() => {
+          setActionModalOpen(false);
+          onClose();
+          navigate("/login");
+        }}
+        title={modalTitle}
+        subtitle={modalSub}
+        showGoLogin={showGoLogin}
+      />
     </>,
     document.body
   );
 }
 
+/* ===== 기존 비번 모달 유지 ===== */
 function PrivatePasswordModal({
   open,
   password,
@@ -565,8 +617,6 @@ function PrivatePasswordModal({
 }) {
   if (!open) return null;
 
-
-  
   return createPortal(
     <div
       className="pwOverlay"
@@ -606,4 +656,3 @@ function PrivatePasswordModal({
     document.body
   );
 }
-
