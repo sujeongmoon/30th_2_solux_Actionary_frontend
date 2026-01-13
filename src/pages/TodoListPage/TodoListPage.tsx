@@ -33,28 +33,14 @@ interface TodoDropdownPosition {
   left: number;
 }
 
-// 목업 데이터
-const mockCategories: Category[] = [
-  { categoryId: 1, name: '공부', color: '#FF3D2F' },
-  { categoryId: 2, name: '운동', color: '#6BEBFF' },
-];
-
-const mockTodos: Todo[] = [
-  { todoId: 1, categoryId: 1, title: '수학 공부', status: 'DONE', date: '2026-1-12' },
-  { todoId: 2, categoryId: 1, title: '영어 단어 외우기', status: 'TODO', date: '2026-1-12' },
-  { todoId: 3, categoryId: 2, title: '조깅 30분', status: 'DONE', date: '2026-1-12' },
-  { todoId: 4, categoryId: 2, title: '팔 운동', status: 'TODO', date: '2026-1-12' },
-  { todoId: 5, categoryId: 1, title: '코딩 연습', status: 'DONE', date: '2026-1-13' },
-];
-
 const TodoListPage: React.FC = () => {
   // 상태
   const today = new Date();
   const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
 
   const [selectedDate, setSelectedDate] = useState(todayString);
-  const [categories, setCategories] = useState<Category[]>(mockCategories);
-  const [todos, setTodos] = useState<Todo[]>(mockTodos);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [todos, setTodos] = useState<Todo[]>([]);
 
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
