@@ -27,6 +27,11 @@ interface Category {
   color: string;
 }
 
+interface TodoDropdownPosition {
+  top: number;
+  left: number;
+}
+
 // 목업 데이터
 const mockCategories: Category[] = [
   { categoryId: 1, name: '공부', color: '#FF3D2F' },
@@ -40,11 +45,6 @@ const mockTodos: Todo[] = [
   { todoId: 4, categoryId: 2, title: '팔 운동', status: 'TODO', date: '2026-1-12' },
   { todoId: 5, categoryId: 1, title: '코딩 연습', status: 'DONE', date: '2026-1-13' },
 ];
-
-interface TodoDropdownPosition {
-  top: number;
-  left: number;
-}
 
 const TodoListPage: React.FC = () => {
   // 상태
@@ -60,6 +60,7 @@ const TodoListPage: React.FC = () => {
   const [manageModalOpen, setManageModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editTodoId, setEditTodoId] = useState<number | null>(null);
+  const [editTodoText, setEditTodoText] = useState<string>('');
 
   const [todoDropdownOpenId, setTodoDropdownOpenId] = useState<number | null>(null);
   const [todoDropdownPosition, setTodoDropdownPosition] = useState<TodoDropdownPosition>({ top: 0, left: 0 });
@@ -104,7 +105,7 @@ const TodoListPage: React.FC = () => {
     setTodos(prev =>
       prev.map(todo =>
         todo.todoId === todoId
-          ? { ...todo, status: todo.status === 'DONE' ? 'TODO' : 'DONE' }
+          ? { ...todo, status: status }
           : todo
       )
     );
@@ -127,10 +128,19 @@ const TodoListPage: React.FC = () => {
       date: selectedDate,
     };
     setTodos(prev => [...prev, newTodo]);
-    setEditingTodoId(newTodo.todoId);
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, todoId: number) => {
+    setEditTodoId(newTodo.todoId);
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, todo: Todo) => {
     if (e.key === 'Enter') {
-      setEditingTodoId(null);
+      if (todo.title.trim() === '') {
+        setTodos(prev =>
+          prev.map(td =>
+            td.todoId === todo.todoId ? {...td, title: td.title || todo.title} : td
+          )
+        );
+      }
+      setEditTodoId(null);
     }
   };
 
@@ -157,7 +167,13 @@ const TodoListPage: React.FC = () => {
             </button>
 
             {categoryDropdownOpen && (
-              <ul className="category-dropdown">
+              <ul 
+                className="category-dropdown"
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: '100%',
+                }}>
                 <li onClick={() => setCreateModalOpen(true)}>카테고리 등록</li>
                 <li onClick={() => setManageModalOpen(true)}>카테고리 관리</li>
               </ul>
@@ -183,7 +199,31 @@ const TodoListPage: React.FC = () => {
                 <div key={todo.todoId} className="todo-item">
                   <img src={todoCheck} className="todo-check-icon" alt="체크"/>
 
-                  <span>{todo.title}</span>
+                  {editTodoId === todo.todoId ? (
+                    <input
+                      type="text"
+                      value={todo.title}
+                      placeholder="| 새 할 일 + Enter"
+                      onChange={e => {
+                        const value = e.target.value;
+                        setTodos(prev =>
+                          prev.map(td => td.todoId === todo.todoId ? {...td, title:value} : td)
+                        );
+                      }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          if (todo.title.trim() === '') {
+                            removeTodo(todo.todoId);
+                          }
+                          setEditTodoId(null);
+                        }
+                      }}
+                      autoFocus
+                    />
+                  ):(
+                    <span>{todo.title}</span>
+                  )}
+
                   <div className="btn-group">
                     <button
                       className={`todo-status-btn success ${todo.status === 'DONE' ? 'active' : ''}`}
@@ -214,10 +254,27 @@ const TodoListPage: React.FC = () => {
       </div>
 
       {/* 투두 드롭다운 */}
-      {todoDropdownOpenId === todo.todoId && (
-        <ul className="todo-dropdown">
-            <li onClick={startEdit}>수정</li>
-            <li onClick={() => removeTodo(todo.todoId)}>삭제</li>
+      {todoDropdownOpenId !== null && (
+        <ul 
+          className="todo-dropdown"
+          style={{
+            position: 'absolute',
+            top: todoDropdownPosition.top -27,
+            left: todoDropdownPosition.left + 25,
+          }}
+        >
+            <li onClick={() => {
+              setEditTodoId(todoDropdownOpenId);
+              setTodoDropdownOpenId(null);
+            }}>
+              수정
+            </li>
+            <li onClick={() => {
+              removeTodo(todoDropdownOpenId);
+              setTodoDropdownOpenId(null);
+            }}>
+              삭제
+            </li>
         </ul>
       )}
 

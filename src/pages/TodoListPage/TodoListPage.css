@@ -27,15 +27,16 @@
 
 .todo-container {
   width: 600px;
-  height: 550px;
-  margin-top: 40px;
+  height: 600px;
+  margin-top: 18px;
   box-sizing: border-box;
   background-color: #ffffff;
   border: 2px solid #fa785b;
   border-radius: 30px;
-  padding: 20px;
+  padding: 30px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 
@@ -44,9 +45,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 30px;
   flex-shrink: 0;
-  padding: 0 10px;
+  
 }
 
 .todo-header span {
@@ -105,11 +106,10 @@
 }
 
 .category-name {
-  border: 2px;
+  border: 2px solid currentColor;
   padding: 5px 20px;
   border-radius: 999px;
-  border-color: #ff9e97;
-  border: 999px;
+  border-radius: 999px;
   color: #ffffff; 
   font-weight: 500;
 }
@@ -164,8 +164,8 @@
 }
 
 .todo-status-btn {
-  width: 70px;
-  height: 30px;
+  width: 80px;
+  height: 33px;
   padding: 2px 8px;
   border: 2px solid #b3b3b3;
   color: #b3b3b3;
