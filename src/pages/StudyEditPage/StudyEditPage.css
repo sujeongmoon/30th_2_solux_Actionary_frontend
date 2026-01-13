@@ -161,13 +161,6 @@
   justify-content:flex-start;
 }
 
-.successBrand{
-  font-weight: 900;
-  font-size: 12px;
-  letter-spacing: .04em;
-  opacity: .95;
-}
-
 .successLogo{
   position: absolute;
   width: 76.12px;

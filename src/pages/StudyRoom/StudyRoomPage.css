@@ -557,3 +557,44 @@
 }
 
 
+
+
+/* 기본(ON 상태) */
+.srCtlIcon{
+  height: 48px;
+  min-width: 84px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: #fff;
+  border: 2px solid rgba(255, 120, 120, .55);
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: all .15s ease;
+}
+
+.srCtlIcon img{
+  width: 22px;
+  height: 22px;
+  opacity: .9;
+}
+
+/* ON */
+.srCtlIcon.isOn{
+  background: #fff;
+  border: 2px solid rgba(255, 120, 120, .55);
+}
+
+/* OFF */
+.srCtlIcon.isOff{
+  background: #111;            
+  border: 2px solid rgba(255, 120, 120, .55);
+}
+
+.srCtlIcon.isOff img{
+  filter: brightness(0) invert(1);  
+  opacity: 1;
+}
