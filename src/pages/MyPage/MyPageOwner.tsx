@@ -7,30 +7,18 @@ import AchievementSection from '../../components/MyPage/AchievementSection';
 import StudyTimeCheckIcon from '../../assets/MyPage/StudyTimeCheck.svg';
 import { useNavigate } from 'react-router-dom';
 import StudyTimeModal from '../../components/MyPage/StudyTimeModal';
-//import { getTodosByDate, TodoItem } from '../../api/Todos/todosApi';
+import { getTodoListByDate, updateTodoStatus, getTodoCategories, getStudyTime } from '../../api/MyPage/MyPage';
+import type { TabKey,TodoItem,TodoCategory} from '../../types/MyPageTypes';
+
+
 
 const MyPageOwner: React.FC = () => {
-
-  type Tabkey = 'DAY' | 'WEEK' | 'MONTH' | 'YEAR';
-
-  type TodoStatus = 'PENDING' | 'DONE' | 'FAILED';
-
-  interface TodoItem {
-    todoId: number;
-    title: string;
-    categoryId : number;
-    status: TodoStatus;
-  }
-
-  interface TodoCategory {
-    categoryId: number;
-    name: string;
-    color: string;
-  }
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
+  const [categories, setCategories] = useState<TodoCategory[]>([]);
+  const [todoList, setTodoList] = useState<TodoItem[]>([]);
 
-  const tabs : { key: Tabkey; label: string} []= [
+  const tabs : { key: TabKey; label: string} []= [
     { key: 'DAY', label: '일간'},
     { key: 'WEEK', label: '주간'},
     { key: 'MONTH', label: '월간'},
@@ -38,104 +26,88 @@ const MyPageOwner: React.FC = () => {
   ];
 
   const [activeTab, setActiveTab] = useState<'DAY' | 'WEEK' | 'MONTH' | 'YEAR'>('DAY');
-  useEffect(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    fetchStudyData(activeTab, today);
-  }, [])
+  
+  const fetchStudyData = async (tab: TabKey, date: string) => {
+  try {
+    const data = await getStudyTime(tab, date);
+      if (!data || typeof data.durationSeconds !== 'number') {
+        console.warn('공부량 데이터 없음', data);
+        return;
+    }
 
-  const [studyData, setStudyData] = useState<Record<Tabkey, string>>({
+    setStudyData(prev => ({
+      ...prev,
+      [tab]: formatDuration(data.durationSeconds),
+    }));
+  } catch (error) {
+    console.error('스터디 시간 조회 실패', error);
+  }
+};
+
+  const [studyData, setStudyData] = useState<Record<TabKey, string>>({
     DAY: '0H 0M',
     WEEK: '0H 0M',
     MONTH: '0H 0M',
     YEAR: '0H 0M',
   });
 
-  //초 => H M 변환 함수
+  useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    fetchStudyData(activeTab, today);
+  }, [activeTab]);
+
+
 const formatDuration = (seconds: number) => {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   return `${hours}H ${minutes}M`;
 }
 
-const [todoList, setTodoList] = useState<TodoItem[]>([]);
-
-
-  // Mock 데이터 (초 단위)
-const mockStudyData: Record<Tabkey, number> = {
-  DAY: 3600 * 2 + 1800,    // 2시간 30분
-  WEEK: 3600 * 10 + 900,   // 10시간 15분
-  MONTH: 3600 * 40 + 1200, // 40시간 20분
-  YEAR: 3600 * 500 + 3600, // 501시간
-};
-
-const mockCategories: TodoCategory[] = [
-  { categoryId: 3, name: '학교', color: '#118AB2' },
-  { categoryId: 11, name: '운동', color: '#FF6B6B' },
-];
-
-// Mock 투두리스트
-const mockTodos: TodoItem[] = [
-  { todoId: 1, title: '운영체제 과제하기', categoryId: 3, status: 'FAILED' },
-  { todoId: 2, title: '네트워크 정리 업로드', categoryId: 3, status: 'DONE' },
-  { todoId: 3, title: '헬스장 가기', categoryId: 11, status: 'PENDING' },
-];
-
 // 투두리스트 업데이트
-const handleStatusChange = (
+const handleStatusChange = async (
   todoId: number,
-  status: TodoStatus
+  status: 'DONE' | 'FAILED'
 ) => {
-  setTodoList(prev =>
-    prev.map(todo =>
-      todo.todoId === todoId ? { ...todo, status } : todo 
-    )
-  );
+  try {
+    await updateTodoStatus(todoId, status);
+    setTodoList(prev =>
+      prev.map(todo =>
+        todo.todoId === todoId ? { ...todo, status } : todo
+      )
+    );
+  } catch (e) {
+    console.error('상태 변경 실패', e);
+  }
 };
 
-
-// api 연동 시 삭제하기
-useEffect(() => {
-    setTodoList(mockTodos);
-    const today = new Date().toISOString().slice(0, 10);
-    fetchStudyData(activeTab, today);
-}, []);
-
-const [isModalOpen, setIsModalOpen] = useState(false);
-
-
-// 오늘 투두만 불러오기
-  //API 호출
-  const fetchStudyData = async (tab: Tabkey, date: string) => {
-    // 실제 API 호출 코드 //
-    {/*
-    try {
-      const res = await getStudyTimeByPeriod(tab, date);
-      setStudyData(prev => ({
-        ...prev,
-        [tab]: formatDuration(res.durationSeconds),
-      }));
-    } catch (err) {
-        console.error(err);
-    } */}
-
-     // MOCK DATA임
-    const seconds = mockStudyData[tab];
-    setStudyData(prev => ({
-        ...prev,
-        [tab]: formatDuration(seconds),
-    }));
-  };
-
-  {/* 연동용 코드 */}
-  {/*
+//투두리스트 조회
   useEffect(() => {
     const fetchTodos = async() => {
-      const today = new Date().toISOString().slice(0,10);
-      const todos = await getTodosByDate(today);
-      setTodoList(todos);
+      try {
+        const today = new Date().toISOString().slice(0, 10);
+        const data = await getTodoListByDate(today);
+        setTodoList(data.todos);
+      } catch (error) {
+        console.error('투두 조회 실패', error);
+        setTodoList([]);
+      }
     };
     fetchTodos();
-  }, []); */}
+  }, []);
+
+  //카테고리 조회
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getTodoCategories();
+        setCategories(data);
+      } catch (e) {
+        console.error('카테고리 조회 실패', e);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   return (
     <div>
@@ -164,7 +136,7 @@ const [isModalOpen, setIsModalOpen] = useState(false);
             
             <div className='owner-todo-body'>
                 {todoList.map((todo, index) => {
-                    const category = mockCategories.find(cat => cat.categoryId === todo.categoryId);
+                    const category = categories.find(cat => cat.categoryId === todo.categoryId);
                     const prevTodo = todoList[index - 1];
                     const showCategory = 
                       !prevTodo || prevTodo.categoryId !== todo.categoryId;
@@ -218,8 +190,8 @@ const [isModalOpen, setIsModalOpen] = useState(false);
                                         className={`owner-tab ${isActive ? 'active': ''}`}
                                         onClick={() => {
                                             setActiveTab(tab.key);
-                                            const today = new Date().toISOString().slice(0,10);
-                                            fetchStudyData(tab.key, today);
+                                            //const today = new Date().toISOString().slice(0,10);
+                                            //fetchStudyData(tab.key, today);
                                         }}
                                     >
                                         <span className='owner-tab-icon'>

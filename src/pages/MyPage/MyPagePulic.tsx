@@ -3,18 +3,11 @@ import './MyPageOwner.css';
 import { useParams } from 'react-router-dom';
 import ProfileSectionPublic from '../../components/MyPage/ProfileSectionPublic';        
 import AchievementSectionPublic from '../../components/MyPage/AchievementSectionPublic';
-import { getOtherUserInfo } from '../../api/MyPage/getOtherUserInfo';
-
-interface PublicUserInfo {
-  memberId: number;
-  nickname: string;
-  profileImageUrl: string;
-}
-
+import { getOtherUserInfo, type OtherUserInfo} from '../../api/MyPage/getOtherUserInfo';
 
 const MyPagePublic: React.FC = () => {
   const { memberId } = useParams<{ memberId: string }>();
-  const [userInfo, setUserInfo] = useState<PublicUserInfo | null>(null);
+  const [userInfo, setUserInfo] = useState<OtherUserInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
