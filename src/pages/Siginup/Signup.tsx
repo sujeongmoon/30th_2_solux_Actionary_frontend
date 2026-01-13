@@ -16,7 +16,6 @@ const Signup: React.FC = () => {
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
   /* 폼 데이터 */
   const [form, setForm] = useState({
-    
     loginId: "",
     password: "",
     phoneNumber: "",
@@ -42,10 +41,26 @@ const Signup: React.FC = () => {
     setProfileFile(file);
     setProfilePreview(URL.createObjectURL(file));
   }; 
-  
 
+  /* 아이디, 비밀번호 유효성 체크 */
+  const [clientError, setClientError] = useState<string | null>(null);
+  const validateForm = () => {
+    if (form.loginId.length < 6) {
+      setClientError("아이디는 6자 이상이어야 합니다.");
+      return false;
+    }
+    if (!/(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}/.test(form.password))  {
+      setClientError("비밀번호는 6자 이상, 영어와 숫자를 포함해야합니다.");
+      return false;
+    }
+    setClientError(null);
+    return true;
+  }
+  
   /* 회원가입 */
   const handleSignup = async () => {
+    if (!validateForm()) return;
+
     try {
       const formData = new FormData();
       if (profileFile) {
@@ -157,7 +172,8 @@ const Signup: React.FC = () => {
         <button className="signup-button" onClick={handleSignup} disabled={isLoading}>
           회원가입
         </button>
-
+        
+        {clientError && <p className="error-message">{clientError}</p>}
         {errorMessage && (<p className="error-message">{errorMessage}</p>)}
       </div>
     </div>
