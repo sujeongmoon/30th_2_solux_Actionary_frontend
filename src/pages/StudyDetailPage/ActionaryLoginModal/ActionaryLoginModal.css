@@ -1,0 +1,128 @@
+.amOverlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+/* 모달 카드 */
+.amModal{
+  width: 860px;                 /* 지금 크기 유지(원하면 760으로 줄여도 됨) */
+  max-width: calc(100vw - 56px);
+  padding: 40px 54px 34px;
+  border-radius: 34px;
+  color: #fff;
+
+  /* 레퍼런스 같은 다크카드 + 부드러운 그림자 */
+  background: linear-gradient(180deg, #2A2A2A 0%, #1C1C1C 100%);
+  box-shadow:
+    0 30px 80px rgba(0,0,0,.55),
+    inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+/* 상단 브랜드 */
+.amBrand{
+  text-align: center;
+  font-weight: 900;
+  letter-spacing: .12em;
+  font-size: 14px;
+  opacity: .95;
+  margin-bottom: 24px;
+}
+
+/* 타이틀 / 서브 */
+.amTitle{
+  font-size: 42px;
+  font-weight: 900;
+  line-height: 1.2;
+  margin: 6px 0 14px;
+}
+
+.amSub{
+  font-size: 20px;
+  font-weight: 600;
+  opacity: .82;
+  margin-bottom: 34px;
+  text-align: center;
+}
+
+/* 버튼 영역 */
+.amBtns{
+  display: grid;
+  gap: 18px;
+  align-items: center;
+}
+
+.amBtns.two{
+  grid-template-columns: 1fr 1fr;
+}
+
+.amBtns.one{
+  grid-template-columns: 1fr;
+}
+
+/* 버튼 공통 */
+.amBtn{
+  height: 74px;
+  border-radius: 22px;
+  font-size: 22px;
+  font-weight: 900;
+  cursor: pointer;
+  border: none;
+  transition: transform .06s ease, filter .2s ease;
+}
+
+.amBtn:active{
+  transform: translateY(1px);
+}
+
+/* 왼쪽: 회색(아웃라인 느낌) */
+.amBtnGhost{
+  background: rgba(255,255,255,.06);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.16);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+.amBtnGhost:hover{
+  filter: brightness(1.08);
+}
+
+/* 오른쪽: 레퍼런스 같은 그라데이션 버튼 */
+.amBtnSolid{
+  color: #fff;
+  background: linear-gradient(86.58deg, #FA785B 20.5%, #FF3761 89.45%);
+  box-shadow:
+    0 14px 30px rgba(255, 55, 97, .18),
+    inset 0 1px 0 rgba(255,255,255,.25);
+}
+
+.amBtnSolid:hover{
+  filter: brightness(1.06);
+}
+
+/* 모바일 대응 */
+@media (max-width: 640px){
+  .amModal{
+    padding: 28px 22px 22px;
+    border-radius: 26px;
+  }
+  .amTitle{
+    font-size: 30px;
+  }
+  .amSub{
+    font-size: 16px;
+  }
+  .amBtn{
+    height: 60px;
+    font-size: 18px;
+    border-radius: 18px;
+  }
+  .amBtns.two{
+    grid-template-columns: 1fr;
+  }
+}

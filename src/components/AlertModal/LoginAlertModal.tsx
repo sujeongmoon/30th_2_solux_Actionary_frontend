@@ -16,24 +16,24 @@ const LoginAlertModal: FC<LoginAlertModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="login-alert-modal-overlay" onClick={onClose}>
+    <div className="alert-modal-overlay" onClick={onClose}>
       <div
-        className="login-alert-modal-content login-alert-modal"
+        className="alert-modal-content alert-modal"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="login-alert-modal-header">
-          <img src={Union} alt="물방울" className="login-modal-title-icon" />
+        <div className="alert-modal-header">
+          <img src={Union} alt="물방울" className="modal-title-icon" />
           <h3>로그인 필요</h3>
         </div>
 
-        <div className="login-alert-body">
-          <p className="login-alert-text">
+        <div className="alert-body">
+          <p className="alert-text">
             로그인이 필요한 서비스입니다.
           </p>
         </div>
 
-        <div className="login-alert-modal-buttons">
-          <button className="login-alert-btn-cancel" onClick={onClose}>
+        <div className="alert-modal-buttons">
+          <button className="alert-btn-cancel" onClick={onClose}>
             취소
           </button>
           <button className="alert-login" onClick={onLogin}>

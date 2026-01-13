@@ -232,31 +232,42 @@ export default function MyStudiesPage() {
           </button>
 
           <div className="carouselTrack">
-            {carouselSlice.length === 0 ? (
-              <div className="carouselEmpty">
-                아직 스터디가 없어요.
-                <button className="createBtn" type="button" onClick={() => navigate("/studies/new")}>
-                  스터디 만들기
-                </button>
-              </div>
-            ) : (
-              <div className="carouselRow">
-                {carouselSlice.map((s) => (
-                  <article
-                    key={s.studyId}
-                    className="miniCard"
-                    role="button"
-                    tabIndex={0}
-                    onClick={(e) => openModal(e, s)} 
-                  >
-                    <div className="miniThumb">
-                      {s.coverImage ? <img src={s.coverImage} alt="" /> : <div className="miniFallback" />}
-                    </div>
-                    <div className="miniLabel">{s.studyName}</div>
-                  </article>
-                ))}
-              </div>
-            )}
+          {carouselSlice.length === 0 ? (
+  <div
+    className="myStudyEmptyCta"
+    role="button"
+    tabIndex={0}
+    onClick={() => navigate("/studies/new")}
+    onKeyDown={(e) => {
+      if (e.key === "Enter" || e.key === " ") navigate("/studies/new");
+    }}
+  >
+    <button className="myStudyEmptyPlus" type="button" aria-label="스터디 만들기">
+      +
+    </button>
+    <div className="myStudyEmptyText">
+      <span className="myStudyEmptyIcon">🏃🏻‍♀️</span>
+      <span>지금 로그인하고, 나만의 스터디를 만들어보세요 !</span>
+    </div>
+  </div>
+) : (
+  <div className="carouselRow">
+    {carouselSlice.map((s) => (
+      <article
+        key={s.studyId}
+        className="miniCard"
+        role="button"
+        tabIndex={0}
+        onClick={(e) => openModal(e, s)}
+      >
+        <div className="miniThumb">
+          {s.coverImage ? <img src={s.coverImage} alt="" /> : <div className="miniFallback" />}
+        </div>
+        <div className="miniLabel">{s.studyName}</div>
+      </article>
+    ))}
+  </div>
+)}
           </div>
 
           <button
