@@ -62,7 +62,6 @@
 
 /* 개별 알림 카드 */
 .noti-card {
-  background-color: #ffffff;
   padding: 30px 40px;
   border-radius: 30px;
   display: flex;
@@ -72,6 +71,15 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.noti-card.unread {
+  background-color: #e6e6e6;
+  border: 1px solid #d4d4d4;
+}
+
+.noti-card.read {
+  background-color: #FFFFFF;
+}
+
 .noti-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
@@ -79,7 +87,7 @@
 
 .noti-card-left {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 20px;
   flex: 1;
   min-width: 0;
@@ -89,9 +97,11 @@
 .noti-point-dot {
   width: 18px;
   height: 18px;
+  margin-top: 4px;
 }
 
-.noti-text {
+
+.noti-title {
   margin: 0;
   color: #000000;
   font-size: 17px;
@@ -100,6 +110,11 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-bottom: 5px;
+}
+
+.noti-content {
+  color: #303030
 }
 
 .noti-card-right {

@@ -4,10 +4,13 @@ import Union from '../../assets/bookmark/Union.svg';
 import { useNavigate } from 'react-router-dom';
 
 export interface NotificationItem {
-  id: number;
+  notificationId: number;
+  type: string;
+  title: string;
   content: string;
+  link: string;
+  isRead: boolean;
   createdAt: string;
-  link?: string;
 }
 
 interface NotificationModalProps {
@@ -19,7 +22,8 @@ interface NotificationModalProps {
 const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, notifications }) => {
     const navigate = useNavigate();
     if (!isOpen) return null;
-
+    // NotificationModal 컴포넌트 안에 추가
+    console.log('notifications:', notifications);
     const handleClick = (link?: string) => {
         if (!link) return;
         navigate(link);
@@ -34,10 +38,14 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
 
         <div className="alert-modal-body">
           {notifications.map((item) => (
-            <div key={item.id} className="noti-card" onClick={() => handleClick(item.link)}>
+            <div key={item.notificationId} className={`noti-card ${item.isRead ? 'read' : 'unread'}`}
+                 onClick={() => handleClick(item.link)}>
               <div className="noti-card-left">
                 <img src={Union} alt='포인트 점' className="noti-point-dot"></img>
-                <p className="noti-text">{item.content}</p>
+                <div className='noti-text'>
+                  <p className="noti-title">{item.title}</p>
+                  <p className='noti-content'>{item.content}</p>
+                </div>
               </div>
               <div className="noti-card-right">
                 <span className="noti-date-text">{
@@ -45,6 +53,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
               </div>
             </div>
           ))}
+          
         </div>
       </div>
     </div>
