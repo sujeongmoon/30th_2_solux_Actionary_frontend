@@ -4,7 +4,7 @@ import "./Navbar.css";
 import Searchbar from "./Searchbar";
 import LoginAlertModal from "../AlertModal/LoginAlertModal";
 import Nlogo from '../../assets/Navbar/Nlogo.svg';
-import ProfilePerson from "../../assets/navbar/ProfilePerson.svg";
+import ProfilePerson from "../../assets/Navbar/ProfilePerson.svg";
 
 const Navbar = () => {
   const navigate = useNavigate();
