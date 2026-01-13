@@ -130,7 +130,7 @@ const TodoListPage: React.FC = () => {
     setTodos(prev => [...prev, newTodo]);
     setEditTodoId(newTodo.todoId);
   }
-
+  
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, todo: Todo) => {
     if (e.key === 'Enter') {
       if (todo.title.trim() === '') {
@@ -143,6 +143,8 @@ const TodoListPage: React.FC = () => {
       setEditTodoId(null);
     }
   };
+
+  const isToday = selectedDate === todayString;
 
 
   return (
@@ -190,7 +192,11 @@ const TodoListPage: React.FC = () => {
                   {cat.name}
                 </div>
 
-                <button className="add-cat-button" onClick={() => addTodo(cat.categoryId)}>+</button>
+
+                {isToday && (
+                  <button className="add-cat-button" onClick={() => addTodo(cat.categoryId)}>+</button>
+                )}
+                
               </div>
 
             {todos
