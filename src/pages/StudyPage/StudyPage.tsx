@@ -42,7 +42,7 @@ type StudyListItem = {
   // 아래 필터용(카테고리)
   category?: CategoryEnum;
 
-  // 위 “나만의 스터디” 필터용(내 타입)
+  // 위 “나만의 스터디” 필터용
   myType?: MyFilter;
 };
 
@@ -69,7 +69,7 @@ const MOCK_ITEMS: StudyListItem[] = [
   { studyId: 8, studyName: "기타 모임", coverImage: "https://picsum.photos/seed/study8/600/600", isPublic: false, category: "OTHER" },
 ];
 
-//  위 “나만의 스터디” 목업 (myType만으로 필터됨! 아래 category 필터랑 무관)
+//  위 “나만의 스터디” 목업 -> 나만의 스터디 공란 원할 시 해당 목업 전체 삭제 후 테스트
 const MOCK_MY_STUDIES: StudyListItem[] = [
   { studyId: 101, studyName: "내 스터디 A", coverImage: null, isPublic: true, myType: "CREATED" },
   { studyId: 102, studyName: "내 스터디 B", coverImage: null, isPublic: true, myType: "JOINED" },
