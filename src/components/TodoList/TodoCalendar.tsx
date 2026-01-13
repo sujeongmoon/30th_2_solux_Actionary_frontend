@@ -26,6 +26,7 @@ const TodoCalendar: React.FC<TodoCalendarProps> = ({
   todos,
 }) => {
   const [activeMonth, setActiveMonth] = useState(new Date(selectedDate));
+  const [view, setView] = useState<'month' | 'year' | 'decade' | 'century'>('month');
 
   // 날짜 변경
   const handleChange = (value: any) => {
@@ -35,31 +36,69 @@ const TodoCalendar: React.FC<TodoCalendarProps> = ({
     );
   };
 
+  const movePrev = () => {
+  if (view === 'month') {
+    // 월 이동
+    setActiveMonth(
+      new Date(activeMonth.getFullYear(), activeMonth.getMonth() - 1, 1)
+    );
+  } else if (view === 'year') {
+    // 연도 이동
+    setActiveMonth(
+      new Date(activeMonth.getFullYear() - 1, 0, 1)
+    );
+  } else if (view === 'decade') {
+    // 연대 이동 (10년)
+    setActiveMonth(
+      new Date(activeMonth.getFullYear() - 10, 0, 1)
+    );
+  }
+};
+
+
+  const moveNext = () => {
+  if (view === 'month') {
+    setActiveMonth(
+      new Date(activeMonth.getFullYear(), activeMonth.getMonth() + 1, 1)
+    );
+  } else if (view === 'year') {
+    setActiveMonth(
+      new Date(activeMonth.getFullYear() + 1, 0, 1)
+    );
+  } else if (view === 'decade') {
+    setActiveMonth(
+      new Date(activeMonth.getFullYear() + 10, 0, 1)
+    );
+  }
+};
+
   return (
     <div className="todo-calendar-container">
       {/* 커스텀 헤더 */}
       <div className="todo-calendar-header">
-        <span>
-          {activeMonth.getMonth() + 1}월 {activeMonth.getFullYear()}
+        <span
+          onClick={() => {
+            if (view === 'month') setView('year');
+            else if (view === 'year') setView('decade');
+            else setView('month');
+          }}
+          style={{ cursor: 'pointer'}}
+        >
+          {view === 'month' && `${activeMonth.getMonth() + 1}월 ${activeMonth.getFullYear()}`}
+          {view === 'year' && `${activeMonth.getFullYear()}년`}
+          {view === 'decade' &&
+            `${Math.floor(activeMonth.getFullYear() / 10) * 10} - ${
+              Math.floor(activeMonth.getFullYear() / 10) * 10 + 9
+            }`}
         </span>
 
         <div className="calendar-nav">
           <button
-            onClick={() =>
-              setActiveMonth(
-                new Date(activeMonth.getFullYear(), activeMonth.getMonth() - 1, 1)
-              )
-            }
-          >
+            onClick={movePrev}>
             &lt;
           </button>
           <button
-            onClick={() =>
-              setActiveMonth(
-                new Date(activeMonth.getFullYear(), activeMonth.getMonth() + 1, 1)
-              )
-            }
-          >
+            onClick={moveNext}>
             &gt;
           </button>
         </div>
@@ -69,6 +108,9 @@ const TodoCalendar: React.FC<TodoCalendarProps> = ({
         className="todo-calendar"
         value={new Date(selectedDate)}
         onChange={handleChange}
+        view={view}
+        onViewChange={({ view }) => setView(view)}
+        activeStartDate={activeMonth}
         locale="ko-KR"
         calendarType="gregory"
         showNavigation={false}
