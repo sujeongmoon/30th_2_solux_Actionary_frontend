@@ -7,6 +7,7 @@ import MagePen from '../../assets/Board/mage_pen.svg';
 //import { getPopularPosts, getLatestPosts } from '../../api/boardPost';
 import { useNavigate } from 'react-router-dom';
 import { usePosts, type Post } from '../../context/PostContext';
+import LoginAlertModal from '../../components/AlertModal/LoginAlertModal';
 
 
 const BoardListPage: React.FC = () => {
@@ -21,6 +22,8 @@ const BoardListPage: React.FC = () => {
   const { posts } = usePosts();
   const [displayPosts, setDisplayPosts] = useState<Post[]>([]);
   const [totalPages, setTotalPages] = useState(0);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const isLoggedIn = Boolean(localStorage.getItem('accessToken'));
   const navigate = useNavigate();
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -29,6 +32,16 @@ const BoardListPage: React.FC = () => {
     const dd = String(date.getDate()).padStart(2, '0');
     return `${yyyy}/${mm}/${dd}`;
   };
+
+  const handleWriteClick = () => {
+  if (!isLoggedIn) {
+    setIsLoginModalOpen(true);
+    return;
+  }
+
+  navigate('write');
+};
+
 
 
 
@@ -212,7 +225,7 @@ const BoardListPage: React.FC = () => {
         {/* 하단 섹션 */}
         <div className="bottom-section">
           <button className="btn-write"
-            onClick={() => navigate('write')}>
+            onClick={handleWriteClick}>
             <img src={MagePen} alt="게시글 작성하기" className="mage-pen" />
             게시글 작성하기
           </button>
@@ -224,6 +237,12 @@ const BoardListPage: React.FC = () => {
               onPageChange={(page) => setCurrentPage(page)}
             />
           </div>
+          <LoginAlertModal
+            isOpen={isLoginModalOpen}
+            onClose={() => setIsLoginModalOpen(false)}
+            onLogin={() => navigate('/login')}
+          />
+
         </div>
       </div>
     </div>
