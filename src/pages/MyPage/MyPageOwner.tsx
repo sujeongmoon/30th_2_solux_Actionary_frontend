@@ -227,14 +227,14 @@ const handleStatusChange = async (
                             })}
                         </div>
             
-            <div className='owner-study-time-box'>
-                {studyData[activeTab]}
-            </div>
-            
-            <button className='owner-manual-add-btn' onClick={() => setIsModalOpen(true)}>
-                수동으로 추가하기 <span className='owner-plus-circle'>+</span>
-            </button>
-            </div>
+                  <div className='owner-study-time-box'>
+                      {studyData[activeTab]}
+                  </div>
+                  
+                  <button className='owner-manual-add-btn' onClick={() => setIsModalOpen(true)}>
+                      수동으로 추가하기 <span className='owner-plus-circle'>+</span>
+                  </button>
+                </div>
 
             <StudyTimeModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </div>

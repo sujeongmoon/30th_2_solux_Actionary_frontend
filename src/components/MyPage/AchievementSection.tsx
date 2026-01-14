@@ -24,6 +24,7 @@ interface Badge {
 
 interface AchievementSectionProps {
     memberId: number;
+    nickname?: string;
 }
 
 const DEFAULT_BADGE: Badge = {
@@ -33,7 +34,7 @@ const DEFAULT_BADGE: Badge = {
   requiredPoint: 0,
 };
 
-const AchievementSection : React.FC<AchievementSectionProps> = ({ memberId }) => {
+const AchievementSection : React.FC<AchievementSectionProps> = ({ memberId, nickname }) => {
     const [points, setPoints] = useState<Points>({
         study: 0,
         studyParticipation: 0,
@@ -73,7 +74,7 @@ const AchievementSection : React.FC<AchievementSectionProps> = ({ memberId }) =>
         <div className='owner-achievement-section'>
             <div className='owner-achievement-header'>
                 <img src={Union} alt = "제목" className='owner-achievement-dot'></img>
-                <span className='owner-achievement-title'>현재 나의 업적</span>
+                <span className='owner-achievement-title'>{nickname ? `현재 ${nickname}님의 업적` : '현재 나의 업적'}</span>
             </div>
 
         <div className='owner-stats-box'>

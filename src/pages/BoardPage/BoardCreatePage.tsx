@@ -4,7 +4,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
-// import api from '../../api/client'; // axios 인스턴스 (연동용)
+import api from '../../api/client'; // axios 인스턴스 (연동용)
 import PencilIcon from '../../assets/MyPage/Pencil.svg';
 import ArrowIcon from '../../assets/Board/underArrow.svg';
 import './BoardCreatePage.css';
@@ -14,7 +14,7 @@ import { usePosts, type Post } from '../../context/PostContext';
 
 const BoardCreatePage = () => {
   const navigate = useNavigate();
-  const { posts, addPost } = usePosts();
+  const { addPost } = usePosts();
 
   const [title, setTitle] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('소통');
@@ -45,12 +45,12 @@ const BoardCreatePage = () => {
     setIsDropdownOpen(false);
   };
 
-  // ------------------ 이미지 업로드 (Mock) ------------------
+  // ------------------ 이미지 업로드 ------------------
   const handlePhotoClick = useCallback(() => {
     fileInputRef.current?.click();
   }, []);
 
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !editor) return;
 
@@ -62,8 +62,6 @@ const BoardCreatePage = () => {
     };
     reader.readAsDataURL(file);
 
-    // ------------------ 실제 업로드 연동용 코드 (주석) ------------------
-    /*
     const formData = new FormData();
     formData.append('file', file);
     try {
@@ -75,35 +73,14 @@ const BoardCreatePage = () => {
       console.error('이미지 업로드 실패:', err);
       alert('이미지 업로드에 실패했습니다.');
     }
-    */
   }, [editor]);
   
   // ------------------ 게시글 생성 ------------------
-  const handleSubmit = () => {
+  const handleSubmit = async() => {
     if (!title.trim()) return alert('제목을 입력해주세요.');
     if (!editor) return;
-
-    const newPost: Post = {
-      postId: posts.length ? Math.max(...posts.map(p => p.postId)) + 1 : 101,
-      nickname: '가인',
-      created_at: new Date().toISOString(),
-      type: selectedCategory,
-      title,
-      content: {
-        text_content: editor.getText(),
-        image_urls: uploadedImageUrls,
-      },
-      comment_count: 0,
-    };
-
-    addPost(newPost);
-    alert('게시글이 생성되었습니다! (Mock)');
-
-    // ------------------ 실제 생성 연동용 코드 (주석) ------------------
-    /*
     try {
       const res = await api.post('/api/posts', {
-        userId: loginUserId,
         type: selectedCategory,
         title,
         content: {
@@ -111,13 +88,24 @@ const BoardCreatePage = () => {
           image_urls: uploadedImageUrls,
         },
       });
-      console.log('생성된 게시글:', res.data);
+
+      // 서버에서 생성된 게시글을 Context에 추가
+      const newPost: Post = {
+        postId: res.data.postId,
+        title: res.data.title,
+        type: res.data.type,
+        content: res.data.content,
+        nickname: res.data.nickname,
+        created_at: res.data.created_at,
+        comment_count: res.data.comment_count,
+      };
+      addPost(newPost); // Context 업데이트
+      alert('게시글이 생성되었습니다!');
     } catch (err) {
       console.error('게시글 생성 실패:', err);
       alert('게시글 생성에 실패했습니다.');
       return;
     }
-    */
 
     // ------------------ 초기화 및 이동 ------------------
     setTitle('');
