@@ -1,33 +1,39 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useEditor, EditorContent, type JSONContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
-import StarterKit from '@tiptap/starter-kit';
-// import api from '../../api/client'; // 실제 API 연동용
+import { useNavigate, useParams } from 'react-router-dom';
+import api from '../../api/client';
 import PencilIcon from '../../assets/MyPage/Pencil.svg';
 import ArrowIcon from '../../assets/Board/underArrow.svg';
 import './BoardCreatePage.css';
-import { useNavigate, useParams } from 'react-router-dom';
-import { usePosts, type Post } from '../../context/PostContext';
+
+
+interface Post {
+  postId: number;
+  title: string;
+  type: string;
+  text: string;      
+  imageUrls: string[];   
+}
+
+// ----- 말머리 옵션 -----
+const categories = ['소통', '인증', '질문'];
 
 const BoardEditPage = () => {
   const navigate = useNavigate();
   const { postId } = useParams<{ postId: string }>();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ------------------ MOCK DATA / Context ------------------
-  const { posts, updatePost } = usePosts();
   const [title, setTitle] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('소통');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
+  const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
+  const [originalPost, setOriginalPost] = useState<Post | null>(null);
 
-  const categories = ['소통', '인증', '질문'];
-  const postToEdit = posts.find(p => p.postId === Number(postId));
-
-
-  // ------------------ Tiptap 에디터 ------------------
+  // ----- Tiptap 에디터 -----
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -38,127 +44,141 @@ const BoardEditPage = () => {
     content: '',
   });
 
-  // ------------------ MOCK DATA 로딩 ------------------
+  // ----- 게시글 불러오기 -----
   useEffect(() => {
-    if (!postId || !editor || !postToEdit) return;
+    if (!postId || !editor) return;
 
-    setTitle(postToEdit.title);
-    setSelectedCategory(postToEdit.type);
-    setUploadedImageUrls(postToEdit.content.image_urls || []);
+    const fetchPost = async () => {
+      try {
+        const res = await api.get(`/posts/${postId}`);
+        const post: Post = res.data;
 
-    const content = [];
+        setTitle(post.title);
+        setSelectedCategory(post.type);
+        setOriginalPost(post);
 
-    if (postToEdit.content.text_content) {
-      content.push({
-        type: 'paragraph',
-        content: [{type: 'text', text: postToEdit.content.text_content }],
-      });
-    }
+        const content: JSONContent[] = [];
 
-    postToEdit.content.image_urls?.forEach(url => {
-      content.push({
-        type: 'image',
-        attrs: {src: url},
-      });
-    });
+        if (post.text) {
+          content.push({
+            type: 'paragraph',
+            content: [{ type: 'text', text: post.text }],
+          });
+        }
 
-    editor.commands.setContent({
-      type: 'doc',
-      content,
-    });
-  }, [postId, editor, postToEdit]);
+        post.imageUrls?.forEach((url) => {
+          content.push({ type: 'image', attrs: { src: url } });
+        });
 
-  // ------------------ 입력/선택 ------------------
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.value.length <= 30) setTitle(e.target.value);
+        editor.commands.setContent({ type: 'doc', content });
+      } catch (err) {
+        console.error('게시글 불러오기 실패', err);
+        alert('게시글 정보를 불러오지 못했습니다.');
+        navigate('/board');
+      }
+    };
+
+    fetchPost();
+  }, [postId, editor, navigate]);
+
+  // ----- 이미지 업로드 -----
+  const handlePhotoClick = () => fileInputRef.current?.click();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editor) return;
+
+    setNewImageFiles((prev) => [...prev, file]);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      editor.chain().focus().setImage({ src: reader.result as string }).run();
+    };
+    reader.readAsDataURL(file);
   };
 
+  // ----- 말머리 선택 -----
   const handleCategorySelect = (category: string) => {
     setSelectedCategory(category);
     setIsDropdownOpen(false);
   };
 
-  // ------------------ 이미지 업로드 (mockData) ------------------
-  const handlePhotoClick = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.value.length <= 30) setTitle(e.target.value);
+  };
 
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !editor) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const url = event.target?.result as string;
-      editor.chain().focus().setImage({ src: url }).run();
-      setUploadedImageUrls(prev => [...prev, url]);
-    };
-    reader.readAsDataURL(file);
-
-    // ------------------ 실제 업로드 연동용 (주석) ------------------
-    /*
-    const formData = new FormData();
-    formData.append('file', file);
-    try {
-      const res = await api.post('/api/upload', formData); // 실제 API
-      const url = res.data.url;
-      editor.chain().focus().setImage({ src: url }).run();
-      setUploadedImageUrls(prev => [...prev, url]);
-    } catch (err) {
-      console.error('이미지 업로드 실패:', err);
-      alert('이미지 업로드에 실패했습니다.');
+  // ----- 수정 제출 -----
+  const handleSubmit = async () => {
+    if (!editor || !postId || !originalPost) return;
+    if (!title.trim()) {
+      alert('제목을 입력해주세요');
+      return;
     }
-    */
-  }, [editor]);
 
-  // ------------------ 수정 제출 (mockData) ------------------
-  const handleSubmit = () => {
-    if (!title.trim()) return alert('제목을 입력해주세요.');
-    if (!editor) return;
-    if (!postId) return;
-
-    const postToEdit = posts.find(p => p.postId === Number(postId));
-    if (!postToEdit) return alert('게시글을 찾을 수 없습니다.');
-
-    const updatedPost: Post = {
-      ...postToEdit,
-      title,
-      type: selectedCategory,
-      content: {
-        text_content: editor.getText(),
-        image_urls: uploadedImageUrls,
-      },
-    };
-
-    // ------------------ mockData 적용 ------------------
-    alert('게시글이 수정되었습니다! (mockData)');
-    console.log('업데이트된 게시글:', updatedPost);
-    updatePost(updatedPost);
-
-    // ------------------ 실제 API 연동용 (주석) ------------------
-    /*
     try {
-      const res = await api.patch(`/api/posts/${postId}`, {
-        title,
-        type: selectedCategory,
-        content: {
-          text_content: editor.getText(),
-          image_urls: uploadedImageUrls,
-        },
+      const formData = new FormData();
+      
+      // 새 이미지 파일 추가
+      newImageFiles.forEach((file) => formData.append('images', file));
+      
+      // 기존 이미지 URL 추출 (Base64 제외)
+      const editorJSON = editor.getJSON();
+      const remainingImageUrls: string[] = [];
+      editorJSON.content?.forEach((node: any) => {
+        if (node.type === 'image' && !node.attrs.src.startsWith('data:')) {
+          remainingImageUrls.push(node.attrs.src);
+        }
       });
-      console.log('수정된 게시글:', res.data);
+
+      // 변경된 필드만 추출
+      const postData: {
+        title?: string;
+        type?: string;
+        text?: string;
+        imageUrls?: string[];
+      } = {};
+
+      if (title !== originalPost.title) {
+        postData.title = title;
+      }
+      
+      if (selectedCategory !== originalPost.type) {
+        postData.type = selectedCategory;
+      }
+      
+      const textContent = editor.getText().trim();
+      if (textContent !== originalPost.text) {
+        postData.text = textContent;
+      }
+      
+      // 이미지 변경 확인: 새 이미지 추가 OR 기존 이미지 변경
+      const imageUrlsChanged = 
+        newImageFiles.length > 0 || 
+        JSON.stringify(remainingImageUrls.sort()) !== JSON.stringify([...originalPost.imageUrls].sort());
+      
+      if (imageUrlsChanged) {
+        postData.imageUrls = remainingImageUrls;
+      }
+
+      // 변경사항 확인
+      if (Object.keys(postData).length === 0 && newImageFiles.length === 0) {
+        alert('변경된 내용이 없습니다.');
+        return;
+      }
+
+      formData.append('post', JSON.stringify(postData));
+
+      await api.patch(`/posts/${postId}`, formData);
+      
+      alert('게시글이 수정되었습니다.');
+      navigate(`/board/${postId}`);
     } catch (err) {
       console.error('게시글 수정 실패:', err);
       alert('게시글 수정에 실패했습니다.');
-      return;
     }
-    */
-
-    navigate(`/board/${postId}`);
   };
 
-  if (!editor) return null;
-
+  // ----- 렌더 -----
   return (
     <div className="page-container">
       <main className="form-container">
@@ -168,7 +188,11 @@ const BoardEditPage = () => {
           <div className="dropdown-container">
             <button className="category-button" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
               {selectedCategory}{' '}
-              <img src={ArrowIcon} alt="arrow" className={`icon-sm ${isDropdownOpen ? 'rotate' : ''}`} />
+              <img
+                src={ArrowIcon}
+                alt="arrow"
+                className={`icon-sm ${isDropdownOpen ? 'rotate' : ''}`}
+              />
             </button>
             {isDropdownOpen && (
               <ul className="category-dropdown">
@@ -200,13 +224,16 @@ const BoardEditPage = () => {
         {/* Tiptap 에디터 */}
         <div className="tiptap-editor-box">
           <div className="tiptap-toolbar">
-            <div className="toolbar-group">
-              <button onClick={handlePhotoClick}>Photo</button>
-            </div>
-            <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleFileChange} 
+            <button onClick={handlePhotoClick}>Photo</button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: 'none' }}
+              accept="image/*"
+              onChange={handleFileChange}
+              title="이미지 삽입"
             />
           </div>
-
           <div className="editor-content">
             <EditorContent editor={editor} />
           </div>

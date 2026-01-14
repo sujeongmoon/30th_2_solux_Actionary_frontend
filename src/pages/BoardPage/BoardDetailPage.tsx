@@ -6,56 +6,14 @@ import { BADGE_MAP } from '../../utils/badgeMap';
 import lock from '../../assets/Board/lock.svg';
 import unlock from '../../assets/Board/unlock.svg';
 import send from '../../assets/homepage/Gradient_Arrow.svg';
-//import { getPostDetail, deletePost } from '../../api/boardDetail/postApi';
-//import { getComments, createComment, deleteComment } from '../../api/boardDetail/comment';
+import { getPostDetail, deletePost } from '../../api/boardDetail/postApi';
+import { getComments, createComment, deleteComment, updateComment } from '../../api/boardDetail/comment';
 import { useNavigate } from 'react-router-dom'
-import { usePosts } from '../../context/PostContext';
 import LoginAlertModal from '../../components/AlertModal/LoginAlertModal';
 
-/* ================= MOCK DATA ================= */
-const MOCK_COMMENTS: Comment[] = [
-  {
-    comment_id: 1,
-    content: '좋은 질문입니다.',
-    created_at: '2023-10-27T11:00:00',
-    is_secret: false,
-    author: {
-      memberId: 2,
-      nickname: '개발자B',
-      profile_image_url: 'https://picsum.photos/seed/userB/40/40',
-      badge_id: 1,
-    },
-  },
-  {
-    comment_id: 2,
-    content: '저도 궁금했어요!',
-    created_at: '2023-10-27T12:00:00',
-    is_secret: false,
-    author: {
-      memberId: 3,
-      nickname: '개발자C',
-      profile_image_url: 'https://picsum.photos/seed/userC/40/40',
-      badge_id: 2,
-    },
-  },
-
-  {
-    comment_id: 3,
-    content: '이건 비밀 댓글테스트하는 용도입니다',
-    created_at: '2023-10-27T13:00:00',
-    is_secret: true,
-    author: {
-      memberId: 4,
-      nickname: '개발자D',
-      profile_image_url: 'https://picsum.photos/seed/userD/40/40',
-      badge_id: 0,
-    },
-  },
-];
 /* ============================================= */
 
 const BoardDetailPage = () => {
-  const { posts } = usePosts();
   const { postId } = useParams<{ postId: string }>();
 
   const navigate = useNavigate();
@@ -76,7 +34,6 @@ const BoardDetailPage = () => {
 
   /** ref */
   const postMenuRef = useRef<HTMLDivElement | null>(null);
- 
 
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editingCommentText, setEditingCommentText] = useState('');
@@ -89,7 +46,6 @@ const BoardDetailPage = () => {
   const loginUserId = isLoggedIn ? 1: null; //mockData용
 
   /* 실제 연동용 코드 */
-  {/*
   useEffect(() => {
     if (!postId) return;
     const fetchData = async() => {
@@ -113,43 +69,14 @@ const BoardDetailPage = () => {
     };
 
     fetchData();
-  }, [postId, posts]); */}
-
-  {/* 댓글 작성 기능 (MockData) */ }
-  const handleCommentSubmitMock = () => {
-    if (!isLoggedIn) {
-      setShowLoginModal(true);
-      return;
-    }
-  if (!commentText.trim()) return; // 빈 댓글 방지
-
-  const newComment: Comment = {
-    comment_id: 4, // 임시 ID
-    content: commentText,
-    created_at: new Date().toISOString(), // 현재 시간
-    is_secret: isSecret,
-    author: {
-      memberId: 4, // 작성자 ID
-      nickname: '가인', // 로그인 유저 이름
-      profile_image_url: 'https://picsum.photos/seed/me/40/40', // 임시 이미지
-      badge_id: 3, // 임시 뱃지
-    },
-  };
-
-  // 기존 댓글 배열에 새 댓글 추가
-  setComments([...comments, newComment]);
-
-  // 입력칸 초기화
-  setCommentText('');
-  setIsSecret(false);
-};
+  }, [postId]);
 
 {/*댓글 작성 API 연동용 */}
-{/*
+
 const handleCommentSubmit = async () => {
 
   if (!isLoggedIn) {
-    requireLogin();
+    setShowLoginModal(true);
     return;
   }
   if (!commentText.trim() || !postId) return;
@@ -167,42 +94,10 @@ const handleCommentSubmit = async () => {
     }
   } catch (error) {
     console.error(error);
+    alert('댓글 작성에 실패했습니다')
   }
-} */}
+} 
 
-  
-  {/* MockData용 */}
-  useEffect(() => {
-    if (!postId || !posts) return;
-
-    const postFromContext = posts.find(p=> p.postId === Number(postId));
-    if (!postFromContext) return;
-
-    const mappedData: PostDetailData = {
-      post: {
-        postId: postFromContext.postId,
-        type: postFromContext.type,
-        title: postFromContext.title,
-        text_content: postFromContext.content.text_content,
-        comment_count: postFromContext.comment_count,
-        created_at: postFromContext.created_at,
-      },
-      post_image_urls: postFromContext.content.image_urls,
-      author: {
-        memberId: 1,
-        nickname: postFromContext.nickname,
-        profile_image_url: 'https://picsum.photos/seed/me/40/40',
-        badge: 0,
-      }
-    }
-
-    setData(mappedData);
-    setComments(MOCK_COMMENTS);
-    setLoading(false);
-  }, [postId, posts]);
-
-  {/*연동용 */}
-  {/*
   const handleDeleteComment = async (commentId: number, postId: number) => {
     try {
       await deleteComment(postId,commentId);
@@ -214,22 +109,50 @@ const handleCommentSubmit = async () => {
       console.error(error);
       alert('댓글 삭제에 실패했습니다.');
     }
-  }; */}
-  {/*MockData*/}
-  const handleDeleteCommentMock = (commentId: number) => {
-  setComments((prev) =>
-    prev.filter((comment) => comment.comment_id !== commentId)
-  );
+  }; 
+
+
+  // 댓글 수정
+  const handleEditCommentSave = async () => {
+  if (!editingCommentId || !postId) return;
+  if (!isLoggedIn) {
+    setShowLoginModal(true);
+    return;
+  }
+
+  try {
+    const token = accessToken!;
+    await updateComment(
+      Number(postId),
+      editingCommentId,
+      { content: editingCommentText, is_secret: editingIsSecret },
+      token
+    );
+
+    // 서버 반영 후 상태 갱신
+    setComments(prev =>
+      prev.map(c =>
+        c.comment_id === editingCommentId
+          ? { ...c, content: editingCommentText, is_secret: editingIsSecret }
+          : c
+      )
+    );
+
+    setEditingCommentId(null);
+
+  } catch (error) {
+    console.error(error);
+    alert('댓글 수정에 실패했습니다.');
+  }
 };
 
-
-
+ 
   /** 바깥 클릭 시 드롭다운 닫기 */
 
   if (loading) return <div className="loading">로딩 중...</div>;
   if (!data) return <div className="error">게시글을 찾을 수 없습니다.</div>;
 
-  const { post, author, post_image_urls } = data;
+  const { post, author, postImageUrls } = data;
   const formatDate = (dateString: string) => {
   const d = new Date(dateString);
   const year = d.getFullYear();
@@ -248,7 +171,7 @@ const handleCommentSubmit = async () => {
 
         <div className="post-header">
           <div className="author-info">
-            <img src={author.profile_image_url} alt="프로필 이미지" className="profile-img" />
+            <img src={author.profileImageUrl} alt="프로필 이미지" className="profile-img" />
             <div className="meta-text">
               <div className="nickname-row">
                 <span className="nickname">{author.nickname}</span>
@@ -289,9 +212,8 @@ const handleCommentSubmit = async () => {
 
                         try {
                           // 실제 연동용
-                          // const res = await deletePost(post.postId);
-
-
+                          const res = await deletePost(post.postId);
+                          if (!res.success) throw new Error('삭제 실패');
                           alert('게시글이 삭제되었습니다.');
                           navigate('/board');
                         } catch (error) {
@@ -307,14 +229,14 @@ const handleCommentSubmit = async () => {
         </div>
 
         <div className="post-content">
-          {post_image_urls.map((url, idx) => (
+          {postImageUrls.map((url, idx) => (
             <div key={idx} className="content-image-box">
               <img src={url} alt="게시글 이미지" />
             </div>
           ))}
           <div
             className='text-body'>
-              {post.text_content}
+              {post.textContent}
             </div>
         </div>
 
@@ -352,9 +274,9 @@ const handleCommentSubmit = async () => {
                   {comment.author.nickname}
                 </span>
 
-                {BADGE_MAP[comment.author.badge_id] && (
+                {BADGE_MAP[comment.author.badge] && (
                   <img
-                    src={BADGE_MAP[comment.author.badge_id]}
+                    src={BADGE_MAP[comment.author.badge]}
                     alt="작성자 뱃지"
                     className="badge-img"
                   />
@@ -392,8 +314,7 @@ const handleCommentSubmit = async () => {
                           <button 
                             className="menu-item"
                             onClick={() => {
-                              handleDeleteCommentMock(comment.comment_id);
-                              //handleDeleteComment(Number(postId), comment.comment_id);
+                              handleDeleteComment(Number(postId), comment.comment_id);
                             }}>삭제</button>
                         </div>
                      )}
@@ -422,16 +343,7 @@ const handleCommentSubmit = async () => {
                     <div className='editing-btn-group'>
                   <button
                     className='edit-save-btn'
-                    onClick={() => {
-                      setComments(
-                        comments.map((c) => 
-                          c.comment_id === editingCommentId
-                            ? {...c, content: editingCommentText, is_secret: editingIsSecret}
-                            : c
-                          )
-                      );
-                      setEditingCommentId(null);
-                    }}
+                    onClick={handleEditCommentSave}
                   >
                     저장
                   </button>
@@ -477,7 +389,7 @@ const handleCommentSubmit = async () => {
             </div>
           </div>
 
-          <button className="comment-send-btn" onClick={handleCommentSubmitMock}>
+          <button className="comment-send-btn" onClick={handleCommentSubmit}>
             <img src={send} alt="전송버튼" className="send-icon" />
           </button>
         </div>

@@ -1,26 +1,33 @@
 // src/context/PostContext.tsx
 import React, { createContext, useContext, useState, type ReactNode } from 'react';
 
-// 게시글 타입
-export interface Post {
-  postId: number;
-  title: string;
-  type: string;
-  content: {
-    text_content: string;
-    image_urls: string[];
-  };
+export interface Author {
+  memberId: number;
   nickname: string;
-  created_at: string;
-  comment_count: number;
+  profileImageUrl: string;
+  badge: number;
+}
+
+export interface PostDetailData {
+  post: {
+    postId: number;
+    type: string;
+    title: string;
+    textContent: string;
+    commentCount: number;
+    created_at: string;
+  };
+  postImageUrls: string[];
+  author: Author;
 }
 
 
+
 interface PostContextType {
-  posts: Post[];
-  setPosts: React.Dispatch<React.SetStateAction<Post[]>>;
-  addPost: (post: Post) => void;
-  updatePost: (updatedPost: Post) => void;
+  posts: PostDetailData[];
+  setPosts: React.Dispatch<React.SetStateAction<PostDetailData[]>>;
+  addPost: (post: PostDetailData) => void;
+  updatePost: (updatedPost: PostDetailData) => void;
 }
 
 const PostContext = createContext<PostContextType | undefined>(undefined);
@@ -32,14 +39,14 @@ export const usePosts = () => {
 };
 
 export const PostProvider = ({ children }: { children: ReactNode }) => {
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<PostDetailData[]>([]);
 
-  const addPost = (post: Post) => {
+  const addPost = (post: PostDetailData) => {
     setPosts(prev => [...prev, post]);
   };
 
-  const updatePost = (updatedPost: Post) => {
-    setPosts(prev => prev.map(p => (p.postId === updatedPost.postId ? updatedPost : p)));
+  const updatePost = (updatedPost: PostDetailData) => {
+    setPosts(prev => prev.map(p => (p.post.postId === updatedPost.post.postId ? updatedPost : p)));
   };
 
   return (

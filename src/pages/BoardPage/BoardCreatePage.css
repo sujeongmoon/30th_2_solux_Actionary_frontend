@@ -42,7 +42,7 @@
 }
 
 /* 드롭다운 메뉴 스타일 */
-.category-dropdown {
+.board-category-dropdown {
   position: absolute;
   top: 45px;
   left: 0;
@@ -56,7 +56,7 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-.dropdown-item {
+.board-dropdown-item {
   width: 100%;
   background: none;
   border: none;
@@ -68,13 +68,13 @@
   cursor: pointer;
 }
 
-.dropdown-item:hover {
+.board-dropdown-item:hover {
   color: #FFFFFF;
   background-color: transparent; /* 호버 시 포인트 컬러 */
 }
 
 /* 드롭다운 사이의 구분선 */
-.dropdown-divider {
+.board-dropdown-divider {
   height: 0.5px;
   background-color: #FFFFFF;
   width: 70%;
@@ -100,6 +100,12 @@
   display: flex;
   flex-direction: column;
 }
+
+.ProseMirror {
+  min-height: 200px;   /* 원하는 높이 */
+  outline: none;       /* 포커스 아웃라인 제거 */
+}
+
 
 /* 툴바 그룹화 */
 .toolbar-group {
