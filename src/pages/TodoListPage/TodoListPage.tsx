@@ -39,7 +39,7 @@ const TodoListPage: React.FC = () => {
   const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
 
   const [selectedDate, setSelectedDate] = useState(todayString);
-  const [categories, setCategories] = useState<Category[]>([]);
+
   const [todos, setTodos] = useState<Todo[]>([]);
 
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
@@ -53,13 +53,15 @@ const TodoListPage: React.FC = () => {
   const [todoDropdownPosition, setTodoDropdownPosition] = useState<TodoDropdownPosition>({ top: 0, left: 0 });
   const dropdownButtonRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
 
-  // 카테고리 드록바운 위치 계산
+  // 카테고리 드롭다운 위치 계산
   const categoryButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const [categoryDropdownPosition, setCategoryDropdownPosition] = useState({
     top: 0,
     left: 0,
   });
+
+  const { categories } = useTodoCategoriesContext();
 
   // 투두 드롭다운 위치 계산
   const handleTodoDropdownToggle = (todoId: number) => {
@@ -285,8 +287,14 @@ const TodoListPage: React.FC = () => {
                 left: categoryDropdownPosition.left,
             }}
           >
-            <li onClick={() => setCreateModalOpen(true)}>카테고리 등록</li>
-            <li onClick={() => setManageModalOpen(true)}>카테고리 관리</li>
+            <li onClick={() => {
+              setCreateModalOpen(true);
+              setCategoryDropdownOpen(false);
+            }}>카테고리 등록</li>
+            <li onClick={() => {
+              setManageModalOpen(true);
+              setCategoryDropdownOpen(false);
+            }}>카테고리 관리</li>
           </ul>,
           document.body
         )
