@@ -6,62 +6,23 @@ import gradientArrow from '../../assets/sidebar/gradientArrow.svg';
 import Bell from '../../assets/sidebar/Bell.svg';
 import Clock from '../../assets/sidebar/mingcute_time-line.svg';
 import gradientCheck from '../../assets/sidebar/gradientCheck.svg';
-import { updateTodoStatus, type TodoStatus } from '../../api/Todos/todosApi';
+import { updateTodoStatus } from '../../api/Todos/todosApi';
 import { useNavigate } from "react-router-dom";
 import NotificationModal from "../Notification/NotificationModal";
 import { type NotificationItem } from "../Notification/NotificationModal";
 import { getNotifications, type NotificationResponse } from "../../api/Notification/notificationsApi";
+import { getMyInfo, getUserPoints, getStudyTimeByDate, getTodoListByDate } from '../../api/sidebar'; 
+
+
+type TodoStatus = 'DONE' | 'FAILED' | 'PENDING';
 
 interface SideTodoItem {
   id: number;
   category: string;
   task: string;
   selected: boolean;
+  status: TodoStatus;
 }
-
-// MOCK DATA
-const MOCK_USER = { nickname: "가인" };
-const MOCK_POINTS = { totalPoint: 210 };
-const MOCK_STUDY_TIME = { studyTime: "2H 45M" };
-const MOCK_TODOS: SideTodoItem[] = [
-  { id: 1, category: "수업", task: "수학 문제 풀기", selected: true },
-  { id: 2, category: "수업", task: "영어 단어 외우기", selected: false },
-  { id: 3, category: "운동", task: "스트레칭 15분", selected: true },
-  { id: 4, category: "운동", task: "조깅 30분", selected: false },
-];
-// MOCK 알림 데이터
-// MOCK 알림 데이터 (createdAt 형태)
-const MOCK_NOTIFICATIONS: NotificationItem[] = [
-  {
-    notificationId: 131,
-    type: "COMMENT",
-    title: "내 게시글에 댓글이 달렸습니다.",
-    content: "다현님이 작성한 글에 새로운 댓글이 있어요.",
-    createdAt: "2025-10-31T12:55:00",
-    link: "/board",
-    isRead: false, // 안읽음
-  },
-  {
-    notificationId: 130,
-    type: "POINT",
-    title: "포인트가 적립되었습니다.",
-    content: "스터디 참여로 10P 적립!",
-    createdAt: "2025-10-31T12:40:00",
-    link: "/mypage/points",
-    isRead: true, // 읽음
-  },
-  {
-    notificationId: 129,
-    type: "DAILY_STUDY_SUMMARY",
-    title: "오늘 공부량 리포트",
-    content: "오늘 총 3시간 20분 공부했어요 👏",
-    createdAt: "2025-10-31T00:00:05",
-    link: "/study/report",
-    isRead: true, // 읽음
-  },
-];
-
-
 
 
 const RightSidebar = () => {
@@ -76,9 +37,42 @@ const RightSidebar = () => {
 
   const accessToken = localStorage.getItem('accessToken');
   const isLoggedIn = Boolean(accessToken);
+  // 유저 정보 호출
+  useEffect(() => {
+    const fetchUserData = async() => {
+      try {
+        // 오늘 날짜
+        const today = new Date().toISOString().split('T')[0];
+
+        // 유저 정보
+        const userInfo = await getMyInfo();
+        setNickname(userInfo.nickname);
+
+        // 포인트
+        const points = await getUserPoints();
+        setTotalPoint(points.totalPoint);
+
+        // 오늘 공부량
+        const studyTime = await getStudyTimeByDate(today);
+        setTodayStudyTime(studyTime.studyTime);
+
+        // 오늘 투두 리스트
+        const todos = await getTodoListByDate(today);
+        setTodoList(todos.map((t: { id: number; category: string; task: string; status: 'DONE' | 'FAILED' | 'PENDING' }) => ({
+          id: t.id,
+          category: t.category,
+          task: t.task,
+          status: t.status,
+          selected: t.status !== 'PENDING'
+        })));
+      } catch (err) {
+        console.error('유저 데이터 불러오기 실패', err);
+      }
+    };
+    fetchUserData();
+  }, []);
 
   if (!isLoggedIn) return null; // 로그인 안되면 아예 렌더링 X
-
 
   // 알림 API 호출
   const fetchNotifications = async() => {
@@ -106,23 +100,22 @@ const RightSidebar = () => {
   }
 
   // TODO 선택 토글
-  const handleToggle = async (todoId: number, selected: boolean) => {
-    try {
-      const status: TodoStatus = selected ? 'DONE' : 'FAILED';
-      await updateTodoStatus(todoId, status);
-      setTodoList(prev => prev.map(t => t.id === todoId ? { ...t, selected } : t));
-    } catch (e) {
-      console.error('투두 상태 업데이트 실패', e);
-    }
-  };
+  const handleToggle = async (todoId: number, newStatus: 'DONE' | 'FAILED') => {
+    const prevList = [...todoList];
 
-  useEffect(() => {
-    // MOCK DATA 세팅
-    setNickname(MOCK_USER.nickname);
-    setTotalPoint(MOCK_POINTS.totalPoint);
-    setTodayStudyTime(MOCK_STUDY_TIME.studyTime);
-    setTodoList(MOCK_TODOS);
-  }, []);
+    setTodoList(prev => 
+      prev.map(t => 
+        t.id === todoId
+        ? {...t, status: newStatus, selected: true}
+        : t));
+
+    try {
+      await updateTodoStatus(todoId, newStatus);
+    } catch (err) {
+      console.error('투두 상태 업데이트 실패', err);
+      setTodoList(prevList);
+    }
+  }
 
   // 카테고리별 그룹화
   const groupedTodos = todoList.reduce<Record<string, SideTodoItem[]>>((acc, todo) => {
@@ -194,14 +187,14 @@ const RightSidebar = () => {
                     <span className="task-name">{todo.task}</span>
                     <div className="btn-group">
                       <button
-                        className={`status-btn success ${todo.selected ? 'active' : ''}`}
-                        onClick={() => handleToggle(todo.id, true)}
+                        className={`status-btn success ${todo.status === 'DONE' ? 'active' : ''}`}
+                        onClick={() => handleToggle(todo.id, 'DONE')}
                       >
                         달성
                       </button>
                       <button
-                        className={`status-btn fail ${!todo.selected ? 'active' : ''}`}
-                        onClick={() => handleToggle(todo.id, false)}
+                        className={`status-btn fail ${todo.status === 'FAILED' ? 'active' : ''}`}
+                        onClick={() => handleToggle(todo.id, 'FAILED')}
                       >
                         실패
                       </button>
@@ -217,8 +210,7 @@ const RightSidebar = () => {
       <NotificationModal
         isOpen={isNotificationOpen}
         onClose={() => setIsNotificationOpen(false)}
-        notifications={MOCK_NOTIFICATIONS}
-        //notifications={notifications} 
+        notifications={notifications} 
       />
 )}
 
