@@ -433,3 +433,125 @@ body {
     top: -2px;
     width: 30px;
 }
+
+
+/*===============반응형=================*/
+
+/*=============== 반응형 미디어 쿼리 =================*/
+
+/* 1. 태블릿 및 작은 데스크탑 (1024px 이하) */
+@media (max-width: 1024px) {
+  .sub-navigation {
+    margin: 30px 0 5px 40px;
+  }
+
+  .popular-study-container,
+  .popular-board-container {
+    margin: 40px 40px;
+    padding: 24px 30px;
+  }
+
+  .popular-study-grid {
+    grid-template-columns: repeat(2, 1fr); /* 3열에서 2열로 */
+  }
+}
+
+/* 2. 모바일 기기 (768px 이하) */
+@media (max-width: 760px) {
+
+
+  .sub-navigation {
+    display: flex;
+    justify-content: center; /* 내부 아이템들을 가로 중앙으로 */
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    width: 100%; 
+    margin: 10px 0 !important; 
+  }
+  
+  .nav-link-home-link {
+    font-size: 24px;
+  }
+
+  /* AI 컨테이너 조정 */
+  .Ai-Container {
+    height: auto;
+    padding-bottom: 40px;
+  }
+
+  .Ai-Container-Title {
+    margin: 0 0 20px 20px;
+  }
+
+  .ai-input-box {
+    width: 90%;
+    height: 50px;
+    padding: 0 15px;
+  }
+
+  /* 인기 스터디 섹션 */
+  .popular-study-container {
+    margin: 30px 15px;
+    padding: 20px 15px;
+  }
+
+  .popular-study-grid {
+    grid-template-columns: 1fr; /* 1열로 변경 */
+  }
+
+  .study-card {
+    height: auto; /* 높이 고정 해제 */
+    min-height: 350px;
+  }
+
+  /* 인기 게시글 섹션 */
+  .popular-board-container {
+    margin: 30px 20px;
+  }
+
+  .popular-board-grid {
+    grid-template-columns: 1fr; /* 2열에서 1열로 변경 */
+  }
+
+  .board-item {
+    padding-right: 0;
+  }
+
+  .board-content {
+    font-size: 14px; /* 모바일에서 가독성을 위해 조금 키움 */
+  }
+
+  /* 버튼 및 텍스트 조정 */
+  .popular-study-title, 
+  .popular-board-title {
+    font-size: 18px;
+  }
+  
+  /* 마지막 구분선 */
+  .divider-box2 {
+    height: 8px;
+  }
+}
+
+/* 3. 아주 작은 모바일 (480px 이하) */
+@media (max-width: 480px) {
+
+  .ai-input {
+    font-size: 14px;
+  }
+  
+  .study-card-img {
+    height: 150px;
+  }
+
+  .board-tag {
+    padding: 4px 12px;
+    margin-right: 8px;
+  }
+  
+  .board-likes {
+    margin-right: 5px;
+    gap: 5px;
+  }
+}
