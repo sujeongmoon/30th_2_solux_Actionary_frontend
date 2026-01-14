@@ -97,17 +97,17 @@
   border-radius: 50% !important;
 }
 
-.add-custom-calendar .react-calendar__month-view__days__day--weekend { color: #FF6B6B; }
-.add-custom-calendar .react-calendar__tile--now { background: none; color: #333; font-weight: bold; }
+.add-custom-calendar .react-calendar__tile--now { background: none; color: #333; background-color: #B0B0B0; font-weight: bold; }
 .add-custom-calendar .react-calendar__tile:enabled:hover { background-color: #f0f0f0; }
 
 /* 선택된 날짜 (깔끔한 원형) */
 .add-custom-calendar .react-calendar__tile--active {
-  background-color: #b2b2b2 !important;
-  color: #fff !important;
+  color: #000000 !important;
   border-radius: 50% !important;
   font-weight: 800;
 }
+
+
 
 /* 시간 입력 */
 .time-input-section { display: flex; justify-content: center; margin-bottom: 20px; }
