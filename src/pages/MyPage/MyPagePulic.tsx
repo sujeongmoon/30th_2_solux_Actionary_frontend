@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './MyPageOwner.css';
 import { useParams } from 'react-router-dom';
 import ProfileSectionPublic from '../../components/MyPage/ProfileSectionPublic';        
-import AchievementSectionPublic from '../../components/MyPage/AchievementSectionPublic';
+import AchievementSection from '../../components/MyPage/AchievementSection';
 import { getOtherUserInfo, type OtherUserInfo} from '../../api/MyPage/getOtherUserInfo';
 
 const MyPagePublic: React.FC = () => {
@@ -39,7 +39,7 @@ const MyPagePublic: React.FC = () => {
     <div className='owner-container'>
       <ProfileSectionPublic userInfo={userInfo} />
       <div className='owner-profile-divider'></div>
-      <AchievementSectionPublic memberId={userInfo.memberId} />
+      <AchievementSection memberId={userInfo.memberId} nickname={userInfo.nickname} />
     </div>
     </>
   );
