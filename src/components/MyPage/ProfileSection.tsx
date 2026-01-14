@@ -5,23 +5,15 @@ import './ProfileSection.css';
 import NickNameModal from './NickNameModal';
 import WithdrawModal from './WithdrawModal';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../../api/client';
 
 interface UserInfo {
-  user_id: number;
-  profile_image_url: string;
+  memberId: number;
+  profileImageUrl: string;
   nickname: string;
   phoneNumber: string;
   birthday: string;
 }
-
-// MOCK DATA (API 연동 전 임시 사용)
-const mockUserInfo: UserInfo = {
-  user_id: 1,
-  profile_image_url: 'https://i.pravatar.cc/150?img=3',
-  nickname: 'mockUser',
-  phoneNumber: '010-1234-5678',
-  birthday: '2000-01-01',
-};
 
 const ProfileSection: React.FC = () => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
@@ -33,41 +25,22 @@ const ProfileSection: React.FC = () => {
 
   // Modal 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
-  { /* API 연동 시 다시 사용하기 */}
-  {/*
+
   useEffect(() => {
-    
     const fetchUserInfo = async () => {
       try {
-        const response = await fetch('/api/users/me/info', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-        });
-
-        if (!response.ok) {
-        throw new Error(`API 에러: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setUserInfo(data.data);
-
-    } catch (err) {
+        const res = await api.get('/users/me/info');
+        setUserInfo(res.data.data); 
+      } catch (err) {
         console.error(err);
         setError('회원 정보를 불러오지 못했습니다.');
-    } finally {
+      } finally {
         setLoading(false);
-    }};
+      }
+    };
     fetchUserInfo();
-  }, []); */}
+  }, []);
   
-  // MockData 삭제하기
-  useEffect(() => {
-    setUserInfo(mockUserInfo);
-    setLoading(false);
-  })
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -160,9 +133,9 @@ const ProfileSection: React.FC = () => {
       <div className="owner-avatar-container">
         <div className="owner-avatar-white-circle">
           <img
-            src={userInfo?.profile_image_url || Profile}
+            src={userInfo?.profileImageUrl || Profile}
             alt="profile"
-            className={userInfo?.profile_image_url ? 'owner-avatar-img-full' : 'owner-profile-img'}
+            className={userInfo?.profileImageUrl ? 'owner-avatar-img-full' : 'owner-profile-img'}
           />
         </div>
         <div className="owner-avatar-plus" onClick={() => fileInputRef.current?.click()}></div>

@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import StudyTimeModal from '../../components/MyPage/StudyTimeModal';
 import { getTodoListByDate, updateTodoStatus, getTodoCategories, getStudyTime } from '../../api/MyPage/MyPage';
 import type { TabKey,TodoItem,TodoCategory} from '../../types/MyPageTypes';
+import { api } from '../../api/client';
 
 
 
@@ -26,8 +27,22 @@ const MyPageOwner: React.FC = () => {
   ];
 
   const [activeTab, setActiveTab] = useState<'DAY' | 'WEEK' | 'MONTH' | 'YEAR'>('DAY');
+
+  const [myMemberId, setMyMemberId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchMyInfo = async () => {
+      try {
+        const res = await api.get('/users/me/info');
+        setMyMemberId(res.data.data.memberId); // 서버에서 memberId 받아오기
+      } catch (err) {
+        console.error('본인 정보 조회 실패', err);
+      }
+    };
+    fetchMyInfo();
+  }, []);
   
-  const fetchStudyData = async (tab: TabKey, date: string) => {
+  const fetchStudyData = React.useCallback(async (tab: TabKey, date: string) => {
   try {
     const data = await getStudyTime(tab, date);
       if (!data || typeof data.durationSeconds !== 'number') {
@@ -42,7 +57,7 @@ const MyPageOwner: React.FC = () => {
   } catch (error) {
     console.error('스터디 시간 조회 실패', error);
   }
-};
+}, []);
 
   const [studyData, setStudyData] = useState<Record<TabKey, string>>({
     DAY: '0H 0M',
@@ -54,7 +69,7 @@ const MyPageOwner: React.FC = () => {
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
     fetchStudyData(activeTab, today);
-  }, [activeTab]);
+  }, [activeTab, fetchStudyData]);
 
 
 const formatDuration = (seconds: number) => {
@@ -118,7 +133,12 @@ const handleStatusChange = async (
       <div className='owner-container'>
         <ProfileSection />
         <div className='owner-profile-divider'></div>
-        <AchievementSection />
+        {myMemberId ? (
+          <AchievementSection memberId={myMemberId} />
+        ) : (
+          <div>업적 로딩중...</div>
+        )}
+
 
       </div>
       <div className='owner-divider-box' />
@@ -190,8 +210,8 @@ const handleStatusChange = async (
                                         className={`owner-tab ${isActive ? 'active': ''}`}
                                         onClick={() => {
                                             setActiveTab(tab.key);
-                                            //const today = new Date().toISOString().slice(0,10);
-                                            //fetchStudyData(tab.key, today);
+                                            const today = new Date().toISOString().slice(0,10);
+                                            fetchStudyData(tab.key, today);
                                         }}
                                     >
                                         <span className='owner-tab-icon'>

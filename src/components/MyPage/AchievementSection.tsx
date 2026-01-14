@@ -4,6 +4,7 @@ import StudyTime from '../../assets/MyPage/StudyTime.svg';
 import StudyIcon from '../../assets/MyPage/StudyIcon.svg';
 import CheckIcon from '../../assets/MyPage/CheckIcon.svg';
 import OwnerUnion from '../../assets/MyPage/OwnerUnion.svg';
+import { api } from '../../api/client';
 import './AchievementSection.css';
 
 interface Points {
@@ -14,82 +15,59 @@ interface Points {
 }
 
 interface Badge {
-    badge_id: number;
-    badge_name: string;
-    badge_image_url: string;
+    badgeId: number;
+    badgeName: string;
+    requiredPoint: number;
+    badgeImageUrl: string;
+    memberId?: number;
 }
 
-{/* MOCK DATA */}
-const MOCK_POINTS = {
-  study: 100,
-  studyParticipation: 30,
-  todo: 2,
-  total: 132,
+interface AchievementSectionProps {
+    memberId: number;
+}
+
+const DEFAULT_BADGE: Badge = {
+  badgeId: 0,
+  badgeName: '0P',
+  badgeImageUrl: '/images/badge_default.svg',
+  requiredPoint: 0,
 };
 
-const MOCK_BADGE = {
-  badge_id: 1,
-  badge_name: '10P',
-  badge_image_url: 'https://i.pravatar.cc/150?img=3', 
-};
-
-
-
-const AchievementSection = () => {
+const AchievementSection : React.FC<AchievementSectionProps> = ({ memberId }) => {
     const [points, setPoints] = useState<Points>({
         study: 0,
         studyParticipation: 0,
         todo: 0,
         total: 0,
     });
-
-    const [badge, setBadge] = useState<Badge>({
-        badge_id: 0,
-        badge_name: '0P',
-        badge_image_url: '',
-    });
-
-
+    const [badge, setBadge] = useState<Badge>(DEFAULT_BADGE);
 
     useEffect(() => {
-        
-        setPoints(MOCK_POINTS); //가짜 데이터, 연동 시 지우기
-
-        {/* 연동 시 주석 제외하기 */}
-        /*
+        if (!memberId) return;
         const fetchPoints = async () => {
             try {
-                const res = await fetch('/api/users/{userId}/points');
-                const result = await res.json();
-
-                setPoints(result.data.points);
+                const res = await api.get(`/users/${memberId}/points`);
+                setPoints(res.data.data.points); //points만 가져오기
             } catch (error) {
                 console.error('포인트 조회 실패', error);
             }
         };
 
         fetchPoints();
-        */
-    }, []);
+    }, [memberId]);
 
     useEffect(() => {
-
-        setBadge(MOCK_BADGE); //연동 시 삭제하기
-
-        /*
         const fetchBadge = async () => {
             try {
-                const res = await fetch('/api/users/me/badge');
-                const result = await res.json();
-
-                setBadge(result.result);
+                const res = await api.get(`/users/${memberId}/badge`);
+                setBadge(res.data.result ?? DEFAULT_BADGE);
             } catch (error) {
                 console.error('배지 조회 실패', error);
+                setBadge(DEFAULT_BADGE);
             }
         };
         fetchBadge();
-        */
-    }, [])
+    }, [memberId]);
 
     return (
         <div className='owner-achievement-section'>
@@ -101,15 +79,15 @@ const AchievementSection = () => {
         <div className='owner-stats-box'>
             {/* 1. 왼쪽 배지 카드 */}
             <div className='owner-badge-card'>
-                {badge.badge_image_url && (
+                {badge.badgeImageUrl && (
                     <img
-                        src={badge.badge_image_url}
-                        alt={badge.badge_name}
+                        src={badge.badgeImageUrl}
+                        alt={badge.badgeName}
                         className='owner-badge-image'
                     />
                 )}
             <span className='owner-badge-text'>
-                {badge.badge_name ? `${badge.badge_name} 달성`: ''}
+                {badge.badgeName ? `${badge.badgeName} 달성`: ''}
             </span>
             </div>
 
