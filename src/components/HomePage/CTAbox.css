@@ -121,3 +121,79 @@
 .cta-metaBtn img {
   margin-right: 6px; /* 체크와 텍스트 간 간격 */
 }
+
+
+
+/*=============== CTAbox 반응형 미디어 쿼리 =================*/
+
+/* 1. 태블릿 및 작은 데스크탑 (1024px 이하) */
+@media (max-width: 1024px) {
+  .cta-header-row,
+  .cta-title,
+  .cta-container {
+    width: calc(100% - 80px); /* 좌우 여백을 줄임 */
+  }
+}
+
+/* 2. 모바일 (768px 이하) */
+@media (max-width: 768px) {
+  .cta-header-row {
+    width: calc(100% - 40px);
+    margin-bottom: 12px;
+  }
+
+  .cta-title {
+    width: calc(100% - 40px);
+    font-size: 20px; /* 제목 크기 축소 */
+  }
+
+  /* 뚱뚱해 보이는 주원인인 패딩 수정 */
+  .cta-container {
+    width: calc(100% - 40px);
+    padding: 30px 20px; /* 상하 패딩 60px -> 30px로 대폭 축소 */
+    border-radius: 30px; /* 둥근 모서리 조정 */
+    gap: 16px; /* 내부 요소 간격 축소 */
+  }
+
+  /* 플러스 버튼 크기 축소 */
+  .cta-plus-button {
+    width: 50px;
+    height: 50px;
+  }
+
+  .cta-plus-button-img {
+    width: 22px;
+  }
+
+  /* 텍스트 크기 및 줄바꿈 처리 */
+  .cta-text {
+    font-size: 15px;
+    text-align: center;
+    flex-direction: column; /* 로고와 텍스트를 세로로 배치 */
+    gap: 6px;
+  }
+  
+}
+
+/* 3. 아주 작은 모바일 (480px 이하) */
+@media (max-width: 480px) {
+  .cta-header-row,
+  .cta-title,
+  .cta-container {
+    width: calc(100% - 30px); /* 여백 최소화 */
+  }
+
+  .cta-container {
+    padding: 20px 15px; /* 더 슬림하게 */
+  }
+
+  .cta-title {
+    font-size: 18px;
+    white-space: normal; /* 제목이 길면 줄바꿈 허용 */
+  }
+
+  .cta-text {
+    font-size: 14px;
+    word-break: keep-all; /* 단어 단위 줄바꿈으로 깔끔하게 */
+  }
+}

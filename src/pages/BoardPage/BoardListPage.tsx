@@ -4,9 +4,9 @@ import Pagination from '../../components/Pagination/Pagination';
 import '../../pages/HomePage/HomePage.css';
 import DropdownIcon from '../../assets/Board/Dropdown.svg';
 import MagePen from '../../assets/Board/mage_pen.svg';
-//import { getPopularPosts, getLatestPosts } from '../../api/boardPost';
+import { getPopularPosts, getLatestPosts } from '../../api/boardPost';
 import { useNavigate } from 'react-router-dom';
-import { usePosts, type Post } from '../../context/PostContext';
+import { type Post } from '../../api/boardPost';
 import LoginAlertModal from '../../components/AlertModal/LoginAlertModal';
 
 
@@ -19,7 +19,6 @@ const BoardListPage: React.FC = () => {
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('말머리');
-  const { posts } = usePosts();
   const [displayPosts, setDisplayPosts] = useState<Post[]>([]);
   const [totalPages, setTotalPages] = useState(0);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -51,7 +50,7 @@ const BoardListPage: React.FC = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        {/*
+    
         const apiPage = currentPage - 1; // 백엔드 0부터 시작
 
         const params: { page: number; type?: string } = { page: apiPage };
@@ -64,36 +63,15 @@ const BoardListPage: React.FC = () => {
             ? await getPopularPosts(params)
             : await getLatestPosts(params);
 
-        setPosts(data.posts);
+        setDisplayPosts(data.posts);
         setTotalPages(data.pageInfo.totalPages);
-      */}
-
-      // ================= MockData 사용 =================
-      let filteredPosts = posts;
-
-      if (selectedCategory !== '말머리' && selectedCategory !== '전체') {
-        filteredPosts = filteredPosts.filter((p) => p.type === selectedCategory);
-      }
-
-      if (selectedSort === 'popular') {
-        filteredPosts = [...filteredPosts].sort((a, b) => (b.comment_count || 0) - (a.comment_count || 0));
-      } else {
-        filteredPosts = [...filteredPosts].sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-      }
-
-      setDisplayPosts(filteredPosts);
-      setTotalPages(1);
-
-    // =======================================================// 
       } catch (error) {
         console.error('게시글 조회 실패', error);
       }
     };
 
     fetchPosts();
-  }, [posts, currentPage, selectedSort, selectedCategory]);
+  }, [currentPage, selectedSort, selectedCategory]);
 
   /** ======================
    * 핸들러
@@ -214,8 +192,8 @@ const BoardListPage: React.FC = () => {
                   </td>
                   <td>{item.title}</td>
                   <td className="author-cell">{item.nickname}</td>
-                  <td className="date-cell">{formatDate(item.created_at)}</td>
-                  <td className="comment-count">{item.comment_count}</td>
+                  <td className="date-cell">{formatDate(item.createdAt)}</td>
+                  <td className="comment-count">{item.commentCount}</td>
                 </tr>
               ))}
             </tbody>

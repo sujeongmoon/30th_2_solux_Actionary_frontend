@@ -6,8 +6,20 @@ interface GetPostsParams {
   type?: string;
 }
 
+
+// src/api/boardPost.ts (또는 PostContext.tsx)
+export interface Post {
+  postId: number;
+  type: string;
+  title: string;
+  nickname: string;
+  createdAt: string;
+  commentCount: number;
+}
+
+
 export const getPopularPosts = async ({ page, size = 10, type }: GetPostsParams) => {
-  const res = await api.get('/api/posts/popular', {
+  const res = await api.get('/posts/popular', {
     params: {
       page,
       size,
@@ -19,7 +31,7 @@ export const getPopularPosts = async ({ page, size = 10, type }: GetPostsParams)
 };
 
 export const getLatestPosts = async ({ page, size = 10, type }: GetPostsParams) => {
-  const res = await api.get('/api/posts/latest', {
+  const res = await api.get('/posts/latest', {
     params: {
       page,
       size,

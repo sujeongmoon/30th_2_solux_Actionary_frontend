@@ -60,6 +60,14 @@
   background-color: #f5f5f5;
 }
 
+.dropdown-item {
+  display: flex;
+  color: #FFFFFF;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
 .dropdown-divider {
   height: 1px;
   background-color: rgba(0, 0, 0, 0.05);

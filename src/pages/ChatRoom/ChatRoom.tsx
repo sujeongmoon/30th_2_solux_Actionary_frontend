@@ -71,7 +71,7 @@ const ChatBotUI = () => {
             { id: crypto.randomUUID(), 
               text: typeof data.error === 'string'
               ? data.error
-              : '요약에 실패했습니다', 
+              : '요약에 실패했습니다. 다시 보내주세요!', 
               type: 'bot' },
           ]);
         } else if (data.status === 'PENDING' || data.status === 'PROCESSING') {
