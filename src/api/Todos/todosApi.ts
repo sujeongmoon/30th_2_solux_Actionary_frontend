@@ -4,7 +4,7 @@ import { api } from '../client';
 // 특정 날짜 투두리스트 조회
 export const getTodosByDate = async (date: string): Promise<Todo[]> => {
     try {
-        const res = await api.get(`/api/todos`, {
+        const res = await api.get(`/todos`, {
             params: {date},
         });
         return res.data.data.todos; // 수정: 실제 todos 배열 반환
@@ -22,7 +22,7 @@ export const updateTodoStatus = async (
     status: TodoStatus
 ): Promise<{success: boolean; data: { todoId: number; status: TodoStatus}}> => {
     try {
-        const res = await api.patch(`/api/todos/${todoId}/status`, {status});
+        const res = await api.patch(`/todos/${todoId}/status`, {status});
         return res.data;
     } catch (error) {
         console.error('투두 상태 변경 실패', error);
@@ -53,7 +53,7 @@ export const createTodo = async ({
     categoryId = null,
 }: CreateTodoRequest): Promise<{ success: boolean; data: Todo}> => {
     try {
-        const res = await api.post('/api/todos', {
+        const res = await api.post('/todos', {
             title,
             date,
             categoryId,
@@ -76,7 +76,7 @@ export const updateTodo = async (
     data: UpdateTodoRequest
 ): Promise<{success: boolean; data: Todo}> => {
     try {
-        const res = await api.patch(`/api/todos/${todoId}`, data);
+        const res = await api.patch(`/todos/${todoId}`, data);
         return res.data;
     } catch (error) {
         console.error('투두 수정 실패', error);
@@ -87,7 +87,7 @@ export const updateTodo = async (
 // 투두 삭제
 export const deleteTodo = async (todoId: number): Promise<{success: boolean; message: string}> => {
     try {
-        const res = await api.delete(`/api/todos/${todoId}`);
+        const res = await api.delete(`/todos/${todoId}`);
         return res.data;
     } catch (error) {
         console.error('투두 삭제 실패', error);
