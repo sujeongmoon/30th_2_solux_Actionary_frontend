@@ -7,7 +7,7 @@ export interface DailyStudyTime {
 
 export const getMonthlyStudyTime = async (yearMonth: string): Promise<DailyStudyTime[]> => {
   // yearMonth 예: "2025-10"
-  const res = await api.get('/api/studytimes', {
+  const res = await api.get('/studytimes', {
     params: {
       period: 'MONTH',
       date: yearMonth
