@@ -6,13 +6,12 @@ export interface DailyStudyTime {
 }
 
 export const getMonthlyStudyTime = async (yearMonth: string): Promise<DailyStudyTime[]> => {
-  // yearMonth 예: "2025-10"
-  const res = await api.get('/studytimes', {
+
+  const res = await api.get('/studytimes/calendar', {
     params: {
-      period: 'MONTH',
       date: yearMonth
     },
   });
 
-  return res.data.data.montlyDurationSeconds;
+  return res.data.data.monthlyDurationSeconds;
 };
