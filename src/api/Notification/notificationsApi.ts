@@ -17,7 +17,7 @@ export interface GetNotificationsResult {
 }
 
 export const getNotifications = async (limit?: number): Promise<NotificationResponse[]> => {
-  const url = limit ? `/api/notifications?limit=${limit}` : '/api/notifications';
+  const url = limit ? `/notifications?limit=${limit}` : '/api/notifications';
   const response = await api.get<GetNotificationsResult>(url); // 여기서 axios 인스턴스 사용
   if (!response.data.success) throw new Error(response.data.message || '알림 조회 실패');
   return response.data.data;

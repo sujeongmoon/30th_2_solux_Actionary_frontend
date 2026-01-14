@@ -2,21 +2,35 @@ export interface Post {
   postId: number;
   type: string;
   title: string;
-  text_content: string;
-  comment_count: number;
+  textContent: string;
+  commentCount: number;
   created_at: string;
 }
+
+
+// 게시글 생성 Response 타입
+export interface CreatePostResponse {
+  success: boolean;
+  message: string;
+  data: {
+    postId: number;
+    title: string;
+    nickname: string;
+    createdAt: string;
+  };
+}
+
 
 export interface Author {
   memberId: number;
   nickname: string;
-  profile_image_url: string;
+  profileImageUrl: string;
   badge: number;
 }
 
 export interface PostDetailData {
   post: Post;
-  post_image_urls: string[];
+  postImageUrls: string[];
   author: Author;
 }
 
@@ -30,7 +44,7 @@ export interface CommentAuthor {
   memberId: number;
   nickname: string;
   profile_image_url: string;
-  badge_id: number;
+  badge: number;
 }
 
 export interface Comment {

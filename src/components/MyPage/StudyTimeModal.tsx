@@ -82,6 +82,11 @@ const StudyTimeModal: React.FC<StudyTimeModalProps> = ({ isOpen, onClose }) => {
             maxDate={new Date()}
             formatDay={(locale, date) => date.getDate().toString()} // '일' 제거하고 숫자만 표시
             className="add-custom-calendar"
+            tileClassName={({ date }) =>
+              date.toDateString() === selectedDate.toDateString()
+                ? 'react-calendar__tile--active-custom'
+                : ''
+            }
             // 추가할 속성들
             prev2Label={null}  // << (이전 연도) 버튼 제거
             prevLabel="<"      // < (이전 달) 버튼 유지

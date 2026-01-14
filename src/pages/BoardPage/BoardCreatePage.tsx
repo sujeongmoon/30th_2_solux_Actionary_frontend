@@ -4,24 +4,25 @@ import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
-// import api from '../../api/client'; // axios 인스턴스 (연동용)
+import api from '../../api/client'; // axios 인스턴스 (연동용)
 import PencilIcon from '../../assets/MyPage/Pencil.svg';
 import ArrowIcon from '../../assets/Board/underArrow.svg';
 import './BoardCreatePage.css';
 import { useNavigate } from 'react-router-dom';
-import { usePosts, type Post } from '../../context/PostContext';
+import { type CreatePostResponse } from '../../types/Board';
 
 
 const BoardCreatePage = () => {
   const navigate = useNavigate();
-  const { posts, addPost } = usePosts();
 
   const [title, setTitle] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('소통');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const categories = ['소통', '인증', '질문'];
 
   // ------------------ Tiptap 에디터 ------------------
@@ -45,88 +46,74 @@ const BoardCreatePage = () => {
     setIsDropdownOpen(false);
   };
 
-  // ------------------ 이미지 업로드 (Mock) ------------------
+  // ------------------ 이미지 업로드 ------------------
   const handlePhotoClick = useCallback(() => {
     fileInputRef.current?.click();
   }, []);
 
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !editor) return;
+  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || !editor) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const url = event.target?.result as string;
-      editor.chain().focus().setImage({ src: url }).run();
-      setUploadedImageUrls(prev => [...prev, url]);
-    };
-    reader.readAsDataURL(file);
+    const fileArray = Array.from(files);
 
-    // ------------------ 실제 업로드 연동용 코드 (주석) ------------------
-    /*
-    const formData = new FormData();
-    formData.append('file', file);
-    try {
-      const res = await api.post('/api/upload', formData); // 실제 업로드 API
-      const url = res.data.url;
-      editor.chain().focus().setImage({ src: url }).run();
-      setUploadedImageUrls(prev => [...prev, url]);
-    } catch (err) {
-      console.error('이미지 업로드 실패:', err);
-      alert('이미지 업로드에 실패했습니다.');
-    }
-    */
+    setUploadedFiles(prev => [...prev, ...fileArray]);
+
+    // TipTap 미리보기용
+    fileArray.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const url = reader.result as string;
+        editor.chain().focus().setImage({ src: url }).run();
+
+      };
+      reader.readAsDataURL(file);
+    })
   }, [editor]);
   
   // ------------------ 게시글 생성 ------------------
-  const handleSubmit = () => {
-    if (!title.trim()) return alert('제목을 입력해주세요.');
-    if (!editor) return;
+  const handleSubmit = async () => {
+  if (!title.trim()) return alert('제목을 입력해주세요.');
+  if (!editor) return;
 
-    const newPost: Post = {
-      postId: posts.length ? Math.max(...posts.map(p => p.postId)) + 1 : 101,
-      nickname: '가인',
-      created_at: new Date().toISOString(),
+  try {
+    const formData = new FormData();
+
+    // 1. 이미지 첨부
+    uploadedFiles.forEach(file => {
+      formData.append('images', file); // key: images
+    });
+
+    const loginUserId = Number(localStorage.getItem('userId'));
+    const postData = {
+      userId: loginUserId,
       type: selectedCategory,
       title,
       content: {
-        text_content: editor.getText(),
-        image_urls: uploadedImageUrls,
-      },
-      comment_count: 0,
-    };
-
-    addPost(newPost);
-    alert('게시글이 생성되었습니다! (Mock)');
-
-    // ------------------ 실제 생성 연동용 코드 (주석) ------------------
-    /*
-    try {
-      const res = await api.post('/api/posts', {
-        userId: loginUserId,
-        type: selectedCategory,
-        title,
-        content: {
-          text_content: editor.getText(),
-          image_urls: uploadedImageUrls,
-        },
-      });
-      console.log('생성된 게시글:', res.data);
-    } catch (err) {
-      console.error('게시글 생성 실패:', err);
-      alert('게시글 생성에 실패했습니다.');
-      return;
+        text: editor.getText(),
+      }    
     }
-    */
+    formData.append('post', JSON.stringify(postData)); // key: post, JSON 문자열
 
-    // ------------------ 초기화 및 이동 ------------------
-    setTitle('');
-    editor.commands.clearContent(true);
-    setUploadedImageUrls([]);
-    setSelectedCategory('인증');
-    navigate('/board');
-  };
+    // 3. 요청 보내기
+    const res = await api.post<CreatePostResponse>('/api/posts', formData); 
 
+    if (res.data.success) {
+      alert('게시글이 생성되었습니다!');
+      // 초기화
+      setTitle('');
+      editor.commands.clearContent(true);
+      setUploadedImageUrls([]);
+      setSelectedCategory('소통');
+
+      // 생성 후 목록 페이지 이동
+      navigate('/board');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('게시글 생성에 실패했습니다.');
+  }
+};
   if (!editor) return null;
 
   return (
@@ -140,11 +127,11 @@ const BoardCreatePage = () => {
               {selectedCategory} <img src={ArrowIcon} alt="arrow" className={`icon-sm ${isDropdownOpen ? 'rotate' : ''}`} />
             </button>
             {isDropdownOpen && (
-              <ul className="category-dropdown">
+              <ul className="board-category-dropdown">
                 {categories.map((cat, idx) => (
                   <li key={cat}>
-                    <button className="dropdown-item" onClick={() => handleCategorySelect(cat)}>{cat}</button>
-                    {idx !== categories.length - 1 && <div className="dropdown-divider" />}
+                    <button className="board-dropdown-item" onClick={() => handleCategorySelect(cat)}>{cat}</button>
+                    {idx !== categories.length - 1 && <div className="board-dropdown-divider" />}
                   </li>
                 ))}
               </ul>
@@ -170,7 +157,7 @@ const BoardCreatePage = () => {
             <div className="toolbar-group">
               <button onClick={handlePhotoClick}>Photo</button>
             </div>
-            <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleFileChange} />
+            <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleFileChange} title="입력창" />
           </div>
 
           <div className="editor-content">

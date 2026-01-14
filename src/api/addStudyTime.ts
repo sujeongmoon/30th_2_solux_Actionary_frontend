@@ -19,6 +19,6 @@ export interface AddStudyTimeResponse {
 export const addStudyTimeManual = async (
   payload: AddStudyTimeRequest
 ): Promise<AddStudyTimeResponse> => {
-  const response = await api.post('/api/studytimes', payload);
+  const response = await api.post('/studytimes', payload);
   return response.data;
 };
