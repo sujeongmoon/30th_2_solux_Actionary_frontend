@@ -7,7 +7,7 @@ export const getComments = async (
     size = 10,
 ) => {
     const res = await api.get<CommentResponse>(
-        `/api/posts/${postId}/comments`,
+        `/posts/${postId}/comments`,
         {
             params: { page, size},
         }
@@ -24,7 +24,7 @@ export const createComment = async (
     postId: number,
     body: CreateCommentRequest
 ) => {
-    const res = await api.post(`/api/posts/${postId}/comments`, body);
+    const res = await api.post(`/posts/${postId}/comments`, body);
     return res.data;
 };
 
@@ -35,7 +35,7 @@ export const updateComment = async (
     token: string
 ) => {
     try {
-        const res = await api.patch(`/api/posts/${postId}/comments/${commentId}`,
+        const res = await api.patch(`/posts/${postId}/comments/${commentId}`,
             data,
             {
                 headers: {
@@ -53,6 +53,6 @@ export const updateComment = async (
 };
 
 export const deleteComment = async (commentId: number, postId: number) => {
-    const res = await api.delete(`/api/posts/${postId}/comments/${commentId}`);
+    const res = await api.delete(`/posts/${postId}/comments/${commentId}`);
     return res.data;
 }

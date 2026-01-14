@@ -11,7 +11,7 @@ export const getOtherUserInfo = async (memberId: number) => {
     success: boolean;
     message: string;
     data: OtherUserInfo;
-  }>(`/api/members/${memberId}`);
+  }>(`/members/${memberId}`);
 
   return res.data.data;
 };

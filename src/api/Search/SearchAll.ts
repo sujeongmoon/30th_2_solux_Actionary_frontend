@@ -12,7 +12,7 @@ export interface AllSearchResponse {
 }
 
 export const searchAll = (keyword: string) => {
-  return api.get<AllSearchResponse>('/api/search', {
+  return api.get<AllSearchResponse>('/search', {
     params: {
       q: keyword,
     },

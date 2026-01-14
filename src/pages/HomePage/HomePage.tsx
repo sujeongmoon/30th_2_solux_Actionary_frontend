@@ -114,7 +114,7 @@ useEffect(() => {
   const fetchPopularPosts = async () => {
     try {
       setBoardLoading(true);
-      const res = await api.get<PopularPostsResponse>('/api/posts/popular', {
+      const res = await api.get<PopularPostsResponse>('/posts/popular', {
         params: { page: 0, size: 10 } // 0페이지, 10개
       });
       if (res.data.success) {

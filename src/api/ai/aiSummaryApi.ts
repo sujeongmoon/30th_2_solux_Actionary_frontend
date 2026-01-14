@@ -49,7 +49,7 @@ export const summarizeFile = (file: File) => {
   const formData = new FormData();
   formData.append('file', file);
 
-  return api.post<SummaryJobResponse>('/api/ai-summary/file', formData, {
+  return api.post<SummaryJobResponse>('/ai-summary/file', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -58,7 +58,7 @@ export const summarizeFile = (file: File) => {
 
 // URL 요약
 export const summarizeUrl = (sourceUrl: string, options?: { language?: string; maxTokens?: number }) => {
-  return api.post<SummaryJobResponse>('/api/ai-summary/url', {
+  return api.post<SummaryJobResponse>('/ai-summary/url', {
     sourceUrl,
     language: options?.language,
     maxTokens: options?.maxTokens ?? 600,
@@ -67,12 +67,12 @@ export const summarizeUrl = (sourceUrl: string, options?: { language?: string; m
 
 // 폴링
 export const getSummaryJob = (jobId: string) => {
-  return api.get<SummaryJobResponse>(`/api/ai-summary/${jobId}`);
+  return api.get<SummaryJobResponse>(`/ai-summary/${jobId}`);
 };
 
 // 목록 조회
 export const getSummaryList = (page = 1, size = 10) => {
-  return api.get<SummaryListResponse>('/api/ai-summary', {
+  return api.get<SummaryListResponse>('/ai-summary', {
     params: { page, size }
   })
 }

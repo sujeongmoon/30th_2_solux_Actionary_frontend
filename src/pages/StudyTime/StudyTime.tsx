@@ -12,24 +12,6 @@ const StudyTime: React.FC = () => {
   const [value, setValue] = useState<Value>(new Date());
   const [studyData, setStudyData] = useState<Record<string, number>>({});
   const [isLoading, setIsLoading] = useState(false);
-    /* ================= MOCK DATA ================= */
-  const mockStudyData: Record<string, number> = {
-    '2026-01-01': 5400,
-    '2026-01-02': 7200,
-    '2026-01-03': 10800,
-    '2026-01-04': 14400,
-    '2026-01-05': 18000,
-    '2026-01-06': 21600,
-    '2026-01-07': 3600,
-    '2026-01-09': 4500,
-    '2026-01-10': 9000,
-    '2026-01-11': 12600,
-    '2026-01-12': 16200,
-    '2026-01-13': 19800,
-    '2026-01-14': 28800,
-    '2026-01-20': 25200,
-    '2026-01-28': 32400,
-  };
 
   /* ================= UTIL ================= */
   const formatDuration = (seconds: number) => {
@@ -63,7 +45,7 @@ const StudyTime: React.FC = () => {
         setStudyData(result);
       } catch (error) {
         console.error('월간 공부 시간 조회 실패:', error);
-        setStudyData(mockStudyData);
+        setStudyData({});
         //setStudyData({});
       } finally {
         setIsLoading(false);
