@@ -4,6 +4,7 @@ import TrashCan from '../../assets/bookmark/TrashCan.svg';
 import LinkImg from '../../assets/bookmark/LinkImg.svg';
 import './BookmarkSection.css';
 import BookmarkModal from './BookmarkModal';
+import api from '../../api/client';
 
 interface Bookmark {
   bookmarkId: number;
@@ -11,109 +12,64 @@ interface Bookmark {
   link: string;
 }
 
-/* 더미 데이터 */
-const mockBookmarks: Bookmark[] = [
-  { bookmarkId: 101, name: '인프런', link: 'https://www.inflearn.com/ko/' },
-  { bookmarkId: 102, name: '스노우보드 동아리', link: 'https://snowboard.sookmyung.ac.kr' },
-  { bookmarkId: 103, name: 'React 공식 문서', link: 'https://react.dev/' },
-  { bookmarkId: 104, name: 'Next.js 가이드', link: 'https://nextjs.org/' },
-  { bookmarkId: 105, name: 'MDN Web Docs', link: 'https://developer.mozilla.org/ko/' },
-  { bookmarkId: 106, name: '자바스크립트 정보', link: 'https://javascript.info/' },
-  { bookmarkId: 107, name: 'CSS-Tricks', link: 'https://css-tricks.com/' },
-  { bookmarkId: 108, name: '프로그래머스 코딩 테스트', link: 'https://programmers.co.kr/' },
-  { bookmarkId: 109, name: '리덕스 툴킷 공식', link: 'https://redux-toolkit.js.org/' },
-  { bookmarkId: 110, name: 'Vercel 블로그', link: 'https://vercel.com/blog' },
-  { bookmarkId: 111, name: '토스 기술 블로그', link: 'https://tosstech.blog/' },
-  { bookmarkId: 112, name: '네이버 D2', link: 'https://d2.naver.com/' },
-  { bookmarkId: 113, name: '프론트엔드 개발자 인터뷰 질문', link: 'https://github.com/h5bp/Front-end-Developer-Interview-Questions' },
-  { bookmarkId: 114, name: 'TypeScript 핸드북', link: 'https://www.typescriptlang.org/docs/handbook/intro.html' },
-  { bookmarkId: 115, name: 'Sentry 오류 추적', link: 'https://sentry.io/welcome/' },
-];
-
 const BookmarkSection = () => {
-  const [bookmarks, setBookmarks] = useState<Bookmark[]>(mockBookmarks); //서버 돌릴 땐 mockBookmarks 빼기
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]); //서버 돌릴 땐 mockBookmarks 빼기
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookmarkPage, setBookmarkPage] = useState(0);
   const bookmarksPerPage = 9;
-  const accessToken = localStorage.getItem('accessToken');
+
 
   // 북마크 조회
-  /*
+
   const fetchBookmarks = async () => {
     try {
-      const res = await fetch('/api/bookmarks', {
-        method: 'GET',
-        headers: {Authorization: `Bearer ${accessToken}`},
-      });
-
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-
-      const data = await res.json();
-      if (data.success) {
-        setBookmarks(data.data);
+      const res = await api.get('/bookmarks');
+      if (res.data.success) {
+        setBookmarks(res.data.data);
       } else {
-        console.error('북마크 조회 실패: ', data.message);
+        console.error('북마크 조회 실패:', res.data.message);
       }
     } catch (err) {
       console.error('북마크 조회 중 오류 발생', err);
-    }
+    } 
   };
 
   useEffect(()=> {
     fetchBookmarks();
   }, []);
-  */
 
   // 북마크 추가
   const handleAddBookmark = async (name: string, link: string) => {
     try {
-      const res = await fetch('/api/bookmarks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ bookmarkName: name, bookmarkLink: link }),
-      });
-
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-
-      const data = await res.json();
-      if (data.success) {
-        setBookmarks(prev => [
+      const res = await api.post('/bookmarks', { bookmarkName: name, bookmarkLink: link});
+      if (res.data.success) {
+        setBookmarks((prev) => [
           ...prev,
-          { bookmarkId: data.data.bookmarkId, name: data.data.bookmarkName, link: data.data.link },
+          { bookmarkId: res.data.data.bookmarkId, name: res.data.data.bookmarkName, link: res.data.data.link}
         ]);
-        setIsModalOpen(false);
+        setIsModalOpen(false)
       } else {
-        alert(data.message || '북마크 추가 실패');
-      }
+        alert(res.data.message || '북마크 추가 실패');
+      } 
     } catch (err) {
-      console.error(err);
+      console.error('북마크 추가 중 오류 발생', err);
       alert('북마크 추가 중 오류 발생');
     }
   };
 
-  // 북마크 삭제
+    // 북마크 삭제
   const handleDeleteBookmark = async (bookmarkId: number) => {
     try {
-      const res = await fetch(`/api/bookmarks/${bookmarkId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${accessToken}` },
-      });
-
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-
-      const data = await res.json();
-      if (data.success) {
-        setBookmarks(prev => prev.filter(b => b.bookmarkId !== bookmarkId));
+      const res = await api.delete(`/bookmarks/${bookmarkId}`);
+      if (res.data.success) {
+        setBookmarks((prev) => prev.filter((b) => b.bookmarkId !== bookmarkId));
       } else {
-        alert(data.message || '삭제 실패');
+        alert(res.data.message || '삭제 실패');
       }
     } catch (err) {
-      console.error(err);
+      console.error('삭제 중 오류 발생', err);
       alert('삭제 중 오류 발생');
-    }
+    } 
   };
 
   // 페이징 처리
