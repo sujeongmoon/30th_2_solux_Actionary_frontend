@@ -47,47 +47,21 @@ const ProfileSection: React.FC = () => {
 
   const handleNicknameSave = async (newNickname: string) => {
     if (!newNickname.trim()) return;
-    setUserInfo((prev) => prev ? {...prev, nickname: newNickname } : prev);
-    closeModal();
-
+    
     try {
-      const response = await fetch('/api/users/me/nickname', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-        body: JSON.stringify({ nickname: newNickname }),
-      });
-
-      if (!response.ok) throw new Error(`API 에러: ${response.status}`);
-      const data = await response.json();
-      setUserInfo((prev) => prev ? { ...prev, nickname: data.data.nickname } : prev);
-      
-
-
+      const res = await api.patch('/members/me/nickname', { nickname: newNickname });
+      setUserInfo(prev => prev ? { ...prev, nickname: res.data.data.nickname } : prev);
+      closeModal();
     } catch (err) {
-      if (err instanceof Error) setError(err.message);
-      else setError('닉네임 수정 실패');
+      console.error(err);
+      alert('닉네임 수정 실패');
     }
-  };
+  }
 
+  // 탈퇴 로직
   const handleWithdraw = async () => {
-    console.log('탈퇴 처리 로직 실행');
     try {
-        const accessToken = localStorage.getItem('accessToken');
-        const response = await fetch('/api/auth/withdraw', {
-            method: 'DELETE',
-            headers: {
-                Authorization: `Bearer$${accessToken}`,
-                'Content-Type' : 'application/json',
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error(`탈퇴 실패: ${response.status}`);
-        }
-
+        await api.delete('/auth/withdraw');
         localStorage.clear();
         setIsWithdrawOpen(false);
         navigate('/');
@@ -96,30 +70,21 @@ const ProfileSection: React.FC = () => {
         alert('회원 탈퇴에 실패했습니다.');
     }
   };
+
+  // 프로필 수정
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
-
     const formData = new FormData();
-    formData.append('profile_image', file); 
+    formData.append('profileImageUrl', file); 
 
     try {
-        const response = await fetch('/api/users/me', {
-        method: 'PATCH',
-        headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-            // 'Content-Type': 'multipart/form-data'는 브라우저가 자동 설정
-        },
-        body: formData,
-        });
-
-        if (!response.ok) throw new Error(`API 에러: ${response.status}`);
-        const data = await response.json();
-
-        // UI 업데이트
-        setUserInfo((prev) => prev ? { ...prev, profile_image_url: data.profile_image_url } : prev);
+      const res = await api.patch("/members/me/profile", formData);
+      // UI 업데이트
+      setUserInfo((prev) => prev ? { ...prev, profileImageUrl: res.data.data.profileImageUrl } : prev);
     } catch (err) {
         console.error('프로필 업로드 실패', err);
+        alert("프로필 이미지 수정에 실패했습니다.");
     } 
 };
 
