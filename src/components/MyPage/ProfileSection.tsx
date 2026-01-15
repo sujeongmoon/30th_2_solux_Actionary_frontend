@@ -61,7 +61,7 @@ const ProfileSection: React.FC = () => {
   // 탈퇴 로직
   const handleWithdraw = async () => {
     try {
-        await api.delete('/api/auth/withdraw');
+        await api.delete('/auth/withdraw');
         localStorage.clear();
         setIsWithdrawOpen(false);
         navigate('/');
