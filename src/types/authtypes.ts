@@ -16,3 +16,13 @@ export interface AuthResponse {
   message: string;
   data: AuthResponseData;
 }
+
+export interface RefreshResponse {
+  success: boolean;
+  message: string;
+  data: {
+    accessToken: string;
+  };
+}
+
+

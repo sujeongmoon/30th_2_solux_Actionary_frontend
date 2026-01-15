@@ -17,7 +17,12 @@ const Login: React.FC = () => {
   const { setToken } = useAuth();
 
   const handleLogin = async () => {
-    if (!loginId || !password) return;
+    console.log("로그인 버튼 클릭됨");
+
+    if (!loginId || !password) {
+    console.log("아이디/비밀번호 비어있음");
+    return;
+    }
 
     // 2) 실제 로그인 (백엔드 붙었을 때)
     try {
