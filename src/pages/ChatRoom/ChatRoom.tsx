@@ -4,6 +4,8 @@ import gradientArrow from '../../assets/homepage/Gradient_Arrow.svg';
 import user from '../../assets/ChatRoom/user.svg';
 import bot from '../../assets/ChatRoom/bot.svg';
 import chatPencil from '../../assets/ChatRoom/chatPencil.svg';
+import { v4 as uuidv4 } from 'uuid';
+
 import {
   summarizeFile,
   summarizeUrl,
@@ -61,14 +63,14 @@ const ChatBotUI = () => {
           setIsLoading(false);
           setMessages(prev => [
             ...prev,
-            { id: crypto.randomUUID(), text: data.summary, type: 'bot' },
+            { id: uuidv4(), text: data.summary, type: 'bot' },
           ]);
         } else if (data.status === 'FAILED') {
           clearInterval(pollingRef.current!);
           setIsLoading(false);
           setMessages(prev => [
             ...prev,
-            { id: crypto.randomUUID(), 
+            { id: uuidv4(), 
               text: typeof data.error === 'string'
               ? data.error
               : '요약에 실패했습니다. 다시 보내주세요!', 
@@ -89,7 +91,7 @@ const ChatBotUI = () => {
             } else {
               return [
                 ...prev,
-                { id: crypto.randomUUID(), 
+                { id: uuidv4(), 
                   text: `문서를 요약 중입니다... (${data.status})`, type: 'bot' },
               ];
             }
@@ -114,7 +116,7 @@ const ChatBotUI = () => {
 
     // 유저 메시지 추가
     const userMessage: Message = {
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       text: selectedFile ? selectedFile.name : inputText,
       type: 'user',
     };
@@ -134,13 +136,13 @@ const ChatBotUI = () => {
       if (data.status === 'SUCCEEDED') {
         setMessages(prev => [
           ...prev,
-          { id: crypto.randomUUID(), text: data.summary, type: 'bot' },
+          { id: uuidv4(), text: data.summary, type: 'bot' },
         ]);
         setIsLoading(false);
       } else if (data.status === 'PENDING' || data.status === 'PROCESSING') {
         setMessages(prev => [
           ...prev,
-          { id: crypto.randomUUID(), text: '문서를 요약 중입니다...', type: 'bot' },
+          { id: uuidv4(), text: '문서를 요약 중입니다...', type: 'bot' },
         ]);
         if (data.jobId) {
           startPolling(data.jobId);
@@ -151,7 +153,7 @@ const ChatBotUI = () => {
         : '요약에 실패했습니다';
         setMessages(prev => [
           ...prev,
-          { id: crypto.randomUUID(), text: errorText, type:'bot'},
+          { id: uuidv4(), text: errorText, type:'bot'},
         ]);
         setIsLoading(false);
       }
@@ -159,7 +161,7 @@ const ChatBotUI = () => {
       const errorMessage = err instanceof Error ? err.message : '요약 중 오류가 발생했습니다.';
       setMessages(prev => [
         ...prev,
-        { id: crypto.randomUUID(), text: errorMessage, type: 'bot' },
+        { id: uuidv4(), text: errorMessage, type: 'bot' },
       ]);
       setIsLoading(false);
     }
@@ -183,6 +185,7 @@ const ChatBotUI = () => {
     const fetchSummaryList = async () => {
       try {
         const res = await getSummaryList(1, 10);
+        console.log('API 응답:', res.data);
         setSummaryList(res.data.data.content);
       } catch (e) {
         console.error('요약 목록 조회 실패', e);
@@ -200,10 +203,10 @@ const ChatBotUI = () => {
       const data = res.data.data;
 
       if (data.status === 'SUCCEEDED') {
-        setMessages([{ id: crypto.randomUUID(), text: data.summary, type: 'bot' }]);
+        setMessages([{ id: uuidv4(), text: data.summary, type: 'bot' }]);
       } else if (data.status === 'FAILED') {
         setMessages([{ 
-          id: crypto.randomUUID(), 
+          id: uuidv4(), 
           text:
             typeof data.error === 'string'
             ? data.error
