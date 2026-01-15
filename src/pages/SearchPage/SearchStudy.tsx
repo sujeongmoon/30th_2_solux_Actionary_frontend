@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "../../components/Search/StudySearchSection.css";
 import noImg from "../../assets/study_noimg.png";
+import { searchStudies } from "../../api/studies";
 
 type StudyItem = {
   studyId: number;
@@ -9,8 +10,6 @@ type StudyItem = {
   coverImage?: string | null;
   isPublic?: boolean;
   categoryLabel?: string;
-
-  // 정렬용 (백에서 내려주면 그대로 사용)
   createdAt?: string; 
   memberCount?: number; 
 };
@@ -26,37 +25,7 @@ const sortLabel: Record<SortKey, string> = {
   latest: "최신순",
 };
 
-/** 목업 */
-const USE_MOCK = true;
-const MOCK_STUDIES: StudyItem[] = [
-  {
-    studyId: 1,
-    studyName: "같이 공부해요",
-    coverImage: null,
-    isPublic: true,
-    categoryLabel: "기타",
-    createdAt: "2026-01-10T10:00:00Z",
-    memberCount: 12,
-  },
-  {
-    studyId: 2,
-    studyName: "공무원 한국사",
-    coverImage: null,
-    isPublic: true,
-    categoryLabel: "공무원",
-    createdAt: "2026-01-08T10:00:00Z",
-    memberCount: 44,
-  },
-  {
-    studyId: 3,
-    studyName: "토익 900+",
-    coverImage: null,
-    isPublic: true,
-    categoryLabel: "어학",
-    createdAt: "2026-01-11T08:00:00Z",
-    memberCount: 21,
-  },
-];
+const toApiSort = (k: SortKey) => (k === "popular" ? "POPULAR" : "RECENT");
 
 export default function StudySearch() {
   const q = useQuery();
@@ -69,6 +38,8 @@ export default function StudySearch() {
 
   // 정렬 상태
   const [sortKey, setSortKey] = useState<SortKey>("popular");
+  const [page, setPage] = useState(1);
+  const size = 10; 
 
   // 커스텀 드롭다운 열림/닫힘
   const [sortOpen, setSortOpen] = useState(false);
@@ -93,52 +64,57 @@ export default function StudySearch() {
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
-  useEffect(() => {
-    let mounted = true;
+// keyword / sort / page 바뀔 때마다 검색
+useEffect(() => {
+  let mounted = true;
+
+  (async () => {
     setErrorMsg(null);
     setLoading(true);
 
-    if (USE_MOCK) {
-      const lower = keyword.toLowerCase();
-      const filtered = keyword
-        ? MOCK_STUDIES.filter((s) => s.studyName.toLowerCase().includes(lower))
-        : MOCK_STUDIES;
+    try {
+      const data = await searchStudies({
+        q: keyword || "", 
+        sort: toApiSort(sortKey),
+        page, 
+        size,
+      });
 
       if (!mounted) return;
-      setItems(filtered);
-      setLoading(false);
-      return;
+
+      // Paginated<SearchStudyItem> -> StudyItem 매핑
+      const mapped: StudyItem[] = (data.content ?? []).map((s: any) => ({
+        studyId: s.studyId,
+        studyName: s.studyName,
+        coverImage: s.coverImage ?? null,
+        isPublic: s.isPublic,
+        categoryLabel: s.categoryLabel ?? "기타",
+        createdAt: s.createdAt,
+        memberCount: s.memberCount,
+      }));
+
+      setItems(mapped);
+    } catch (e: any) {
+      if (!mounted) return;
+      setItems([]);
+      setErrorMsg(e?.response?.data?.message ?? "검색 결과를 불러오지 못했어요.");
+    } finally {
+      if (mounted) setLoading(false);
     }
+  })();
 
-    // TODO: 백엔드 검색 API 붙이기
-    setLoading(false);
-
-    return () => {
-      mounted = false;
-    };
-  }, [keyword]);
+  return () => {
+    mounted = false;
+  };
+}, [keyword, sortKey, page]);
 
   // 정렬 (백에서 정렬해주면 제거 가능)
-  const sortedItems = useMemo(() => {
-    const arr = [...items];
-
-    if (sortKey === "latest") {
-      arr.sort((a, b) => {
-        const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return tb - ta;
-      });
-      return arr;
-    }
-
-    // popular
-    arr.sort((a, b) => (b.memberCount ?? 0) - (a.memberCount ?? 0));
-    return arr;
-  }, [items, sortKey]);
+  const sortedItems = useMemo(() => items, [items]);
 
   const chooseSort = (k: SortKey) => {
     setSortKey(k);
     setSortOpen(false);
+    setPage(1); 
   };
 
   return (
@@ -235,6 +211,7 @@ export default function StudySearch() {
           ))}
         </div>
       )}
+      <button onClick={() => setPage(p => p+1)}>다음</button>
     </section>
   );
 }

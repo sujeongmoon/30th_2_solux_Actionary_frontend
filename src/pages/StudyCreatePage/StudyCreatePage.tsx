@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import "./StudyCreatePage.css";
 import SuccessImg from "../../assets/Group 148.png"; 
 import LogoImg from "../../assets/로고.png";
+import { createStudy } from "../../api/studies";
+import type { StudyCategory } from "../../api/types";
 
 type Visibility = "public" | "private";
 
@@ -17,6 +19,15 @@ type ToastState = { open: boolean; type: ToastType; message: string };
 function clampText(v: string, max: number) {
   return v.length > max ? v.slice(0, max) : v;
 }
+const LABEL_TO_ENUM: Record<CategoryLabel, StudyCategory> = {
+  수능: "CSAT",
+  공무원: "CIVIL_SERVICE",
+  임용: "TEACHER_EXAM",
+  자격증: "LICENSE",
+  어학: "LANGUAGE",
+  취업: "EMPLOYMENT",
+  기타: "OTHER",
+};
 
 export default function StudyCreatePage() {
   const navigate = useNavigate();
@@ -40,20 +51,21 @@ export default function StudyCreatePage() {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [toast, setToast] = useState<ToastState>({ open: false, type: "success", message: "" });
   const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const titleMax = 20;
   const summaryMax = 20;
   const guideMax = 200;
 
   const canSubmit = useMemo(() => {
-    // “필수”만 기준으로 최소 체크 (안내는 제외)
+    if (submitting) return false;
     if (!title.trim()) return false;
     if (!category) return false;
     if (!summary.trim()) return false;
     if (!Number.isFinite(limit) || limit < 1) return false;
     if (visibility === "private" && !/^\d{6}$/.test(password)) return false;
     return true;
-  }, [title, category, summary, limit, visibility, password]);
+  }, [title, category, summary, limit, visibility, password, submitting]);
 
   const showToast = (type: ToastType, message: string) => {
     setToast({ open: true, type, message });
@@ -91,14 +103,30 @@ export default function StudyCreatePage() {
       showToast("error", "필수 항목들을 입력해주세요");
       return;
     }
+    try {
+      setSubmitting(true);
+      const description = guide?.trim() ? guide.trim() : summary.trim();
 
-    // 여기서 실제 API 붙일 예정이면 try/catch로 감싸서 실패 토스트 처리
-    // 지금은 프론트-only 성공 처리
-    showToast("success", "성공적으로 스터디가 만들어졌습니다.");
-    setSuccessModalOpen(true);
+      await createStudy(
+        {
+          studyName: title.trim(),
+          description,
+          category: LABEL_TO_ENUM[category],
+          memberLimit: limit,
+          isPublic: visibility === "public",
+          password: visibility === "private" ? password : null,
+        },
+        coverFile
+      );
 
-    // (주의) coverPreview URL은 필요하면 revoke 해주기
-    // if (coverPreview) URL.revokeObjectURL(coverPreview);
+      showToast("success", "성공적으로 스터디가 만들어졌습니다.");
+      setSuccessModalOpen(true);
+    } catch (e: any) {
+      const msg = e?.response?.data?.message ?? "스터디 생성에 실패했어요.";
+      showToast("error", msg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

@@ -10,10 +10,13 @@ import type {
   RankingsResponse,
   Paginated,
   SearchStudyItem,
+  ApiEnvelope,
 } from "./types";
 
+
+
 export async function getStudyList(params: {
-  visibility?: StudyVisibility; // public/private
+  visibility?: StudyVisibility; 
   category?: StudyCategory;
   page?: number; 
   size?: number; 
@@ -47,12 +50,36 @@ export async function getMyStudies(params: {
   return res.data.data;
 }
 
+export async function createStudy(
+  payload: {
+    studyName: string;
+    description: string;
+    category: StudyCategory;
+    memberLimit: number;
+    isPublic: boolean;
+    password?: string | null;
+  },
+  coverFile?: File | null
+) {
+
+  const form = new FormData();
+  form.append(
+    "request",
+    new Blob([JSON.stringify(payload)], { type: "application/json" })
+  );
+  if (coverFile) form.append("coverImage", coverFile);
+
+  const res = await api.post<ApiEnvelope<any>>(`/api/studies`, form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return res.data.data;
+}
 
 export async function searchStudies(params: {
   q: string;
   sort?: "RECENT" | "POPULAR";
-  page?: number; // 문서 기본 1이라 그대로 사용
-  size?: number; // 문서 기본 10
+  page?: number;
+  size?: number; 
 }) {
   const { q, sort = "RECENT", page = 1, size = 10 } = params;
 
@@ -113,3 +140,4 @@ export async function exitStudy(studyId: number, type: "STUDY" | "BREAK") {
 
 export { getStudyList as getStudies };
 export { getStudyList as getStudiesList };
+

@@ -7,6 +7,13 @@ export type StudyCategory =
   | "EMPLOYMENT"
   | "OTHER";
 
+
+  export type ApiEnvelope<T> = {
+    success: boolean;
+    message: string;
+    data: T;
+  };
+  
 export type StudyVisibility = "public" | "private";
 
 export type StudyListItem = {

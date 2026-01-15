@@ -1,7 +1,8 @@
-import { useMemo, useState, type MouseEvent } from "react";
+import { useEffect, useMemo, useState, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import "./MyStudiesPage.css";
 import StudyViewModal, { type StudyViewData } from "../StudyDetailPage/StudyViewModal";
+import { getMyStudies } from "../../api/studies";
 
 type MyScope = "ALL" | "OWNER" | "PARTICIPATING" | "FAVORITE"; // 전체 / 개설 / 참여 / 즐겨찾기
 type VisibilityFilter = "ALL" | "PUBLIC" | "PRIVATE";
@@ -10,120 +11,34 @@ type StudyCard = {
   studyId: number;
   studyName: string;
   coverImage?: string | null;
-  categoryLabel?: string; // "공무원" 같은 한글 라벨
-  isPublic?: boolean; // 공개/비공개
+  categoryLabel?: string;
+  isPublic?: boolean;
   isFavorite?: boolean;
   isOwner?: boolean;
   isParticipating?: boolean;
 };
 
-// ===== mock =====
-const MOCK: StudyCard[] = [
-  {
-    studyId: 1,
-    studyName: "같이 공부해요",
-    coverImage: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200",
-    categoryLabel: "기타",
-    isPublic: true,
-    isFavorite: false,
-    isOwner: true,
-    isParticipating: true,
-  },
-  {
-    studyId: 2,
-    studyName: "공무원 한국사",
-    coverImage: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1200",
-    categoryLabel: "공무원",
-    isPublic: true,
-    isFavorite: true,
-    isOwner: true,
-    isParticipating: true,
-  },
-  {
-    studyId: 3,
-    studyName: "임용 준비반",
-    coverImage: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200",
-    categoryLabel: "임용",
-    isPublic: false,
-    isFavorite: false,
-    isOwner: true,
-    isParticipating: false,
-  },
-  {
-    studyId: 11,
-    studyName: "자격증 스터디",
-    coverImage: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1200",
-    categoryLabel: "자격증",
-    isPublic: true,
-    isFavorite: false,
-    isOwner: false,
-    isParticipating: true,
-  },
-  {
-    studyId: 12,
-    studyName: "어학 스피킹",
-    coverImage: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200",
-    categoryLabel: "어학",
-    isPublic: true,
-    isFavorite: true,
-    isOwner: false,
-    isParticipating: true,
-  },
-  {
-    studyId: 13,
-    studyName: "토익 900+",
-    coverImage: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200",
-    categoryLabel: "어학",
-    isPublic: true,
-    isFavorite: false,
-    isOwner: false,
-    isParticipating: false,
-  },
-  {
-    studyId: 14,
-    studyName: "자격증 스터디",
-    coverImage: null,
-    categoryLabel: "자격증",
-    isPublic: true,
-    isFavorite: false,
-    isOwner: false,
-    isParticipating: false,
-  },
-];
-
 const PAGE_SIZE = 8;
 
-function toModalData(s: StudyCard): StudyViewData {
-  // 요구사항 반영(안내는 공백 가능 / 커버 없으면 모달에서 로고로 대체)
-  const limit = 15;
-  const live = Math.min(limit, Math.max(0, (s.studyId * 3) % (limit + 1))); // 임시
+// 화면 scope -> API scope 매핑
+const toApiScope = (s: MyScope) => {
+  if (s === "OWNER") return "OWNED";
+  if (s === "PARTICIPATING") return "JOINED";
+  if (s === "FAVORITE") return "LIKED";
+  return "ALL";
+};
 
-  return {
-    studyId: s.studyId,
-    studyName: s.studyName,
-    coverImage: s.coverImage ?? null,
-    categoryLabel: s.categoryLabel ?? "기타",
-    isPublic: !!s.isPublic,
-
-    liked: !!s.isFavorite,
-    canManage: !!s.isOwner, // 내가 만든 것만 ⋮ 활성화
-
-    description: "설명설명설명설명설명설명설명설명설명",
-    guide: "", // 안내는 공백 가능
-
-    liveCount: live,
-    memberLimit: limit,
-
-    ranking: [
-      { rank: 1, nickname: "눈송이", daily: "2시간 10분", total: "12시간 05분" },
-      { rank: 2, nickname: "눈송이", daily: "1시간 20분", total: "10시간 40분" },
-      { rank: 3, nickname: "눈송이", daily: null, total: "9시간 15분" },
-      { rank: 4, nickname: "눈송이", daily: "0시간 50분", total: "8시간 03분" },
-      { rank: 5, nickname: "눈송이", daily: null, total: "7시간 20분" },
-      { rank: 6, nickname: "눈송이", daily: "0시간 10분", total: "6시간 59분" },
-    ],
-  };
-}
+// 공통 
+const mapToStudyCard = (s: any, apiScope: string): StudyCard => ({
+  studyId: s.studyId,
+  studyName: s.studyName,
+  coverImage: s.coverImage ?? null,
+  categoryLabel: s.categoryLabel ?? "기타",
+  isPublic: s.isPublic,
+  isOwner: apiScope === "OWNED",
+  isParticipating: apiScope === "JOINED",
+  isFavorite: apiScope === "LIKED",
+});
 
 export default function MyStudiesPage() {
   const navigate = useNavigate();
@@ -137,43 +52,128 @@ export default function MyStudiesPage() {
   // 캐러셀 인덱스
   const [carouselIndex, setCarouselIndex] = useState(0);
 
-  // 페이지네이션
+  // 그리드 페이지네이션 (UI는 1부터)
   const [page, setPage] = useState(1);
 
-  // 모달 선택 상태(이것만 있으면 됨)
+  // ====== "전체 데이터" ======
+  const [allMyStudies, setAllMyStudies] = useState<StudyCard[]>([]);
+  const [carouselLoading, setCarouselLoading] = useState(false);
+  const [carouselError, setCarouselError] = useState<string | null>(null);
+
+  // ====== 그리드 전용: "현재 페이지 데이터" ======
+  const [items, setItems] = useState<StudyCard[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [serverTotalPages, setServerTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // 모달 선택 상태
   const [selected, setSelected] = useState<StudyViewData | null>(null);
 
-  // ===== 상단 "나만의 스터디" 후보 리스트 (scope에 따라) =====
-  const myList = useMemo(() => {
-    const base = MOCK.filter((s) => s.isOwner || s.isParticipating || s.isFavorite);
-    if (scope === "ALL") return base;
-    if (scope === "OWNER") return base.filter((s) => s.isOwner);
-    if (scope === "PARTICIPATING") return base.filter((s) => s.isParticipating);
-    return base.filter((s) => s.isFavorite);
+  useEffect(() => {
+    let mounted = true;
+    const apiScope = toApiScope(scope);
+
+    (async () => {
+      setCarouselLoading(true);
+      setCarouselError(null);
+
+      try {
+        const first = await getMyStudies({ scope: apiScope as any, page: 1, size: 50 });
+
+        if (!mounted) return;
+
+        const totalPages = first.totalPages ?? 1;
+        const collected: any[] = [...(first.content ?? [])];
+
+        // 여러 페이지면 추가 요청
+        if (totalPages > 1) {
+          const cap = Math.min(totalPages, 20);
+
+          for (let p = 2; p <= cap; p++) {
+            const next = await getMyStudies({ scope: apiScope as any, page: p, size: 50 });
+            if (!mounted) return;
+            collected.push(...(next.content ?? []));
+          }
+        }
+
+        const mapped = collected.map((s) => mapToStudyCard(s, apiScope));
+        setAllMyStudies(mapped);
+        setCarouselIndex(0);
+      } catch (e: any) {
+        if (!mounted) return;
+        setAllMyStudies([]);
+        setCarouselError(e?.response?.data?.message ?? "나만의 스터디 불러오기 실패");
+      } finally {
+        if (mounted) setCarouselLoading(false);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
   }, [scope]);
 
-  // 캐러셀은 3장씩
-  const carouselPageSize = 3;
-  const carouselMaxIndex = Math.max(0, Math.ceil(myList.length / carouselPageSize) - 1);
-  const carouselSlice = useMemo(() => {
-    const start = carouselIndex * carouselPageSize;
-    return myList.slice(start, start + carouselPageSize);
-  }, [myList, carouselIndex]);
+  // ===== 2) 그리드용=====
+  useEffect(() => {
+    let mounted = true;
+    const apiScope = toApiScope(scope);
 
-  // ===== 아래 그리드 =====
+    (async () => {
+      setLoading(true);
+      setErrorMsg(null);
+
+      try {
+        const data = await getMyStudies({
+          scope: apiScope as any,
+          page,
+          size: PAGE_SIZE,
+        });
+
+        if (!mounted) return;
+
+        const mapped: StudyCard[] = (data.content ?? []).map((s: any) => mapToStudyCard(s, apiScope));
+
+        setItems(mapped);
+        setTotalCount(data.totalElements ?? mapped.length);
+        setServerTotalPages(data.totalPages ?? 1);
+      } catch (e: any) {
+        if (!mounted) return;
+        setItems([]);
+        setTotalCount(0);
+        setServerTotalPages(1);
+        setErrorMsg(e?.response?.data?.message ?? "나만의 스터디 조회 실패");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [scope, page]);
+
+  const carouselPageSize = 3;
+
+  const myList = useMemo(() => allMyStudies, [allMyStudies]);
+
+  const carouselMaxIndex = Math.max(0, Math.ceil(myList.length / carouselPageSize) - 1);
+
+  const carouselSlice = useMemo(() => {
+    const safeIndex = Math.min(carouselIndex, carouselMaxIndex);
+    const start = safeIndex * carouselPageSize;
+    return myList.slice(start, start + carouselPageSize);
+  }, [myList, carouselIndex, carouselMaxIndex]);
+
+  // ===== 아래 그리드=====
   const gridList = useMemo(() => {
-    let result = [...MOCK];
+    let result = [...items];
     if (visibility === "PUBLIC") result = result.filter((s) => s.isPublic);
     if (visibility === "PRIVATE") result = result.filter((s) => !s.isPublic);
     return result;
-  }, [visibility]);
+  }, [items, visibility]);
 
-  const totalPages = useMemo(() => Math.max(1, Math.ceil(gridList.length / PAGE_SIZE)), [gridList.length]);
-
-  const paged = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE;
-    return gridList.slice(start, start + PAGE_SIZE);
-  }, [gridList, page]);
+  const totalPages = serverTotalPages;
 
   // 필터 바뀌면 page 리셋
   const onChangeVisibility = (v: VisibilityFilter) => {
@@ -183,14 +183,19 @@ export default function MyStudiesPage() {
 
   const onChangeScope = (s: MyScope) => {
     setScope(s);
+    setPage(1);
     setCarouselIndex(0);
   };
 
-  // 카드 클릭 공통: 모달 열기
+  // 카드 클릭: 모달 열기 (최소 데이터만 전달)
   const openModal = (e: MouseEvent<HTMLElement>, s: StudyCard) => {
     e.preventDefault();
     e.stopPropagation();
-    setSelected(toModalData(s));
+    setSelected({
+      studyId: s.studyId,
+      studyName: s.studyName,
+      ranking: [],
+    });
   };
 
   return (
@@ -220,6 +225,10 @@ export default function MyStudiesPage() {
           </div>
         </div>
 
+        {/* 캐러셀 전용 로딩/에러 */}
+        {carouselLoading && <div className="loadingLine">불러오는 중...</div>}
+        {carouselError && <div className="errorLine">{carouselError}</div>}
+
         <div className="carousel">
           <button
             type="button"
@@ -232,42 +241,34 @@ export default function MyStudiesPage() {
           </button>
 
           <div className="carouselTrack">
-          {carouselSlice.length === 0 ? (
-  <div
-    className="myStudyEmptyCta"
-    role="button"
-    tabIndex={0}
-    onClick={() => navigate("/studies/new")}
-    onKeyDown={(e) => {
-      if (e.key === "Enter" || e.key === " ") navigate("/studies/new");
-    }}
-  >
-    <button className="myStudyEmptyPlus" type="button" aria-label="스터디 만들기">
-      +
-    </button>
-    <div className="myStudyEmptyText">
-      <span className="myStudyEmptyIcon">🏃🏻‍♀️</span>
-      <span>지금 로그인하고, 나만의 스터디를 만들어보세요 !</span>
-    </div>
-  </div>
-) : (
-  <div className="carouselRow">
-    {carouselSlice.map((s) => (
-      <article
-        key={s.studyId}
-        className="miniCard"
-        role="button"
-        tabIndex={0}
-        onClick={(e) => openModal(e, s)}
-      >
-        <div className="miniThumb">
-          {s.coverImage ? <img src={s.coverImage} alt="" /> : <div className="miniFallback" />}
-        </div>
-        <div className="miniLabel">{s.studyName}</div>
-      </article>
-    ))}
-  </div>
-)}
+            {carouselSlice.length === 0 ? (
+              <div
+                className="myStudyEmptyCta"
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate("/studies/new")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") navigate("/studies/new");
+                }}
+              >
+                <button className="myStudyEmptyPlus" type="button" aria-label="스터디 만들기">
+                  +
+                </button>
+                <div className="myStudyEmptyText">
+                  <span className="myStudyEmptyIcon">🏃🏻‍♀️</span>
+                  <span>지금 로그인하고, 나만의 스터디를 만들어보세요 !</span>
+                </div>
+              </div>
+            ) : (
+              <div className="carouselRow">
+                {carouselSlice.map((s) => (
+                  <article key={s.studyId} className="miniCard" role="button" tabIndex={0} onClick={(e) => openModal(e, s)}>
+                    <div className="miniThumb">{s.coverImage ? <img src={s.coverImage} alt="" /> : <div className="miniFallback" />}</div>
+                    <div className="miniLabel">{s.studyName}</div>
+                  </article>
+                ))}
+              </div>
+            )}
           </div>
 
           <button
@@ -296,7 +297,7 @@ export default function MyStudiesPage() {
           </div>
 
           <div className="gridMeta">
-            <div className="totalText">총 {gridList.length}개 스터디</div>
+            <div className="totalText">총 {totalCount}개 스터디</div>
             <div className="catLine">
               <span className="catOn">전체</span>
               <span>· 수능</span>
@@ -310,18 +311,14 @@ export default function MyStudiesPage() {
           </div>
         </div>
 
+        {/* 그리드 로딩/에러 */}
+        {loading && <div className="loadingLine">불러오는 중...</div>}
+        {errorMsg && <div className="errorLine">{errorMsg}</div>}
+
         <div className="cardGrid">
-          {paged.map((s) => (
-            <article
-              key={s.studyId}
-              className="gridCard"
-              role="button"
-              tabIndex={0}
-              onClick={(e) => openModal(e, s)} 
-            >
-              <div className="gridThumb">
-                {s.coverImage ? <img src={s.coverImage} alt="" /> : <div className="gridFallback" />}
-              </div>
+          {gridList.map((s) => (
+            <article key={s.studyId} className="gridCard" role="button" tabIndex={0} onClick={(e) => openModal(e, s)}>
+              <div className="gridThumb">{s.coverImage ? <img src={s.coverImage} alt="" /> : <div className="gridFallback" />}</div>
               <div className="gridTitlePill">{s.studyName}</div>
             </article>
           ))}
@@ -349,23 +346,22 @@ export default function MyStudiesPage() {
         </div>
       </section>
 
-      {/* 모달(항상 return 안에 존재해야 뜸) */}
       <StudyViewModal
         open={!!selected}
         data={
           selected ?? {
             studyId: 0,
             studyName: "",
-            ranking: [], // map 터짐 방지
+            ranking: [],
           }
         }
         onClose={() => setSelected(null)}
-        enterPath={`/study-room/${selected?.studyId ?? 0}`} // 임의 경로 가정
+        enterPath={`/study-room/${selected?.studyId ?? 0}`}
         onEdit={(id) => {
-          navigate(`/studies/${id}/edit`); // 임의 경로 가정
+          navigate(`/studies/${id}/edit`);
         }}
         onDelete={(id) => {
-          const ok = window.confirm(`스터디(${id})를 삭제할까요? (현재는 UI 단계)`);
+          const ok = window.confirm(`스터디(${id})를 삭제할까요?`);
           if (ok) setSelected(null);
         }}
       />
