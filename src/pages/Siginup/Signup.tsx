@@ -86,7 +86,7 @@ const Signup: React.FC = () => {
       const res = await signupUser(formData);
       console.log("회원가입 응답:", res);
       
-      navigate("/signup-complete");
+      navigate("/signup/complete");
     } catch (error) {
       console.error("회원가입 실패:", error);
     }
