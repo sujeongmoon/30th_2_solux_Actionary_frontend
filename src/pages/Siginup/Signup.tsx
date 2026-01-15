@@ -71,7 +71,12 @@ const Signup: React.FC = () => {
         formData.append("profileImage", profileFile);
       }
 
-      Object.keys(form).forEach(key => formData.append(key, form[key as keyof typeof form]));
+      formData.append(
+        "signupInfo",
+        new Blob([JSON.stringify(form)], {
+          type: "application/json",
+        })
+      );
 
       console.log("폼데이터 확인:", formData);
       for (const pair of formData.entries()) {
