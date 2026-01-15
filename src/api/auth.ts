@@ -49,7 +49,7 @@ export const signup = async (
   body: FormData
 ): Promise<SignupResponse> => {
   const response = await api.post<SignupResponse>(
-    "/auth/signup", body,
+    "/api/auth/signup", body,
     { headers: { "Content-Type": "multipart/form-data"},
   }
   );
