@@ -23,7 +23,7 @@ const BookmarkSection = () => {
 
   const fetchBookmarks = async () => {
     try {
-      const res = await api.get('/bookmarks');
+      const res = await api.get('/api/bookmarks');
       if (res.data.success) {
         setBookmarks(res.data.data);
       } else {
@@ -41,7 +41,7 @@ const BookmarkSection = () => {
   // 북마크 추가
   const handleAddBookmark = async (name: string, link: string) => {
     try {
-      const res = await api.post('/bookmarks', { bookmarkName: name, bookmarkLink: link});
+      const res = await api.post('/api/bookmarks', { bookmarkName: name, bookmarkLink: link});
       if (res.data.success) {
         setBookmarks((prev) => [
           ...prev,
@@ -60,7 +60,7 @@ const BookmarkSection = () => {
     // 북마크 삭제
   const handleDeleteBookmark = async (bookmarkId: number) => {
     try {
-      const res = await api.delete(`/bookmarks/${bookmarkId}`);
+      const res = await api.delete(`/api/bookmarks/${bookmarkId}`);
       if (res.data.success) {
         setBookmarks((prev) => prev.filter((b) => b.bookmarkId !== bookmarkId));
       } else {
