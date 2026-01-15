@@ -3,6 +3,8 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import "./StudyViewModal.css";
 import ActionaryLoginModal from "./ActionaryLoginModal/ActionaryLoginModal";
+import noImg from "../../assets/study_noimg.png";
+
 
 import {
   getStudyDetail,
@@ -53,7 +55,7 @@ function toHM(sec: number) {
   return `${h}시간 ${m}분`;
 }
 
-/* ===== 목업 ===== */
+/* ===== 목업 ===== 
 const MOCK_DETAIL: Record<number, StudyDetail> = {
   1: {
     studyId: 1,
@@ -119,10 +121,11 @@ const MOCK_RANKINGS: Record<number, RankingRow[]> = {
     { userId: 10, userNickname: "비공개킹", todayDurationSeconds: 4200, totalDurationSeconds: 22100 },
     { userId: 11, userNickname: "새벽공부", todayDurationSeconds: 3000, totalDurationSeconds: 17000 },
   ],
-};
+}; */
+
 
 export default function StudyViewModal({ open, onClose, studyId }: Props) {
-  const USE_MOCK = true;
+  /*const USE_MOCK = true;*/
   const navigate = useNavigate();
 
   /** UI 상태 */
@@ -184,44 +187,44 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
   useEffect(() => {
     if (!open || !studyId) return;
 
-    if (USE_MOCK) {
-      setDetailLoading(false);
-      setDetailError(null);
-
-      const picked = MOCK_DETAIL[studyId];
-      setDetail(
-        picked ?? {
-          studyId,
-          studyName: `스터디 #${studyId}`,
-          coverImage: "https://picsum.photos/seed/fallback/600/600",
-          categoryLabel: "기타",
-          description: "목업 상세 데이터가 없습니다.",
-          memberNow: 0,
-          memberLimit: 10,
-          isPublic: true,
-          isStudyLike: false,
-          isStudyOwner: false,
-        }
-      );
-      return;
-    }
-
     let mounted = true;
     (async () => {
       setDetailLoading(true);
       setDetailError(null);
       try {
         const data = await getStudyDetail(studyId);
-        if (mounted) setDetail(data);
+        const mapped: StudyDetail = {
+          studyId: Number(data.studyId ?? studyId),
+          studyName: String(data.studyName ?? ""),
+          coverImage: (data.coverImage ?? null) as string | null,
+          categoryLabel: String(data.categoryLabel ?? "기타"),
+          description: String(data.description ?? ""),
+          memberNow: Number(data.memberNow ?? 0),
+          memberLimit: Number(data.memberLimit ?? 0),
+          isPublic: !!data.isPublic,
+          isStudyLike: !!data.isStudyLike,
+          isStudyOwner: !!data.isStudyOwner,
+        };
+        if (!mounted) return;
+        setDetail(mapped);
       } catch (e: any) {
-        if (mounted) {
+        if (!mounted) return;
+
+
+        const status = e?.response?.status;
+        if (status === 401) {
+          setActionModalMode("login_enter");
+          setActionModalOpen(true);
+          setDetailError("로그인이 필요해요.");
+        } else {
           setDetailError(e?.response?.data?.message ?? "스터디 정보를 불러오지 못했습니다.");
-          setDetail(null);
         }
+        setDetail(null);
       } finally {
         if (mounted) setDetailLoading(false);
       }
     })();
+
 
     return () => {
       mounted = false;
@@ -232,12 +235,12 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
   useEffect(() => {
     if (!open || studyId == null) return;
 
-    if (USE_MOCK) {
+    /*if (USE_MOCK) {
       setRankLoading(false);
       setRankError(null);
       setRankRows(MOCK_RANKINGS[studyId] ?? []);
       return;
-    }
+    }*/
 
     let mounted = true;
     (async () => {
@@ -245,28 +248,43 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
         setRankLoading(true);
         setRankError(null);
 
-        const data = await getStudyRankings(studyId, rankTab === "today");
-        if (mounted) setRankRows(data.rankingBoards ?? []);
+        const data: any = await getStudyRankings(studyId, rankTab);
+        const list = Array.isArray(data?.rankingBoards) ? data.rankingBoards : [];
+        const mapped: RankingRow[] = list.map((r: any, idx: number) => ({
+          userId: Number(r.userId ?? idx + 1),
+          userNickname: String(r.userNickname ?? "익명"),
+          todayDurationSeconds: Number(r.todayDurationSeconds ?? 0),
+          totalDurationSeconds: Number(r.totalDurationSeconds ?? 0),
+        }));
+        if (!mounted) return;
+        setRankRows(mapped);
       } catch (e: any) {
-        if (mounted) {
+        if (!mounted) return;
+
+        const status = e?.response?.status;
+        if (status === 401) {
+          setRankError("로그인이 필요해요.");
+        } else {
           setRankError(e?.response?.data?.message ?? "랭킹 데이터를 불러오지 못했습니다.");
-          setRankRows([]);
         }
+        setRankRows([]);
       } finally {
         if (mounted) setRankLoading(false);
       }
     })();
-
     return () => {
       mounted = false;
     };
   }, [open, studyId, rankTab]);
+
+
 
   const isOwner = detail?.isStudyOwner ?? false;
   const isLiked = detail?.isStudyLike ?? false;
 
   const canJoin = useMemo(() => {
     if (!detail) return false;
+    if (detail.memberLimit <= 0) return true;
     return detail.memberNow < detail.memberLimit;
   }, [detail]);
 
@@ -292,11 +310,17 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
       await toggleStudyLike(studyId);
       setDetail((prev) => (prev ? { ...prev, isStudyLike: !prev.isStudyLike } : prev));
     } catch (e: any) {
+      const status = e?.response?.status;
+      if (status === 401) {
+        openActionModal("login_like");
+        return;
+      }
       alert(e?.response?.data?.message ?? "즐겨찾기 변경 실패");
     } finally {
       setLikeLoading(false);
     }
   };
+
 
   /** 입장하기 */
   const onEnterClick = async () => {
@@ -307,24 +331,25 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
       return;
     }
 
-    if (detail.memberNow >= detail.memberLimit) {
+
+    if (!canJoin) {
       openActionModal("capacity");
       return;
     }
 
-    if (detail.isPublic) {
-      if (USE_MOCK) {
-        onClose();
-        navigate(`/study-room/${detail.studyId}`);
-        return;
-      }
 
+    if (detail.isPublic) {
       try {
         setEnterLoading(true);
         await enterPublicStudy(detail.studyId);
         onClose();
         navigate(`/study-room/${detail.studyId}`);
       } catch (e: any) {
+        const status = e?.response?.status;
+        if (status === 401) {
+          openActionModal("login_enter");
+          return;
+        }
         alert(e?.response?.data?.message ?? "스터디 입장 실패");
       } finally {
         setEnterLoading(false);
@@ -346,17 +371,6 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
       return;
     }
 
-    if (USE_MOCK) {
-      const correct = MOCK_PRIVATE_PASSWORD[studyId] ?? "001122";
-      if (password !== correct) {
-        setPwError("비밀번호가 틀렸습니다.");
-        return;
-      }
-      setPwModalOpen(false);
-      onClose();
-      navigate(`/study-room/${studyId}`);
-      return;
-    }
 
     try {
       setPwLoading(true);
@@ -366,6 +380,11 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
       onClose();
       navigate(`/study-room/${studyId}`);
     } catch (e: any) {
+      const status = e?.response?.status;
+      if (status === 401) {
+        openActionModal("login_enter");
+        return;
+      }
       setPwError(e?.response?.data?.message ?? "비밀번호 확인 실패");
     } finally {
       setPwLoading(false);
@@ -430,7 +449,7 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
                 <>
                   <div className="svmTop">
                     <div className="svmCover">
-                      <img src={detail.coverImage} alt="" />
+                    <img src={detail.coverImage || noImg} alt="" />
                     </div>
 
                     <div className="svmInfo">
@@ -635,7 +654,7 @@ function PrivatePasswordModal({
         <input
           className="pwInput"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value.replace(/[^\d]/g, "").slice(0, 6))}
           placeholder="6자리 비밀번호를 입력하세요."
           inputMode="numeric"
           maxLength={6}

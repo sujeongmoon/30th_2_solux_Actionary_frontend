@@ -48,6 +48,7 @@ const BoardListPage: React.FC = () => {
    * API 연동
    ====================== */
   useEffect(() => {
+    console.log('useEffect 실행'); 
     const fetchPosts = async () => {
       try {
     
@@ -63,7 +64,8 @@ const BoardListPage: React.FC = () => {
             ? await getPopularPosts(params)
             : await getLatestPosts(params);
 
-        setDisplayPosts(data.posts);
+        console.log('API 응답:', data);
+        setDisplayPosts(data?.posts ?? []);
         setTotalPages(data.pageInfo.totalPages);
       } catch (error) {
         console.error('게시글 조회 실패', error);

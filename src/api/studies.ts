@@ -137,6 +137,33 @@ export async function exitStudy(studyId: number, type: "STUDY" | "BREAK") {
   const res = await api.patch<ApiEnvelope<null>>(`/api/studies/${studyId}/participating`, { type });
   return res.data.data;
 }
+export type UpdateStudyPayload = {
+  studyName: string; 
+  coverImage: string | null; 
+  category:
+    | "CSAT"
+    | "CIVIL_SERVICE"
+    | "TEACHER_EXAM"
+    | "LICENSE"
+    | "LANGUAGE"
+    | "EMPLOYMENT"
+    | "OTHER";
+  description: string; 
+  memberLimit: number;
+  isPublic: boolean;
+  password: string | null; 
+};
+
+export type UpdateStudyResponse = {
+  studyId: number;
+  name?: string;
+  studyName?: string;
+};
+
+export async function updateStudy(studyId: number, payload: UpdateStudyPayload) {
+  const res = await api.put<ApiEnvelope<UpdateStudyResponse>>(`/api/studies/${studyId}`, payload);
+  return res.data.data;
+}
 
 export { getStudyList as getStudies };
 export { getStudyList as getStudiesList };

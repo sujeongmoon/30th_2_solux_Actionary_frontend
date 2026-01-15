@@ -4,7 +4,14 @@ import "./StudyEditPage.css";
 import SuccessImg from "../../assets/Group 148.png";
 import LogoImg from "../../assets/로고.png";
 
+import { getStudyDetail, updateStudy, type UpdateStudyPayload } from "../../api/studies";
+
+
+
 type Visibility = "public" | "private";
+
+
+
 
 const CATEGORIES = ["수능", "공무원", "임용", "자격증", "어학", "취업", "기타"] as const;
 type CategoryLabel = (typeof CATEGORIES)[number];
@@ -19,6 +26,28 @@ function clampText(v: string, max: number) {
 }
 
 
+const LABEL_TO_ENUM: Record<CategoryLabel, UpdateStudyPayload["category"]> = {
+  수능: "CSAT",
+  공무원: "CIVIL_SERVICE",
+  임용: "TEACHER_EXAM",
+  자격증: "LICENSE",
+  어학: "LANGUAGE",
+  취업: "EMPLOYMENT",
+  기타: "OTHER",
+};
+
+const ENUM_TO_LABEL: Record<string, CategoryLabel> = {
+  CSAT: "수능",
+  CIVIL_SERVICE: "공무원",
+  TEACHER_EXAM: "임용",
+  LICENSE: "자격증",
+  LANGUAGE: "어학",
+  EMPLOYMENT: "취업",
+  OTHER: "기타",
+};
+
+
+
 type StudyEditForm = {
   coverImage?: string;     
   title: string;
@@ -30,7 +59,7 @@ type StudyEditForm = {
   password?: string;           
 };
 
-/** ====== 목업====== */
+/* ====== 목업====== 
 const MOCK_BY_ID: Record<number, StudyEditForm> = {
   1: {
     coverImage: "",
@@ -52,7 +81,7 @@ const MOCK_BY_ID: Record<number, StudyEditForm> = {
     visibility: "private",
     password: "000000",
   },
-};
+}; */
 
 export default function StudyEditPage() {
   const navigate = useNavigate();
@@ -79,12 +108,11 @@ export default function StudyEditPage() {
   const [visibility, setVisibility] = useState<Visibility>("public");
   const [password, setPassword] = useState("");
 
-  // ===== UI states =====
   const [errors, setErrors] = useState<FieldErrors>({});
   const [toast, setToast] = useState<ToastState>({ open: false, type: "success", message: "" });
   const [successModalOpen, setSuccessModalOpen] = useState(false);
-
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const titleMax = 20;
   const summaryMax = 20;
@@ -97,35 +125,6 @@ export default function StudyEditPage() {
 
 
   useEffect(() => {
-    if (numericStudyId == null) {
-      setLoading(false);
-      showToast("error", "잘못된 스터디 ID 입니다.");
-      return;
-    }
-
-    // =====나중에 API로 교체 =====
-    // const data = await getStudyDetail(numericStudyId)
-    const data = MOCK_BY_ID[numericStudyId];
-
-    if (!data) {
-      setLoading(false);
-      showToast("error", "스터디 정보를 찾을 수 없어요.");
-      return;
-    }
-
-    setExistingCover(data.coverImage ?? "");
-    setTitle(data.title ?? "");
-    setCategory(data.category ?? "수능");
-    setSummary(data.summary ?? "");
-    setGuide(data.guide ?? "");
-    setLimit(data.limit ?? 2);
-    setVisibility(data.visibility ?? "public");
-    setPassword(data.password ?? "");
-
-    setLoading(false);
-  }, [numericStudyId]);
-
-  useEffect(() => {
     if (visibility === "public") {
       setPassword("");
       setErrors((prev) => {
@@ -134,6 +133,59 @@ export default function StudyEditPage() {
       });
     }
   }, [visibility]);
+
+  
+  useEffect(() => {
+    if (numericStudyId == null) {
+      setLoading(false);
+      showToast("error", "잘못된 스터디 ID 입니다.");
+      return;
+    }
+
+    let mounted = true;
+
+    (async () => {
+      try {
+        setLoading(true);
+
+        const res: any = await getStudyDetail(numericStudyId);
+        const data = res?.data ?? res; 
+
+
+  const studyName = data?.studyName ?? data?.name ?? "";
+  const coverImage = data?.coverImage ?? "";
+  const categoryEnum = data?.category ?? "OTHER";
+  const description = data?.description ?? "";
+  const memberLimit = Number(data?.memberLimit ?? data?.memberCountLimit ?? 2);
+  const isPublic = !!(data?.isPublic ?? data?.public);
+
+  if (!mounted) return;
+
+  setExistingCover(String(coverImage));
+  setTitle(String(studyName));
+  setCategory(ENUM_TO_LABEL[String(categoryEnum)] ?? "기타");
+  setSummary(String(description).slice(0, summaryMax));
+  setGuide(String(description));
+
+  setLimit(Number.isFinite(memberLimit) && memberLimit > 0 ? memberLimit : 2);
+  setVisibility(isPublic ? "public" : "private");
+  setPassword("");
+} catch (e: any) {
+  const status = e?.response?.status;
+  if (status === 401) showToast("error", "로그인이 필요해요.");
+  else if (status === 403) showToast("error", "수정 권한이 없어요.");
+  else if (status === 404) showToast("error", "스터디 정보를 찾을 수 없어요.");
+  else showToast("error", e?.response?.data?.message ?? "스터디 정보를 불러오지 못했습니다.");
+} finally {
+  if (mounted) setLoading(false);
+}
+})();
+
+
+  return () => {
+    mounted = false;
+  };
+}, [numericStudyId]);
 
   const canSubmit = useMemo(() => {
     if (!title.trim()) return false;
@@ -181,18 +233,40 @@ export default function StudyEditPage() {
       showToast("error", "잘못된 스터디 ID 입니다.");
       return;
     }
+    if (saving) return;
 
-    // ===== payload 예시 =====
-    // const payload = {
-    //   title, categoryLabel: category, description: guide,
-    //   summary, memberLimit: limit,
-    //   isPublic: visibility === "public",
-    //   password: visibility === "private" ? password : null,
-    // };
-    // await updateStudy(numericStudyId, payload, coverFile)
+    let coverImageToSend: string | null = existingCover || null;
 
-    showToast("success", "성공적으로 스터디가 수정되었습니다.");
-    setSuccessModalOpen(true);
+    if (coverFile) {
+      showToast("error", "커버 이미지 업로드 API 연동이 아직 필요해요. (임시로 기존 이미지 유지)");
+    }
+
+
+    const payload: UpdateStudyPayload = {
+      studyName: title.trim(),
+      coverImage: coverImageToSend,
+      category: LABEL_TO_ENUM[category],
+      description: guide.trim() || summary.trim(),
+      memberLimit: limit,
+      isPublic: visibility === "public",
+      password: visibility === "private" ? password : null,
+    };
+
+    try {
+      setSaving(true);
+      await updateStudy(numericStudyId, payload);
+
+      showToast("success", "성공적으로 스터디가 수정되었습니다.");
+      setSuccessModalOpen(true);
+    } catch (e: any) {
+      const status = e?.response?.status;
+      if (status === 401) showToast("error", "로그인이 필요해요.");
+      else if (status === 403) showToast("error", "수정 권한이 없어요.");
+      else if (status === 404) showToast("error", "수정할 스터디가 없어요.");
+      else showToast("error", e?.response?.data?.message ?? "스터디 수정 실패");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const currentCoverSrc = coverPreview || existingCover; // 새 이미지 우선

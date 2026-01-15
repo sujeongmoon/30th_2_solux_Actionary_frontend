@@ -59,24 +59,34 @@ const Signup: React.FC = () => {
   
   /* 회원가입 */
   const handleSignup = async () => {
-    if (!validateForm()) return;
+    console.log("handleSignup 호출됨")
+    if (!validateForm()) {
+      console.log("유효성 검증 실패");
+      return;
+    }
 
     try {
       const formData = new FormData();
       if (profileFile) {
-        formData.append("profile_image", profileFile);
+        formData.append("profileImage", profileFile);
       }
 
-      formData.append("loginId", form.loginId);
-      formData.append("password", form.password);
-      formData.append("phoneNumber", form.phoneNumber);
-      formData.append("email", form.email);
-      formData.append("name", form.name);
-      formData.append("birthday", form.birthday);
+      formData.append(
+        "signupInfo",
+        new Blob([JSON.stringify(form)], {
+          type: "application/json",
+        })
+      );
 
-      await signupUser(formData);
+      console.log("폼데이터 확인:", formData);
+      for (const pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
+
+      const res = await signupUser(formData);
+      console.log("회원가입 응답:", res);
       
-      navigate("/signup-complete");
+      navigate("/signup/complete");
     } catch (error) {
       console.error("회원가입 실패:", error);
     }
@@ -115,15 +125,20 @@ const Signup: React.FC = () => {
         {/* ==== 회원가입 폼 ==== */}
         <div className="signup-form">
           {/* 아이디 입력 */}
-          <label>아이디</label>
-          <input name="loginId" value={form.loginId} onChange={handleChange} 
-          placeholder="|"/>
+          <label htmlFor="loginId">아이디</label>
+          <input 
+            id="loginId"
+            name="loginId" 
+            value={form.loginId} 
+            onChange={handleChange} 
+            placeholder="|"/>
         </div>
 
         {/* 비밀번호 입력 */}
         <div className="signup-form">
-          <label>비밀번호</label>
+          <label htmlFor="password">비밀번호</label>
           <input
+            id="password"
             type="password"
             name="password"
             value={form.password}
@@ -134,8 +149,9 @@ const Signup: React.FC = () => {
 
         {/* 전화번호 입력 */}
         <div className="signup-form">
-          <label>전화번호</label>
+          <label htmlFor="phoneNumber">전화번호</label>
           <input
+            id="phoneNumber"
             name="phoneNumber"
             value={form.phoneNumber}
             onChange={handleChange}
@@ -145,22 +161,23 @@ const Signup: React.FC = () => {
 
         {/* 이메일 입력 */}
         <div className="signup-form">
-          <label>이메일 주소</label>
-          <input name="email" value={form.email} onChange={handleChange} 
+          <label htmlFor="email">이메일 주소</label>
+          <input id="email" name="email" value={form.email} onChange={handleChange} 
           placeholder="|"/>
         </div>
 
         {/* 이름 입력 */}
         <div className="signup-form">
-          <label>이름</label>
-          <input name="name" value={form.name} onChange={handleChange} 
+          <label htmlFor="name">이름</label>
+          <input id="name" name="name" value={form.name} onChange={handleChange} 
           placeholder="|"/>
         </div>
 
         {/* 생년월일 입력 */}
         <div className="signup-form">
-          <label>생년월일</label>
+          <label htmlFor="birthday">생년월일</label>
           <input
+            id="birthday"
             type="date"
             name="birthday"
             value={form.birthday}
@@ -179,5 +196,6 @@ const Signup: React.FC = () => {
     </div>
   );
 };
+
 
 export default Signup;

@@ -25,12 +25,14 @@ const BookmarkSection = () => {
     try {
       const res = await api.get('/bookmarks');
       if (res.data.success) {
-        setBookmarks(res.data.data);
+        setBookmarks(Array.isArray(res.data.data.bookmarks) ? res.data.data.bookmarks : []);
       } else {
         console.error('북마크 조회 실패:', res.data.message);
+        setBookmarks([]);
       }
     } catch (err) {
       console.error('북마크 조회 중 오류 발생', err);
+      setBookmarks([]);
     } 
   };
 
