@@ -48,6 +48,7 @@ const BoardListPage: React.FC = () => {
    * API 연동
    ====================== */
   useEffect(() => {
+    console.log('useEffect 실행'); 
     const fetchPosts = async () => {
       try {
     
@@ -63,6 +64,7 @@ const BoardListPage: React.FC = () => {
             ? await getPopularPosts(params)
             : await getLatestPosts(params);
 
+        console.log('API 응답:', data);
         setDisplayPosts(data.posts);
         setTotalPages(data.pageInfo.totalPages);
       } catch (error) {
