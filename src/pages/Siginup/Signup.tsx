@@ -64,7 +64,7 @@ const Signup: React.FC = () => {
     try {
       const formData = new FormData();
       if (profileFile) {
-        formData.append("profile_image", profileFile);
+        formData.append("profileImage", profileFile);
       }
 
       formData.append("loginId", form.loginId);
