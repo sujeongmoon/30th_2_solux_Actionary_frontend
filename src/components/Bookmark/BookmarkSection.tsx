@@ -23,14 +23,16 @@ const BookmarkSection = () => {
 
   const fetchBookmarks = async () => {
     try {
-      const res = await api.get('/api/bookmarks');
+      const res = await api.get('/bookmarks');
       if (res.data.success) {
-        setBookmarks(res.data.data);
+        setBookmarks(Array.isArray(res.data.data.bookmarks) ? res.data.data.bookmarks : []);
       } else {
         console.error('북마크 조회 실패:', res.data.message);
+        setBookmarks([]);
       }
     } catch (err) {
       console.error('북마크 조회 중 오류 발생', err);
+      setBookmarks([]);
     } 
   };
 
@@ -41,7 +43,7 @@ const BookmarkSection = () => {
   // 북마크 추가
   const handleAddBookmark = async (name: string, link: string) => {
     try {
-      const res = await api.post('/api/bookmarks', { bookmarkName: name, bookmarkLink: link});
+      const res = await api.post('/bookmarks', { bookmarkName: name, bookmarkLink: link});
       if (res.data.success) {
         setBookmarks((prev) => [
           ...prev,
@@ -60,7 +62,7 @@ const BookmarkSection = () => {
     // 북마크 삭제
   const handleDeleteBookmark = async (bookmarkId: number) => {
     try {
-      const res = await api.delete(`/api/bookmarks/${bookmarkId}`);
+      const res = await api.delete(`/bookmarks/${bookmarkId}`);
       if (res.data.success) {
         setBookmarks((prev) => prev.filter((b) => b.bookmarkId !== bookmarkId));
       } else {
