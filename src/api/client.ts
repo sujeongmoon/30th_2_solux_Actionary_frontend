@@ -38,7 +38,7 @@ api.interceptors.response.use(
           throw new Error("refresh token 없음");
         }
 
-        const refreshResponse = await api.post("/api/auth/refresh", {
+        const refreshResponse = await api.post("/auth/refresh", {
           refresh: refreshToken,
         });
 
