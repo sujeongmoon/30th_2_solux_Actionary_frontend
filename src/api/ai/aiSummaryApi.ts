@@ -49,6 +49,8 @@ export const summarizeFile = (file: File) => {
   const formData = new FormData();
   formData.append('file', file);
 
+   console.log('요청 URL:', api.defaults.baseURL + '/ai-summary/file');
+
   return api.post<SummaryJobResponse>('/ai-summary/file', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
