@@ -1,5 +1,5 @@
 import { useState } from "react";
-import api from "axios";
+import api from "../api/client";
 
 export type PointSource = "STUDY_TIME" | "STUDY_PARTICIPATION" | "TODO_COMPLETION";
 

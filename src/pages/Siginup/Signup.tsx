@@ -115,15 +115,20 @@ const Signup: React.FC = () => {
         {/* ==== 회원가입 폼 ==== */}
         <div className="signup-form">
           {/* 아이디 입력 */}
-          <label>아이디</label>
-          <input name="loginId" value={form.loginId} onChange={handleChange} 
-          placeholder="|"/>
+          <label htmlFor="loginId">아이디</label>
+          <input 
+            id="loginId"
+            name="loginId" 
+            value={form.loginId} 
+            onChange={handleChange} 
+            placeholder="|"/>
         </div>
 
         {/* 비밀번호 입력 */}
         <div className="signup-form">
-          <label>비밀번호</label>
+          <label htmlFor="password">비밀번호</label>
           <input
+            id="password"
             type="password"
             name="password"
             value={form.password}
@@ -134,8 +139,9 @@ const Signup: React.FC = () => {
 
         {/* 전화번호 입력 */}
         <div className="signup-form">
-          <label>전화번호</label>
+          <label htmlFor="phoneNumber">전화번호</label>
           <input
+            id="phoneNumber"
             name="phoneNumber"
             value={form.phoneNumber}
             onChange={handleChange}
@@ -145,22 +151,23 @@ const Signup: React.FC = () => {
 
         {/* 이메일 입력 */}
         <div className="signup-form">
-          <label>이메일 주소</label>
-          <input name="email" value={form.email} onChange={handleChange} 
+          <label htmlFor="email">이메일 주소</label>
+          <input id="email" name="email" value={form.email} onChange={handleChange} 
           placeholder="|"/>
         </div>
 
         {/* 이름 입력 */}
         <div className="signup-form">
-          <label>이름</label>
-          <input name="name" value={form.name} onChange={handleChange} 
+          <label htmlFor="name">이름</label>
+          <input id="name" name="name" value={form.name} onChange={handleChange} 
           placeholder="|"/>
         </div>
 
         {/* 생년월일 입력 */}
         <div className="signup-form">
-          <label>생년월일</label>
+          <label htmlFor="birthday">생년월일</label>
           <input
+            id="birthday"
             type="date"
             name="birthday"
             value={form.birthday}
