@@ -16,12 +16,12 @@ const Signup: React.FC = () => {
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
   /* 폼 데이터 */
   const [form, setForm] = useState({
-    loginId: "",
-    password: "",
-    phoneNumber: "",
-    email: "",
-    name: "",
-    birthday: "",
+    loginId: "newUser123",
+    password: "password123",
+    phoneNumber: "010-1234-5678",
+    email: "user@example.com",
+    name: "홍길동",
+    birthday: "2025-10-31",
   });
 
   /* 입력값 변경 */
@@ -60,7 +60,10 @@ const Signup: React.FC = () => {
   /* 회원가입 */
   const handleSignup = async () => {
     console.log("handleSignup 호출됨")
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      console.log("유효성 검증 실패");
+      return;
+    }
 
     try {
       const formData = new FormData();
@@ -68,14 +71,15 @@ const Signup: React.FC = () => {
         formData.append("profileImage", profileFile);
       }
 
-      formData.append("loginId", form.loginId);
-      formData.append("password", form.password);
-      formData.append("phoneNumber", form.phoneNumber);
-      formData.append("email", form.email);
-      formData.append("name", form.name);
-      formData.append("birthday", form.birthday);
+      Object.keys(form).forEach(key => formData.append(key, form[key as keyof typeof form]));
 
-      await signupUser(formData);
+      console.log("폼데이터 확인:", formData);
+      for (const pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
+
+      const res = await signupUser(formData);
+      console.log("회원가입 응답:", res);
       
       navigate("/signup-complete");
     } catch (error) {
