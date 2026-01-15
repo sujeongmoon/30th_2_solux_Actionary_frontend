@@ -59,6 +59,7 @@ const Signup: React.FC = () => {
   
   /* 회원가입 */
   const handleSignup = async () => {
+    console.log("handleSignup 호출됨")
     if (!validateForm()) return;
 
     try {
