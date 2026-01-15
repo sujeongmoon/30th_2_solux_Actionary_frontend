@@ -65,7 +65,7 @@ const BoardListPage: React.FC = () => {
             : await getLatestPosts(params);
 
         console.log('API 응답:', data);
-        setDisplayPosts(data.posts);
+        setDisplayPosts(data?.posts ?? []);
         setTotalPages(data.pageInfo.totalPages);
       } catch (error) {
         console.error('게시글 조회 실패', error);
