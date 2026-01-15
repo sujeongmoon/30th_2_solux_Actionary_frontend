@@ -16,12 +16,12 @@ const Signup: React.FC = () => {
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
   /* 폼 데이터 */
   const [form, setForm] = useState({
-    loginId: "newUser123",
-    password: "password123",
-    phoneNumber: "010-1234-5678",
-    email: "user@example.com",
-    name: "홍길동",
-    birthday: "2025-10-31",
+    loginId: "",
+    password: "",
+    phoneNumber: "",
+    email: "",
+    name: "",
+    birthday: "",
   });
 
   /* 입력값 변경 */
