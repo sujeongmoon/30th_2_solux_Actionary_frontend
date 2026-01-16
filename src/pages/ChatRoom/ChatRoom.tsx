@@ -37,17 +37,37 @@ const ChatBotUI = () => {
   const location = useLocation();
   const passedFile = location.state?.file as File | undefined;
 
-  /* -------------------- 자동으로 파일 선택된 상태로 시작 -------------------- */
+  /* -------------------- 자동 파일 선택 -------------------- */
   useEffect(() => {
-    if (!passedFile) return;
-
-    setSelectedFile(passedFile);
-  }, [passedFile])
+    if (passedFile) setSelectedFile(passedFile);
+  }, [passedFile]);
 
   /* -------------------- 자동 스크롤 -------------------- */
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  /* -------------------- 요약중 메시지 교체 헬퍼 -------------------- */
+  const replaceLoadingMessage = (text: string) => {
+  setMessages(prev => {
+    const next = [...prev];
+
+    let index = -1;
+    for (let i = next.length - 1; i >= 0; i--) {
+      if (next[i].type === 'bot' && next[i].text === '요약중입니다...') {
+        index = i;
+        break;
+      }
+    }
+
+    if (index !== -1) {
+      next[index] = { id: uuidv4(), text, type: 'bot' };
+    }
+
+    return next;
+  });
+};
+
 
   /* -------------------- 폴링 -------------------- */
   const startPolling = (jobId: string) => {
@@ -60,45 +80,20 @@ const ChatBotUI = () => {
 
         if (data.status === 'SUCCEEDED') {
           clearInterval(pollingRef.current!);
+          replaceLoadingMessage(data.summary);
           setIsLoading(false);
-          setMessages(prev => [
-            ...prev,
-            { id: uuidv4(), text: data.summary, type: 'bot' },
-          ]);
         } else if (data.status === 'FAILED') {
           clearInterval(pollingRef.current!);
-          setIsLoading(false);
-          setMessages(prev => [
-            ...prev,
-            { id: uuidv4(), 
-              text: typeof data.error === 'string'
+          replaceLoadingMessage(
+            typeof data.error === 'string'
               ? data.error
-              : '요약에 실패했습니다. 다시 보내주세요!', 
-              type: 'bot' },
-          ]);
-        } else if (data.status === 'PENDING' || data.status === 'PROCESSING') {
-          // 이미 "문서를 요약 중입니다..."가 있으면 업데이트
-          setMessages(prev => {
-            const lastMessage = prev[prev.length - 1];
-            if (lastMessage?.text.startsWith('문서를 요약 중입니다...')) {
-              const newMessages = [...prev];
-              newMessages[newMessages.length - 1] = {
-                ...lastMessage,
-                text: `문서를 요약 중입니다... (${data.status})`,
-                type: 'bot',
-              };
-              return newMessages;
-            } else {
-              return [
-                ...prev,
-                { id: uuidv4(), 
-                  text: `문서를 요약 중입니다... (${data.status})`, type: 'bot' },
-              ];
-            }
-          });
+              : '요약에 실패했습니다. 다시 보내주세요!'
+          );
+          setIsLoading(false);
         }
       } catch {
         clearInterval(pollingRef.current!);
+        replaceLoadingMessage('요약 중 오류가 발생했습니다.');
         setIsLoading(false);
       }
     }, 3000);
@@ -114,13 +109,14 @@ const ChatBotUI = () => {
   const handleSend = async () => {
     if (isLoading || (!inputText.trim() && !selectedFile)) return;
 
-    // 유저 메시지 추가
-    const userMessage: Message = {
-      id: uuidv4(),
-      text: selectedFile ? selectedFile.name : inputText,
-      type: 'user',
-    };
-    setMessages(prev => [...prev, userMessage]);
+    const userText = selectedFile ? selectedFile.name : inputText;
+
+    // 유저 메시지 + 요약중 메시지 (항상 먼저)
+    setMessages(prev => [
+      ...prev,
+      { id: uuidv4(), text: userText, type: 'user' },
+      { id: uuidv4(), text: '요약중입니다...', type: 'bot' },
+    ]);
 
     setInputText('');
     setSelectedFile(null);
@@ -128,44 +124,32 @@ const ChatBotUI = () => {
 
     try {
       const res = selectedFile
-        ? await summarizeFile(selectedFile) 
+        ? await summarizeFile(selectedFile)
         : await summarizeUrl(inputText, { language: 'ko', maxTokens: 600 });
 
       const data = res.data.data;
 
       if (data.status === 'SUCCEEDED') {
-        setMessages(prev => [
-          ...prev,
-          { id: uuidv4(), text: data.summary, type: 'bot' },
-        ]);
+        replaceLoadingMessage(data.summary);
         setIsLoading(false);
       } else if (data.status === 'PENDING' || data.status === 'PROCESSING') {
-        setMessages(prev => [
-          ...prev,
-          { id: uuidv4(), text: '문서를 요약 중입니다...', type: 'bot' },
-        ]);
-        if (data.jobId) {
-          startPolling(data.jobId);
-        }
+        if (data.jobId) startPolling(data.jobId);
       } else if (data.status === 'FAILED') {
-        const errorText = typeof data.error ==='string'
-        ? data.error
-        : '요약에 실패했습니다';
-        setMessages(prev => [
-          ...prev,
-          { id: uuidv4(), text: errorText, type:'bot'},
-        ]);
+        replaceLoadingMessage(
+          typeof data.error === 'string'
+            ? data.error
+            : '요약에 실패했습니다 다시 시도해주세요.'
+        );
         setIsLoading(false);
       }
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '요약 중 오류가 발생했습니다.';
-      setMessages(prev => [
-        ...prev,
-        { id: uuidv4(), text: errorMessage, type: 'bot' },
-      ]);
+      replaceLoadingMessage(
+        err instanceof Error ? err.message : '요약 중 오류가 발생했습니다.'
+      );
       setIsLoading(false);
     }
   };
+
   /* -------------------- 파일 -------------------- */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -185,7 +169,6 @@ const ChatBotUI = () => {
     const fetchSummaryList = async () => {
       try {
         const res = await getSummaryList(1, 10);
-        console.log('API 응답:', res.data);
         setSummaryList(res.data.data.content);
       } catch (e) {
         console.error('요약 목록 조회 실패', e);
@@ -205,22 +188,21 @@ const ChatBotUI = () => {
       if (data.status === 'SUCCEEDED') {
         setMessages([{ id: uuidv4(), text: data.summary, type: 'bot' }]);
       } else if (data.status === 'FAILED') {
-        setMessages([{ 
-          id: uuidv4(), 
+        setMessages([{
+          id: uuidv4(),
           text:
             typeof data.error === 'string'
-            ? data.error
-            : '요약에 실패했습니다', 
-          type: 'bot' }]);
+              ? data.error
+              : '요약에 실패했습니다. 다시 시도해주세요.',
+          type: 'bot',
+        }]);
       }
-    } catch (e) {
-      console.error('요약 상세 조회 실패', e);
     } finally {
       setIsLoading(false);
     }
   };
 
-  /* -------------------- 새로운 대화 -------------------- */
+  /* -------------------- 새 대화 -------------------- */
   const handleNewConversation = () => {
     setMessages([]);
     setSelectedChapter(null);
@@ -252,7 +234,6 @@ const ChatBotUI = () => {
             >
               <div className="chapter-title">{item.title}</div>
               <div className={`chapter-status ${item.status.toLowerCase()}`}>
-                {item.status}
               </div>
             </div>
           ))}

@@ -29,7 +29,7 @@ const ProfileSection: React.FC = () => {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const res = await api.get('/users/me/info');
+        const res = await api.get('/members/me/info');
         setUserInfo(res.data.data); 
       } catch (err) {
         console.error(err);

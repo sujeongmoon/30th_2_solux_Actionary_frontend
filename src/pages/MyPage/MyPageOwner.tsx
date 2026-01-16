@@ -33,7 +33,7 @@ const MyPageOwner: React.FC = () => {
   useEffect(() => {
     const fetchMyInfo = async () => {
       try {
-        const res = await api.get('/users/me/info');
+        const res = await api.get('/members/me/info');
         setMyMemberId(res.data.data.memberId); // 서버에서 memberId 받아오기
       } catch (err) {
         console.error('본인 정보 조회 실패', err);
@@ -150,7 +150,7 @@ const handleStatusChange = async (
         <div className='owner-card-todo'>
           <div className='owner-study-header'>
             <span className='owner-todo-title'>오늘의 TO DO LIST</span>
-            <button className='owner-more-btn'>더보기</button>
+            <button onClick={() => navigate("/todolistpage")} className='owner-more-btn'>더보기</button>
           </div>
 
             
