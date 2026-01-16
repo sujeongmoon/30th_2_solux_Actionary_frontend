@@ -1,55 +1,88 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { ApiEnvelope } from "../api/types";
+import { getTodosByDate, createTodo, updateTodo, updateTodoStatus, deleteTodo } from "../api/Todos/todosApi";
+import type{ Todo as ApiTodo } from "../api/Todos/todosApi";
 
-export interface Todo {
-  todoId: number;
-  categoryId: number;
-  title: string;
-  date: string;
-  status: "DOING" | "DONE";
-}
+export interface Todo extends ApiTodo {}
 
 export const useTodos = () => {
   const today = new Date();
   const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
 
-  // 🔹 목업 데이터
-  const mockTodos: Todo[] = [
-    { todoId: 1, categoryId: 1, title: "React 공부", date: todayString, status: "DONE" },
-    { todoId: 2, categoryId: 1, title: "TypeScript 학습", date: todayString, status: "DOING" },
-    { todoId: 3, categoryId: 2, title: "헬스장 가기", date: todayString, status: "DONE" },
-    { todoId: 4, categoryId: 2, title: "조깅", date: todayString, status: "DOING" },
-    { todoId: 5, categoryId: 2, title: "스트레칭", date: todayString, status: "DONE" },
-  ];
-
-  const [todos, setTodos] = useState<Todo[]>(mockTodos);
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>(todayString);
+  const [loading, setLoading] = useState(false);
 
-  const addTodo = (todo: Omit<Todo, "todoId">) => {
-    setTodos(prev => [
-      ...prev,
-      { ...todo, todoId: Date.now() },
-    ]);
+  useEffect(() => {
+    const fetchTodos = async () => {
+      setLoading(true);
+      try {
+        const data = await getTodosByDate(selectedDate);
+        setTodos(data);
+      } catch (err) {
+        console.error("투두 조회 실패", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTodos();
+  }, [selectedDate]);
+
+  // 투두 추가
+  const addTodoItem = async (categoryId: number) => {
+    try {
+      const res = await createTodo({ title: "", date: selectedDate, categoryId});
+      setTodos(prev => [...prev, res.data]);
+    } catch (err) {
+      console.error("추두 생성 실패", err);
+    }
   };
 
-  const removeTodo = (todoId: number) => {
-    setTodos(prev => prev.filter(t => t.todoId !== todoId));
+  // 투두 수정
+  const editTodo = async (todoId: number, data: { title?: string; categoryId?: number }) => {
+    const payload = {...data};
+
+    if (payload.categoryId === null) {
+      delete payload.categoryId;
+    }
+
+    try {
+      const res = await updateTodo(todoId, data);
+      setTodos(prev => prev.map(t => t.todoId === todoId ? res.data : t));
+    } catch (err) {
+      console.error("투두 수정 실패", err);
+    }
   };
 
-  const editTodo = (todoId: number, data: Partial<Todo>) => {
-    setTodos(prev => prev.map(t => t.todoId === todoId ? { ...t, ...data } : t));
+  // 상태 변경
+  const changeStatus = async (todoId: number, status: "PENDING" | "DONE" | "FAILED") => {
+    try {
+      const res = await updateTodoStatus(todoId, status);
+      setTodos(prev => prev.map(t => t.todoId === todoId ? { ...t, status: res.data.status } : t));
+    } catch (err) {
+      console.error("투두 상태 변경 실패", err);
+    }
   };
 
-  const changeStatus = (todoId: number, status: "DOING" | "DONE") => {
-    setTodos(prev => prev.map(t => t.todoId === todoId ? { ...t, status } : t));
+  // 투두 삭제
+  const removeTodo = async(todoId: number) => {
+    try {
+      await deleteTodo(todoId);
+      setTodos(prev => prev.filter(t => t.todoId !== todoId));
+    } catch (err) {
+      console.error("투두 삭제 실패", err);
+    }
   };
 
   return {
     selectedDate,
     setSelectedDate,
     todos,
-    addTodo,
+    addTodoItem,
     removeTodo,
     editTodo,
     changeStatus,
   };
 };
+
+export default useTodos;
