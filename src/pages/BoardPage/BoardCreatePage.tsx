@@ -86,7 +86,7 @@ const BoardCreatePage = () => {
 
     const loginUserId = Number(localStorage.getItem('userId'));
     const postData = {
-      userId: loginUserId,
+      memberId: loginUserId,
       type: selectedCategory,
       title,
       content: {
@@ -96,7 +96,7 @@ const BoardCreatePage = () => {
     formData.append('post', JSON.stringify(postData)); // key: post, JSON 문자열
 
     // 3. 요청 보내기
-    const res = await api.post<CreatePostResponse>('/api/posts', formData); 
+    const res = await api.post<CreatePostResponse>('/posts', formData); 
 
     if (res.data.success) {
       alert('게시글이 생성되었습니다!');

@@ -10,14 +10,13 @@ import { getPostDetail, deletePost } from '../../api/boardDetail/postApi';
 import { getComments, createComment, deleteComment, updateComment } from '../../api/boardDetail/comment';
 import { useNavigate } from 'react-router-dom'
 import LoginAlertModal from '../../components/AlertModal/LoginAlertModal';
+import { getMyInfo } from '../../api/sidebar';
 
 /* ============================================= */
 
 const BoardDetailPage = () => {
   const { postId } = useParams<{ postId: string }>();
-
   const navigate = useNavigate();
-
   const [data, setData] = useState<PostDetailData | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +42,20 @@ const BoardDetailPage = () => {
   const accessToken = localStorage.getItem('accessToken');
   const isLoggedIn = Boolean(accessToken);
 
-  const loginUserId = isLoggedIn ? 1: null; //mockData용
+  const [myMemberId, setMyMemberId] = useState<number | null>(null);
+
+
+  // 유저 정보 가져오기
+useEffect(() => {
+  const fetchMyInfo = async () => {
+    const res = await getMyInfo();
+    if(res.success) {
+      setMyMemberId(res.data.memberId); // 서버에서 받은 내 memberId
+    }
+  }
+  fetchMyInfo();
+}, []);
+
 
   /* 실제 연동용 코드 */
   useEffect(() => {
@@ -152,7 +164,6 @@ const handleCommentSubmit = async () => {
   if (loading) return <div className="loading">로딩 중...</div>;
   if (!data) return <div className="error">게시글을 찾을 수 없습니다.</div>;
 
-  const { post, author, postImageUrls } = data;
   const formatDate = (dateString: string) => {
   const d = new Date(dateString);
   const year = d.getFullYear();
@@ -161,7 +172,11 @@ const handleCommentSubmit = async () => {
   return `${year}/${month}/${day}`;
 };
 
-  const isMyPost = isLoggedIn && author.memberId === loginUserId;
+    const { post, author, postImageUrls } = data;
+
+  // 게시글 작성자가 나인지 체크
+  const isMyPost = isLoggedIn && myMemberId !== null && author.memberId === myMemberId;
+
 
   return (
     <div className="board-detail-container">
@@ -180,7 +195,7 @@ const handleCommentSubmit = async () => {
                 )}
               </div>
               <span className="date">
-                  {formatDate(post.created_at)}
+                  {formatDate(post.createdAt)}
               </span>
             </div>
           </div>
@@ -250,8 +265,8 @@ const handleCommentSubmit = async () => {
         </h2>
         
         {comments.map((comment) => {
-          const isMyComment = isLoggedIn && loginUserId === comment.author.memberId;
-          const isPostAuthor = loginUserId === author.memberId;
+          const isMyComment = isLoggedIn && myMemberId === comment.author.memberId;
+          const isPostAuthor = myMemberId === author.memberId;
 
           const commentContent =
             comment.is_secret && !isMyComment && !isPostAuthor

@@ -15,7 +15,7 @@ export interface PostDetailData {
     title: string;
     textContent: string;
     commentCount: number;
-    created_at: string;
+    createdAt: string;
   };
   postImageUrls: string[];
   author: Author;

@@ -8,7 +8,7 @@ import api from '../../api/client';
 
 interface Bookmark {
   bookmarkId: number;
-  name: string;
+  bookmarkName: string;
   link: string;
 }
 
@@ -47,7 +47,7 @@ const BookmarkSection = () => {
       if (res.data.success) {
         setBookmarks((prev) => [
           ...prev,
-          { bookmarkId: res.data.data.bookmarkId, name: res.data.data.bookmarkName, link: res.data.data.link}
+          { bookmarkId: res.data.data.bookmarkId, bookmarkName: res.data.data.bookmarkName, link: res.data.data.link}
         ]);
         setIsModalOpen(false)
       } else {
@@ -104,7 +104,7 @@ const BookmarkSection = () => {
                     {bookmark.link}
                   </a>
                 </div>
-                <span className="bookmark-name">{bookmark.name}</span>
+                <span className="bookmark-name">{bookmark.bookmarkName}</span>
               </div>
 
               <button className="bookmark-delete-btn" onClick={() => handleDeleteBookmark(bookmark.bookmarkId)}>

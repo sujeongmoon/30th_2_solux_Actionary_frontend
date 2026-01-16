@@ -4,7 +4,7 @@ export interface Post {
   title: string;
   textContent: string;
   commentCount: number;
-  created_at: string;
+  createdAt: string;
 }
 
 
