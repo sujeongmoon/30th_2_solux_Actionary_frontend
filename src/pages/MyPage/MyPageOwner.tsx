@@ -33,7 +33,7 @@ const MyPageOwner: React.FC = () => {
   useEffect(() => {
     const fetchMyInfo = async () => {
       try {
-        const res = await api.get('/users/me/info');
+        const res = await api.get('/members/me/info');
         setMyMemberId(res.data.data.memberId); // 서버에서 memberId 받아오기
       } catch (err) {
         console.error('본인 정보 조회 실패', err);
