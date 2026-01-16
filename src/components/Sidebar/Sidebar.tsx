@@ -54,7 +54,12 @@ const RightSidebar = () => {
 
         // 오늘 공부량
         const studyTime = await getStudyTimeByDate(today);
-        setTodayStudyTime(studyTime.studyTime);
+        
+        // 초를 시/분으로 변환
+        const hours = Math.floor(studyTime.durationSeconds / 3600);
+        const minutes = Math.floor((studyTime.durationSeconds % 3600) / 60);
+        setTodayStudyTime(`${hours}H ${minutes}M`);
+    
 
         // 오늘 투두 리스트
         const todos = await getTodoListByDate(today);

@@ -14,7 +14,7 @@ export const getUserPoints = async () => {
 export const getStudyTimeByDate = async (date: string) => {
   const res = await api.get(`/studytimes`, {
     params: { 
-        period: 'day',
+        period: 'DAY',
         date
      } 
   });
