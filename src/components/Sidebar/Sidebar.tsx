@@ -34,19 +34,20 @@ const RightSidebar = () => {
   const navigate = useNavigate();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const accessToken = localStorage.getItem('accessToken');
   const isLoggedIn = Boolean(accessToken);
+
   // 유저 정보 호출
   useEffect(() => {
     const fetchUserData = async() => {
       try {
         // 오늘 날짜
         const today = new Date().toISOString().split('T')[0];
-
         // 유저 정보
         const userInfo = await getMyInfo();
         setNickname(userInfo.nickname);
+        setProfileImageUrl(userInfo.profileImageUrl || null);
 
         // 포인트
         const points = await getUserPoints();
@@ -153,7 +154,15 @@ const RightSidebar = () => {
               className="sidebar-bell"
               onClick={openNotificationModal} />
             <div className="side-profile-circle">
-              <FiUser size={25} />
+              {profileImageUrl ? (
+                <img 
+                  src={profileImageUrl} 
+                  alt="프로필 이미지" 
+                  className="profile-image" 
+                />
+              ) : (
+                <FiUser size={25} />
+              )}
             </div>
           </div>
         </div>

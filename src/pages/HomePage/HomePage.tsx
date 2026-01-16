@@ -199,7 +199,12 @@ useEffect(() => {
       )}
 
         <div className="Ai-Container">
-          <p className="Ai-Container-Title">
+          <p className="Ai-Container-Title" onClick={() => { if(isLoggedIn) {navigate("/chatroom")}
+            else {
+              setShowLoginModal(true);
+            }
+          }}
+          >
             <span style={{color: '#FA785B'}}>Ai</span>
             <span style={{color: '#000000'}}> 문서요약</span>
           </p>
@@ -215,7 +220,15 @@ useEffect(() => {
               <>
                 <div className="popup-overlay" onClick={handleCloseMenu}></div>
                 <div className="file-menu-popup">
-                  <button onClick={handleOpenFilePicker}>사진 및 파일 추가</button>
+                  <button onClick={() => {
+                      if (isLoggedIn) {
+                      handleOpenFilePicker();
+                    } else {
+                      setShowLoginModal(true);
+                    }
+                  }}
+                  >
+                  파일 추가</button>
                 </div>
               </>
             )}
