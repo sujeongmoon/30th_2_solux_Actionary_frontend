@@ -16,16 +16,14 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
-)
+  (error) => Promise.reject(error)
+);
 
 {/* 리스폰스 인터셉터 영역입니다 */}
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config as any;
+    const originalRequest = error.config;
 
     //accessToken 만료 (401) + 재시도 안 한 요청
     if (
@@ -39,8 +37,11 @@ api.interceptors.response.use(
           throw new Error("refresh token 없음");
         }
         */
-
-        const refreshResponse = await api.post("/auth/refresh");
+        const refreshResponse = await axios.post(
+          `${api.defaults.baseURL}/auth/refresh`,
+          {},
+          { withCredentials: true}
+        );
         const newAccessToken = refreshResponse.data.data.accessToken;
 
         localStorage.setItem("accessToken", newAccessToken);
@@ -48,8 +49,9 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } catch (refreshError) {
+        console.error("세션 만료: 로그아웃 처리합니다.");
         // refresh 실패 시 완전 로그아웃
-        // (삭제?)(localStorage.removeItem("accessToken");
+        localStorage.removeItem("accessToken");
         // (삭제?)localStorage.removeItem("refreshToken");
         authLogout();
         window.location.href = "/login";
