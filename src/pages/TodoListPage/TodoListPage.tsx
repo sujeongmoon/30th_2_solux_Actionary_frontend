@@ -185,11 +185,8 @@ const TodoListPage: React.FC = () => {
                   {cat.name}
                 </div>
 
-
-                {isToday && (
-                  <button className="add-cat-button" onClick={() => addTodo(cat.categoryId)}>+</button>
-                )}
-                
+                <button className="add-cat-button" onClick={() => addTodo(cat.categoryId)}>+</button>
+              
               </div>
 
             {todos
