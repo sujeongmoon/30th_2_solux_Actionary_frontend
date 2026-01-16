@@ -18,7 +18,7 @@ export const createTodoCategory = async (
   data: CreateCategoryRequest
 ) => {
   try {
-    const res = await api.post('/api/todo-categories', data);
+    const res = await api.post('/todo-categories', data);
     return res.data;
   } catch (error) {
     console.error ('카테고리 생성 실패', error);
@@ -29,7 +29,7 @@ export const createTodoCategory = async (
 // 카테고리 목록 조회
 export const getTodoCategories = async () => {
   try {
-    const res = await api.get('/api/todo-categories');
+    const res = await api.get('/todo-categories');
     return res.data;
   } catch (error) {
     console.error('카테고리 목록 조회 실패', error);
@@ -49,7 +49,7 @@ export const updateTodoCategory = async (
 ) => {
   try {
     const res = await api.patch(
-      `/api/todo-categories/${categoryId}`,
+      `/todo-categories/${categoryId}`,
       data
     );
     return res.data;
@@ -63,7 +63,7 @@ export const updateTodoCategory = async (
 export const deleteTodoCategory = async (categoryId: number) => {
   try {
     const res = await api.delete(
-      `/api/todo-categories/${categoryId}`
+      `/todo-categories/${categoryId}`
     );
     return res.data;
   } catch (error) {
