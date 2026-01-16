@@ -37,7 +37,7 @@ const Login: React.FC = () => {
       }
 
       setToken(token);
-      navigate("/studies");
+      navigate("/");
     } catch (err) {
       console.log("로그인 실패", err);
     }
