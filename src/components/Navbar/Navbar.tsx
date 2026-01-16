@@ -9,9 +9,7 @@ import { useAuth } from "../../context/AuthContext";
 
 const Navbar = () => {
   const navigate = useNavigate();
-
-  //(삭제?)const isLoggedIn = Boolean(localStorage.getItem("accessToken"));
- const { isLoggedIn, logout } = useAuth();
+  const { isLoggedIn, logout } = useAuth();
   const profileImageUrl: string | null = null;
 
   const [loginModalOpen, setLoginModalOpen] = useState(false);
