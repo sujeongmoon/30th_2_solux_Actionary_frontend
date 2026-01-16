@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
+let externalLogout: (() => void) | null = null;
+
 type AuthContextValue = {
   isLoggedIn: boolean;
   token: string | null;
@@ -20,9 +22,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => setToken(null);
 
+  useEffect(() => {
+    externalLogout = logout;
+  }, []);
+
   const value = useMemo(() => ({ isLoggedIn, token, setToken, logout }), [isLoggedIn, token]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
+
+export const authLogout = () => {
+  externalLogout?.();
+};
 
 export function useAuth() {
   const ctx = useContext(AuthContext);

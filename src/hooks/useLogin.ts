@@ -19,7 +19,7 @@ export const useLogin = () => {
 
      /* 로그인 시 토큰 저장 */ 
      localStorage.setItem("accessToken", response.data.accessToken);
-     localStorage.setItem("refreshToken", response.data.refreshToken);
+     // (삭제?)localStorage.setItem("refreshToken", response.data.refreshToken);
 
      navigate("/");
 
@@ -35,12 +35,12 @@ export const useLogin = () => {
     }
   };
 
-  /* 로그아웃 */
+  /* 로그아웃 
   const logout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
-  }
+  } */
       
 
-  return { login, isLoading, errorMessage };
+  return { login, isLoading, errorMessage }; 
 };
