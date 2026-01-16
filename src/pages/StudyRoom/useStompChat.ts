@@ -1,46 +1,36 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client/dist/sockjs";
-
-type ChatEventType =
-  | "CHAT_MESSAGE"
-  | "NOW_STATE_CHANGED"
-  | "PARTICIPANT_JOINED"
-  | "PARTICIPANT_LEFT"
-  | "NOT_STUDY_PARTICIPANT";
-
-export type ChatEvent = {
-  type: ChatEventType;
-  data: any;
-};
+import type { ChatEvent } from "./chatEventTypes";
 
 type UseStompChatParams = {
   studyId: number | null;
-  wsBaseUrl: string; // 예: import.meta.env.VITE_DOMAIN_URL
+  wsBaseUrl: string;
 };
 
 export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
   const clientRef = useRef<Client | null>(null);
+  const subRef = useRef<any>(null); 
 
   const [connected, setConnected] = useState(false);
   const [events, setEvents] = useState<ChatEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const topic = useMemo(() => {
-    if (!studyId) return null;
-    return `/topic/studies/${studyId}`;
-  }, [studyId]);
+  const topic = useMemo(
+    () => (studyId ? `/topic/studies/${studyId}` : null),
+    [studyId]
+  );
 
-  const sendPath = useMemo(() => {
-    if (!studyId) return null;
-    return `/app/studies/${studyId}/chat`;
-  }, [studyId]);
+  const sendPath = useMemo(
+    () => (studyId ? `/app/studies/${studyId}/chat` : null),
+    [studyId]
+  );
 
   useEffect(() => {
-    if (!studyId) return;
+    if (!studyId || !topic) return;
 
     const client = new Client({
-      webSocketFactory: () => new SockJS(`${wsBaseUrl}/ws`), // 도메인주소/ws
+      webSocketFactory: () => new SockJS(`${wsBaseUrl}/ws`),
       reconnectDelay: 2000,
       debug: () => {},
 
@@ -48,13 +38,15 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
         setConnected(true);
         setError(null);
 
-        if (!topic) return;
-        client.subscribe(topic, (msg: any) => {
+        subRef.current?.unsubscribe();
+
+        subRef.current = client.subscribe(topic, (msg) => {
           try {
             const payload = JSON.parse(msg.body);
+            if (!payload?.type || !payload?.data) return;
             setEvents((prev) => [...prev, payload]);
-          } catch {
-            // ignore
+          } catch (e) {
+            console.error("Invalid STOMP payload", e);
           }
         });
       },
@@ -70,21 +62,22 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
     clientRef.current = client;
 
     return () => {
+      subRef.current?.unsubscribe();
+      subRef.current = null;
       clientRef.current?.deactivate();
       clientRef.current = null;
       setConnected(false);
     };
   }, [studyId, wsBaseUrl, topic]);
 
-  const sendChat = (senderId: number, chat: string) => {
-    if (!sendPath) return;
-    if (!clientRef.current?.connected) return;
+  const sendChat = (studyParticipantId: number, message: string) => {
+    if (!sendPath || !clientRef.current?.connected) return;
 
     clientRef.current.publish({
       destination: sendPath,
       body: JSON.stringify({
         type: "CHAT_MESSAGE",
-        data: { senderId, chat },
+        data: { studyParticipantId, message },
       }),
     });
   };

@@ -1,523 +1,244 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useWebRTCRoom } from "./useWebRTCRoom";
 import "./StudyRoomPage.css";
 
-import lampIcon from "../../assets/icons/hugeicons_study-lamp.svg";
+import avatarIcon from "../../assets/icons/Vector.svg";
 import cameraIcon from "../../assets/icons/majesticons_camera-line.svg";
 import cameraOffIcon from "../../assets/icons/majesticons_camera-line_no.svg";
-import moonIcon from "../../assets/icons/solar_moon-sleep-linear.svg";
 import micIcon from "../../assets/icons/stash_mic-solid.svg";
 import micOffIcon from "../../assets/icons/Frame 106.svg";
-import avatarIcon from "../../assets/icons/Vector.svg";
+
+import { api } from "../../api/client";
+import { useStompChat } from "./useStompChat";
+import { useWebRTCRoom } from "./useWebRTCRoom";
+
+/* ===================== 타입 ===================== */
 
 type Participant = {
-  id: string;
-  nickname: string;
-  badge?: string;
+  userId: number;
+  studyParticipantId: number;
+  userNickname: string;
+  userProfileImageUrl?: string | null;
 };
 
-type Mode = "STUDY" | "REST";
-
-type ChatMsg = {
+type ChatMessage = {
   id: string;
   mine: boolean;
   nickname: string;
   text: string;
 };
 
-function formatHMS(sec: number) {
-  const s = Math.max(0, Math.floor(sec));
-  const hh = String(Math.floor(s / 3600)).padStart(2, "0");
-  const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
-  const ss = String(s % 60).padStart(2, "0");
-  return `${hh}:${mm}:${ss}`;
-}
-
-function Video({ stream, muted }: { stream: MediaStream | null; muted?: boolean }) {
-  const ref = useRef<HTMLVideoElement | null>(null);
-
-  useEffect(() => {
-    if (!ref.current) return;
-    ref.current.srcObject = stream;
-  }, [stream]);
-
-  if (!stream) return null;
-  return <video ref={ref} autoPlay playsInline muted={!!muted} className="srVideoEl" />;
-}
-
-function PomoRing({
-  remainSec,
-  totalSec,
-}: {
-  remainSec: number;
-  totalSec: number;
-}) {
-  const size = 360;
-  const cx = size / 2;
-  const cy = size / 2;
-
-  const r = 128;
-  const stroke = 28; 
-  const C = 2 * Math.PI * r;
-
-  // 시간 줄수록 링 감소
-  const p = totalSec <= 0 ? 0 : Math.max(0, Math.min(1, remainSec / totalSec));
-  const dashoffset = C * (1 - p);
-
-  const centerText = formatHMS(remainSec);
-
-  // 0~55, 5분 단위
-  const ticks = useMemo(() => {
-    const arr = [];
-    for (let m = 0; m <= 55; m += 5) arr.push(m);
-    return arr;
-  }, []);
-
-  const tickR = r + 36;
-
-  const pos = (idx: number, len: number) => {
-    const deg = -90 + (360 * idx) / len;
-    const rad = (deg * Math.PI) / 180;
-    return {
-      x: cx + tickR * Math.cos(rad),
-      y: cy + tickR * Math.sin(rad),
-    };
-  };
-
-  return (
-    <div className="srPomoRingWrap">
-      <div className="srPomoTopPill" />
-
-      <div className="srPomoCardBox">
-        <svg className="srPomoSvg" viewBox={`0 0 ${size} ${size}`}>
-          <defs>
-            <linearGradient id="pomoGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#ff3b6a" />
-              <stop offset="50%" stopColor="#ff6f61" />
-              <stop offset="100%" stopColor="#ff9f5a" />
-            </linearGradient>
-          </defs>
-
-          {ticks.map((m, i) => {
-            const { x, y } = pos(i, ticks.length);
-            return (
-              <text
-                key={m}
-                x={x}
-                y={y}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                className="srPomoTick"
-              >
-                {m}
-              </text>
-            );
-          })}
-
-          <circle
-            cx={cx}
-            cy={cy}
-            r={r}
-            fill="none"
-            stroke="rgba(255,255,255,.12)"
-            strokeWidth={stroke}
-          />
-
-          <circle
-            cx={cx}
-            cy={cy}
-            r={r}
-            fill="none"
-            stroke="url(#pomoGrad)"
-            strokeWidth={stroke}
-            strokeLinecap="round"
-            strokeDasharray={C}
-            strokeDashoffset={dashoffset}
-            style={{
-              transform: "rotate(-90deg) scaleY(-1)",
-              transformOrigin: `${cx}px ${cy}px`,
-              transition: "stroke-dashoffset .3s linear",
-            }}
-          />
-
-          <text
-            x={cx}
-            y={cy + 10}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            className="srPomoTimeText"
-          >
-            {centerText}
-          </text>
-        </svg>
-      </div>
-    </div>
-  );
-}
+/* ===================== 컴포넌트 ===================== */
 
 export default function StudyRoomPage() {
   const navigate = useNavigate();
   const { studyId } = useParams();
+  const numericStudyId = Number(studyId);
+  const [me, setMe] = useState<Participant | null>(null);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [bubbleMap, setBubbleMap] = useState<Record<number, string>>({});
+  const [error, setError] = useState<string | null>(null);
 
-  const numericStudyId = useMemo(() => {
-    const n = Number(studyId);
-    return Number.isFinite(n) ? n : null;
-  }, [studyId]);
+  useEffect(() => {
+    if (!numericStudyId) return;
 
-  /** WebRTC */
-  const roomId = String(studyId ?? "unknown-room");
-  const SIGNALING_URL = import.meta.env.VITE_SIGNALING_URL ?? "http://localhost:3000";
+    (async () => {
+      try {
+        const res = await api.get(`/studies/${numericStudyId}/participating/users`);
+        const data = res.data.data;
 
+        setMe(data.me);
+        setParticipants(data.participants ?? []);
+        setBubbleMap(data.participantNowStates ?? {});
+      } catch {
+        setError("스터디룸 입장 실패");
+      }
+    })();
+  }, [numericStudyId]);
+
+  /* ===================== STOMP ===================== */
+  const WS_BASE_URL = import.meta.env.VITE_DOMAIN_URL;
+
+  const { events, sendChat, sendNowState } = useStompChat({
+    studyId: numericStudyId,
+    wsBaseUrl: WS_BASE_URL,
+  });
+
+  /* ===================== 채팅 ===================== */
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const chatBodyRef = useRef<HTMLDivElement | null>(null);
+  const lastEventRef = useRef(0);
+
+  useEffect(() => {
+    if (!me) return;
+    if (events.length <= lastEventRef.current) return;
+
+    const last = events[events.length - 1];
+    lastEventRef.current = events.length;
+    const d = last.data;
+
+    switch (last.type) {
+      case "CHAT_MESSAGE": {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            id: String(Date.now()),
+            mine: d.studyParticipantId === me.studyParticipantId,
+            nickname: d.userNickname,
+            text: d.chatMessage,
+          },
+        ]);
+        break;
+      }
+
+      case "NOW_STATE_CHANGED": {
+        setBubbleMap((prev) => ({
+          ...prev,
+          [d.studyParticipantId]: d.nowState,
+        }));
+        break;
+      }
+
+      case "PARTICIPANT_JOINED": {
+        setParticipants((prev) => [...prev, d]);
+        break;
+      }
+
+      case "PARTICIPANT_LEFT": {
+        setParticipants((prev) =>
+          prev.filter((p) => p.studyParticipantId !== d.studyParticipantId)
+        );
+        break;
+      }
+    }
+  }, [events, me]);
+
+  const onSendChat = () => {
+    if (!chatInput.trim() || !me) return;
+
+    sendChat(me.studyParticipantId, chatInput);
+
+    setChatMessages((prev) => [
+      ...prev,
+      {
+        id: `local-${Date.now()}`,
+        mine: true,
+        nickname: me.userNickname,
+        text: chatInput,
+      },
+    ]);
+
+    setChatInput("");
+  };
+
+  /* ===================== WebRTC ===================== */
   const {
-    myPeerId,
     localStream,
     remoteStreams,
-    remoteIds,
     camOn,
     micOn,
     setCamOn,
     setMicOn,
   } = useWebRTCRoom({
-    roomId,
-    signalingUrl: SIGNALING_URL,
-    displayName: "나",
-    enableVideo: true,
-    enableAudio: true,
+    roomId: String(studyId),
+    signalingUrl: import.meta.env.VITE_SIGNALING_URL,
+    displayName: me?.userNickname ?? "나",
   });
 
-  /** 패널 */
-  const [panelOpen, setPanelOpen] = useState(true);
+  /* ===================== 렌더 ===================== */
 
-  /** participants */
-  const participants: Participant[] = useMemo(() => {
-    const list: Participant[] = [];
-    const meId = myPeerId || "me";
-    list.push({ id: meId, nickname: "나", badge: "0" });
-
-    for (const rid of remoteIds) {
-      list.push({
-        id: rid,
-        nickname: `사용자-${rid.slice(0, 4)}`,
-        badge: "0",
-      });
-    }
-    return list;
-  }, [myPeerId, remoteIds]);
-  const gridCols = panelOpen ? 2 : 3;
-
-  const gridSize = panelOpen ? 4 : 6;
-  const [gridPage, setGridPage] = useState(0);
-
-  const gridMaxPage = useMemo(
-    () => Math.max(0, Math.ceil(participants.length / gridSize) - 1),
-    [participants.length, gridSize]
-  );
-
-  useEffect(() => {
-    setGridPage((p) => Math.min(p, gridMaxPage));
-  }, [gridMaxPage]);
-
-  const gridSlice = useMemo(() => {
-    const start = gridPage * gridSize;
-    return participants.slice(start, start + gridSize);
-  }, [participants, gridPage, gridSize]);
-
-  /** 말풍선 */
-  const [editingBubbleId, setEditingBubbleId] = useState<string | null>(null);
-  const [bubbleDraft, setBubbleDraft] = useState("");
-  const [bubbleMap, setBubbleMap] = useState<Record<string, string>>({});
-
-  const startEditBubble = (id: string) => {
-    setEditingBubbleId(id);
-    setBubbleDraft(bubbleMap[id] ?? "");
-  };
-
-  const commitBubble = () => {
-    if (!editingBubbleId) return;
-    setBubbleMap((prev) => ({ ...prev, [editingBubbleId]: bubbleDraft }));
-    setEditingBubbleId(null);
-  };
-
-
-  const POMO_TOTAL = 60 * 60;
-  const [pomoRunning, setPomoRunning] = useState(false);
-  const [pomoRemainSec, setPomoRemainSec] = useState(POMO_TOTAL);
-  const timerRef = useRef<number | null>(null);
-
-  const togglePomo = () => setPomoRunning((v) => !v);
-  const resetPomo = () => {
-    setPomoRunning(false);
-    setPomoRemainSec(POMO_TOTAL);
-  };
-
-  useEffect(() => {
-    if (!pomoRunning) {
-      if (timerRef.current) window.clearInterval(timerRef.current);
-      timerRef.current = null;
-      return;
-    }
-    timerRef.current = window.setInterval(() => {
-      setPomoRemainSec((s) => Math.max(0, s - 1));
-    }, 1000);
-
-    return () => {
-      if (timerRef.current) window.clearInterval(timerRef.current);
-      timerRef.current = null;
-    };
-  }, [pomoRunning]);
-
-  useEffect(() => {
-    if (!pomoRunning) return;
-    if (pomoRemainSec > 0) return;
-    setPomoRunning(false);
-  }, [pomoRemainSec, pomoRunning]);
-
-  /** 공부/휴식 시간 */
-  const [mode, setMode] = useState<Mode>("REST");
-  const [studySec, setStudySec] = useState(0);
-  const [restSec, setRestSec] = useState(0);
-
-  useEffect(() => {
-    const t = window.setInterval(() => {
-      if (mode === "STUDY") setStudySec((v) => v + 1);
-      else setRestSec((v) => v + 1);
-    }, 1000);
-    return () => window.clearInterval(t);
-  }, [mode]);
-
-  /** Chat mock */
-  const [chatInput, setChatInput] = useState("");
-  const [chatMessages, setChatMessages] = useState<ChatMsg[]>([
-    { id: "m0", mine: false, nickname: "user-1234", text: "안녕!" },
-  ]);
-
-  const chatBodyRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    const el = chatBodyRef.current;
-    if (!el) return;
-    el.scrollTop = el.scrollHeight;
-  }, [chatMessages.length]);
-
-  const sendMockChat = () => {
-    const text = chatInput.trim();
-    if (!text) return;
-    setChatMessages((prev) => [
-      ...prev,
-      { id: `m-${Date.now()}`, mine: true, nickname: "나", text },
-    ]);
-    setChatInput("");
-  };
-
-  const leaveRoom = () => navigate("/studies");
+  if (error) return <div className="srError">{error}</div>;
+  if (!me) return <div className="srLoading">입장 중...</div>;
 
   return (
     <div className="srWrap">
-      {/* Top */}
+      {/* ===== 상단 ===== */}
       <div className="srTopBar">
-        <div className="srRoomSub">studyId: {numericStudyId ?? "-"}</div>
-        <button type="button" className="srLeaveBtn" onClick={leaveRoom}>
-          나가기
-        </button>
+        <span>Study #{studyId}</span>
+        <button onClick={() => navigate("/studies")}>나가기</button>
       </div>
 
-      {/* Content */}
-      <div className={`srContent ${panelOpen ? "panelOpen" : "panelClosed"}`}>
-        {/* Grid */}
-        <section className="srGridSection">
-          {participants.length > gridSize && (
-            <div className="srGridNav">
-              <button
-                type="button"
-                className="srArrow"
-                onClick={() => setGridPage((p) => Math.max(0, p - 1))}
-                disabled={gridPage <= 0}
-              >
-                ‹
-              </button>
+      {/* ===== 본문 ===== */}
+      <div className="srContent">
+        {/* ===== 참가자 ===== */}
+        <div className="srGrid">
+          {[me, ...participants].map((p) => {
+            const isMe = p.studyParticipantId === me.studyParticipantId;
+            const stream = isMe ? localStream : null; // WebRTC 매핑은 후속 단계
 
-              <div className="srGridHint">{`페이지 ${gridPage + 1} / ${gridMaxPage + 1}`}</div>
+            return (
+              <div key={p.studyParticipantId} className="srTile">
+                {stream ? (
+                  <video
+                    autoPlay
+                    playsInline
+                    muted={isMe}
+                    ref={(el) => el && (el.srcObject = stream)}
+                  />
+                ) : (
+                  <img src={avatarIcon} alt="avatar" />
+                )}
 
-              <button
-                type="button"
-                className="srArrow"
-                onClick={() => setGridPage((p) => Math.min(gridMaxPage, p + 1))}
-                disabled={gridPage >= gridMaxPage}
-              >
-                ›
-              </button>
-            </div>
-          )}
+                <div className="srName">{p.userNickname}</div>
 
-          <div className="srGrid" style={{ ["--cols" as any]: gridCols }}>
-            {gridSlice.map((p) => {
-              const isMe = p.id === (myPeerId || "me");
-              const stream = isMe ? localStream : remoteStreams[p.id] ?? null;
-              const cameraOn = isMe ? camOn : !!stream;
-              const bubbleText = bubbleMap[p.id] ?? "";
+                <button
+                  className="srBubble"
+                  onClick={() => {
+                    if (!isMe) return;
+                    const next = prompt(
+                      "지금 상태",
+                      bubbleMap[p.studyParticipantId] ?? ""
+                    );
+                    if (next == null) return;
 
-              return (
-                <div key={p.id} className="srTile">
-                  <div className="srVideo">
-                    {cameraOn ? (
-                      <Video stream={stream} muted={isMe} />
-                    ) : (
-                      <div className="srAvatar" aria-label="camera off">
-                        <img className="srAvatarImg" src={avatarIcon} alt="avatar" />
-                      </div>
-                    )}
+                    sendNowState({
+                      studyParticipantId: me.studyParticipantId,
+                      nowState: next,
+                    });
 
-                    <div className="srNamePill">
-                      <span className="srNameBadge">{p.badge ?? "0"}</span>
-                      <span className="srNameNick">{p.nickname}</span>
-                    </div>
-                  </div>
-
-                  <div className="srBubbleWrap">
-                    {editingBubbleId === p.id ? (
-                      <input
-                        className="srBubbleInput"
-                        value={bubbleDraft}
-                        onChange={(e) => setBubbleDraft(e.target.value)}
-                        onBlur={commitBubble}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") commitBubble();
-                          if (e.key === "Escape") setEditingBubbleId(null);
-                        }}
-                        autoFocus
-                        placeholder=""
-                      />
-                    ) : (
-                      <button
-                        type="button"
-                        className={`srBubble ${bubbleText ? "filled" : ""}`}
-                        onClick={() => startEditBubble(p.id)}
-                      >
-                        {bubbleText || " "}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Side panel */}
-        {panelOpen && (
-          <aside className="srSide">
-            {/* Pomodoro */}
-            <div className="srPomoCard">
-              <div className="srPomoHeader">
-                <div className="srPomoTitleRow">
-                  <div className="srPomoTitle"> </div>
-                  <div className="srPomoSub"> </div>
-                </div>
-
-                <div className="srPomoBtns">
-                  <button type="button" className="srMiniBtn" onClick={togglePomo}>
-                    {pomoRunning ? "일시정지" : "시작"}
-                  </button>
-                  <button type="button" className="srMiniBtn" onClick={resetPomo}>
-                    리셋
-                  </button>
-                </div>
-              </div>
-
-              <PomoRing remainSec={pomoRemainSec} totalSec={POMO_TOTAL} />
-            </div>
-
-            {/* Chat */}
-            <div className="srChatCard">
-              <div className="srChatTitle">채팅</div>
-
-              <div className="srChatBody" ref={chatBodyRef}>
-                {chatMessages.map((m) => (
-                  <div key={m.id} className={`srChatLine ${m.mine ? "mine" : "other"}`}>
-                    {!m.mine && <div className="srChatAvatar" />}
-                    <div className="srChatBubble">
-                      {!m.mine && <div className="srChatNick">{m.nickname}</div>}
-                      <div className="srChatText">{m.text}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="srChatInputRow">
-                <input
-                  className="srChatInput"
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") sendMockChat();
+                    setBubbleMap((prev) => ({
+                      ...prev,
+                      [me.studyParticipantId]: next,
+                    }));
                   }}
-                  placeholder="채팅을 입력하세요"
-                />
-                <button type="button" className="srChatSend" onClick={sendMockChat}>
-                  ↗
+                >
+                  {bubbleMap[p.studyParticipantId] ?? ""}
                 </button>
               </div>
-            </div>
-          </aside>
-        )}
-      </div>
+            );
+          })}
+        </div>
 
-      {/* panel toggle */}
-      <button
-        type="button"
-        className="srPanelToggle"
-        onClick={() => setPanelOpen((v) => !v)}
-        aria-label={panelOpen ? "패널 닫기" : "패널 열기"}
-      >
-        {panelOpen ? "›" : "‹"}
-      </button>
-
-      {/* Bottom Dock */}
-      <div className="srDock">
-        <div className="srDockInner">
-          <div className="srTimePill">
-            <img className="srPillIcon" src={moonIcon} alt="" />
-            <span className="srPillLabel">쉬는 시간</span>
-            <span className="srPillTime">{formatHMS(restSec)}</span>
+        {/* ===== 채팅 ===== */}
+        <div className="srChat">
+          <div className="srChatBody" ref={chatBodyRef}>
+            {chatMessages.map((m) => (
+              <div key={m.id} className={m.mine ? "mine" : "other"}>
+                <b>{m.nickname}</b>: {m.text}
+              </div>
+            ))}
           </div>
 
-          <div className="srTimePill">
-            <img className="srPillIcon" src={lampIcon} alt="" />
-            <span className="srPillLabel">공부 시간</span>
-            <span className="srPillTime">{formatHMS(studySec)}</span>
-          </div>
-
-          <div className="srDockCenter">
-            <button type="button" className="srCtlMain" onClick={() => setMode("STUDY")} aria-label="공부 시작">
-              ▶
-            </button>
-            <button type="button" className="srCtlMain" onClick={() => setMode("REST")} aria-label="휴식">
-              ❚❚
-            </button>
-          </div>
-
-          <div className="srDockRight">
-          <button
-            type="button"
-            className={`srCtlIcon ${camOn ? "isOn" : "isOff"}`}
-            onClick={() => setCamOn((v) => !v)}
-            aria-label="camera"
-            aria-pressed={!camOn}
-          >
-            <img src={camOn ? cameraIcon : cameraOffIcon} alt={camOn ? "camera on" : "camera off"} />
-          </button>
-
-          <button
-            type="button"
-            className={`srCtlIcon ${micOn ? "isOn" : "isOff"}`}
-            onClick={() => setMicOn((v) => !v)}
-            aria-label="mic"
-            aria-pressed={!micOn}
-          >
-            <img src={micOn ? micIcon : micOffIcon} alt={micOn ? "mic on" : "mic off"} />
-          </button>
+          <div className="srChatInput">
+            <input
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && onSendChat()}
+            />
+            <button onClick={onSendChat}>전송</button>
           </div>
         </div>
+      </div>
+
+      {/* ===== 하단 ===== */}
+      <div className="srDock">
+        <button onClick={() => setCamOn((v) => !v)}>
+          <img src={camOn ? cameraIcon : cameraOffIcon} />
+        </button>
+        <button onClick={() => setMicOn((v) => !v)}>
+          <img src={micOn ? micIcon : micOffIcon} />
+        </button>
       </div>
     </div>
   );

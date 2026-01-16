@@ -81,10 +81,20 @@ export function useWebRTCRoom(opts: UseWebRTCRoomOpts) {
   };
 
   // 1) 내 카메라/마이크 얻기
-  useEffect(() => {
-    let mounted = true;
+useEffect(() => {
+  let mounted = true;
+  if (
+    typeof window === "undefined" ||
+    !navigator ||
+    !navigator.mediaDevices ||
+    !navigator.mediaDevices.getUserMedia
+  ) {
+    console.warn("WebRTC not supported or insecure context");
+    return;
+  }
 
-    (async () => {
+  (async () => {
+    try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: enableVideo,
         audio: enableAudio,
@@ -100,15 +110,18 @@ export function useWebRTCRoom(opts: UseWebRTCRoomOpts) {
 
       localStreamRef.current = stream;
       setLocalStream(stream);
-    })().catch((e) => console.error("getUserMedia failed:", e));
+    } catch (e) {
+      console.error("getUserMedia failed:", e);
+    }
+  })();
 
-    return () => {
-      mounted = false;
-      localStreamRef.current?.getTracks().forEach((t) => t.stop());
-      localStreamRef.current = null;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  return () => {
+    mounted = false;
+    localStreamRef.current?.getTracks().forEach((t) => t.stop());
+    localStreamRef.current = null;
+  };
+}, []);
+
 
   useEffect(() => {
     const ls = localStreamRef.current;
@@ -181,7 +194,6 @@ export function useWebRTCRoom(opts: UseWebRTCRoomOpts) {
       peersRef.current.clear();
       setRemoteStreams({});
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [localStream, roomId, signalingUrl]);
 
   return {
