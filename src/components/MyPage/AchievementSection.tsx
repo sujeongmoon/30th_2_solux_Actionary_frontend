@@ -15,11 +15,11 @@ interface Points {
 }
 
 interface Badge {
-    badgeId: number;
-    badgeName: string;
-    requiredPoint: number;
-    badgeImageUrl: string;
+    id: number;
     memberId?: number;
+    name: string;
+    requiredPoint: number;
+    imageUrl: string;
 }
 
 
@@ -59,7 +59,7 @@ const AchievementSection: React.FC = () => {
         console.log("6. 배지 응답:", badgeRes.data);
 
         setPoints(pointsRes.data.data.points);
-        setBadge(badgeRes.data.result);
+        setBadge(badgeRes.data.data);
       } catch (err) {
         console.error('!!! 에러 발생:', err);
       } finally {
@@ -85,11 +85,11 @@ const AchievementSection: React.FC = () => {
             <div className='owner-stats-box'>
                 {/* 왼쪽 배지 카드 */}
                 <div className='owner-badge-card'>
-                    {badge && badge.badgeImageUrl && (
-                        <img src={badge.badgeImageUrl} alt={badge.badgeName} className='owner-badge-image'/>
+                    {badge && badge.imageUrl && (
+                        <img src={badge.imageUrl} alt={badge.name} className='owner-badge-image'/>
                     )}
                     <span className='owner-badge-text'>
-                        {badge ? `${badge.badgeName} 달성` : ''}
+                        {badge ? `${badge.name} 달성` : ''}
                     </span>
                 </div>
 
