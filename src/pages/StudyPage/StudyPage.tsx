@@ -6,6 +6,8 @@ import StudyViewModal from "../StudyDetailPage/StudyViewModal";
 import { useAuth } from "../../context/AuthContext";
 import StudyGuestView from "./StudyGuestView";
 import StudyLoggedInView from "./StudyLoggedInView";
+import { getStudies, getMyStudies } from "../../api/studies";
+
 
 // ===== 타입/옵션 =====
 type VisibilityParam = "public" | "private";
@@ -33,7 +35,7 @@ const CATEGORY_OPTIONS: { label: string; value?: CategoryEnum }[] = [
 // “나만의 스터디” 상단 필터 (아래 필터랑 완전 별개)
 type MyFilter = "ALL" | "CREATED" | "JOINED" | "FAVORITE";
 
-export type StudyListItem = {
+type StudyListItem = {
   studyId: number;
   studyName: string;
   coverImage?: string | null;
@@ -41,9 +43,6 @@ export type StudyListItem = {
 
   // 아래 필터용(카테고리)
   category?: CategoryEnum;
-
-  // 위 “나만의 스터디” 필터용
-  myType?: MyFilter;
 };
 
 function buildPageNumbers(current: number, totalPages: number, maxButtons = 5) {
@@ -56,26 +55,45 @@ function buildPageNumbers(current: number, totalPages: number, maxButtons = 5) {
   return pages;
 }
 
-const USE_MOCK = true;
+function mapStudyItem(raw: any): StudyListItem {
+  return {
+    studyId: Number(raw?.studyId ?? raw?.id ?? 0),
+    studyName: String(raw?.studyName ?? raw?.name ?? ""),
+    coverImage: (raw?.coverImage ?? raw?.image ?? null) as string | null,
+    isPublic: Boolean(raw?.isPublic ?? raw?.public ?? raw?.visibility === "PUBLIC"),
 
-const MOCK_ITEMS: StudyListItem[] = [
-  { studyId: 1, studyName: "같이 공부해요", coverImage: "https://picsum.photos/seed1/600/600", isPublic: true, category: "OTHER" },
-  { studyId: 2, studyName: "공무원 한국사", coverImage: "https://picsum.photos/seed/study2/600/600", isPublic: true, category: "CIVIL_SERVICE" },
-  { studyId: 3, studyName: "토익 900+", coverImage: "https://picsum.photos/seed/study3/600/600", isPublic: true, category: "LANGUAGE" },
-  { studyId: 4, studyName: "자격증 스터디", coverImage: null, isPublic: true, category: "LICENSE" },
-  { studyId: 5, studyName: "임용 오전반", coverImage: "https://picsum.photos/seed/study5/600/600", isPublic: false, category: "TEACHER_EXAM" },
-  { studyId: 6, studyName: "취업 코테", coverImage: "https://picsum.photos/seed/study6/600/600", isPublic: false, category: "EMPLOYMENT" },
-  { studyId: 7, studyName: "수능 국어", coverImage: null, isPublic: false, category: "CSAT" },
-  { studyId: 8, studyName: "기타 모임", coverImage: "https://picsum.photos/seed/study8/600/600", isPublic: false, category: "OTHER" },
-];
+    category: (raw?.category ?? raw?.categoryEnum ?? undefined) as CategoryEnum | undefined,
+  };
+}
 
-//  위 “나만의 스터디” 목업 -> 나만의 스터디 공란 원할 시 해당 목업 전체 삭제 후 테스트
-const MOCK_MY_STUDIES: StudyListItem[] = [
-  { studyId: 101, studyName: "내 스터디 A", coverImage: null, isPublic: true, myType: "CREATED" },
-  { studyId: 102, studyName: "내 스터디 B", coverImage: null, isPublic: true, myType: "JOINED" },
-  { studyId: 103, studyName: "내 스터디 C", coverImage: null, isPublic: true, myType: "FAVORITE" },
-  { studyId: 104, studyName: "내 스터디 D", coverImage: null, isPublic: true, myType: "CREATED" },
-];
+function extractPaged(raw: any) {
+  const itemsRaw =
+    raw?.items ??
+    raw?.content ??
+    raw?.studies ??
+    raw?.list ??
+    raw?.data ??
+    [];
+
+  const items = Array.isArray(itemsRaw) ? itemsRaw.map(mapStudyItem) : [];
+
+  const totalElements =
+    Number(raw?.totalElements ?? raw?.totalCount ?? raw?.total ?? items.length) || 0;
+
+  const totalPages =
+    Number(raw?.totalPages ?? raw?.pageCount ?? Math.max(1, Math.ceil(totalElements / (raw?.size ?? 8)))) ||
+    1;
+
+  const size = Number(raw?.size ?? raw?.pageSize ?? 8) || 8;
+
+  return { items, totalElements, totalPages, size };
+}
+
+function extractMyList(raw: any): StudyListItem[] {
+  const itemsRaw = raw?.items ?? raw?.content ?? raw?.studies ?? raw?.list ?? raw?.data ?? [];
+  return Array.isArray(itemsRaw) ? itemsRaw.map(mapStudyItem) : [];
+}
+
 
 export default function StudyPage() {
   const navigate = useNavigate();
@@ -97,6 +115,7 @@ export default function StudyPage() {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [size, setSize] = useState<number>(8);
 
+  const [myStudies, setMyStudies] = useState<StudyListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -118,32 +137,38 @@ export default function StudyPage() {
     setLoading(true);
     setErrorMsg(null);
 
-    if (USE_MOCK) {
-      // 1) 공개/비공개
-      let filtered = MOCK_ITEMS.filter((item) => (visibility === "public" ? item.isPublic : !item.isPublic));
 
-      // 2) 카테고리(전체면 패스)
-      if (category) {
-        filtered = filtered.filter((item) => item.category === category);
-      }
 
-      const fakeSize = 8;
-      const fakeTotalElements = filtered.length;
-      const fakeTotalPages = Math.max(1, Math.ceil(fakeTotalElements / fakeSize));
-      const start = (page - 1) * fakeSize;
+    (async () => {
+      try {
+        const data = await getStudies({
+          visibility,
+          category,
+          page,
+          size: 8, 
+        });
+
+        const { items, totalElements, totalPages, size } = extractPaged(data);
 
       if (!mounted) return;
-
-      setItems(filtered.slice(start, start + fakeSize));
-      setTotalElements(fakeTotalElements);
-      setTotalPages(fakeTotalPages);
-      setSize(fakeSize);
-      setLoading(false);
-      return;
+      setItems(items);
+      setTotalElements(totalElements);
+      setTotalPages(totalPages);
+      setSize(size);
+    } catch (e: any) {
+      if (!mounted) return;
+      const status = e?.response?.status;
+      if (status === 401) setErrorMsg("로그인이 필요해요.");
+      else setErrorMsg(e?.response?.data?.message ?? "스터디 목록을 불러오지 못했어요.");
+      setItems([]);
+      setTotalElements(0);
+      setTotalPages(1);
+      setSize(8);
+    } finally {
+      if (mounted) setLoading(false);
     }
+  })();
 
-    // TODO: API 연동 시 getStudies 호출
-    setLoading(false);
 
     return () => {
       mounted = false;
@@ -154,11 +179,39 @@ export default function StudyPage() {
     if (page > totalPages) setPage(totalPages);
   }, [totalPages, page]);
 
-  const filteredMyStudies = useMemo(() => {
-    const base = MOCK_MY_STUDIES;
-    if (myFilter === "ALL") return base;
-    return base.filter((s) => s.myType === myFilter);
-  }, [myFilter]);
+  useEffect(() => {
+    let mounted = true;
+
+    if (!isLoggedIn) {
+      setMyStudies([]);
+      return;
+    }
+
+
+    (async () => {
+      try {
+        const data = await getMyStudies({
+          scope: myFilter, 
+          page: 1,
+          size: 50, 
+        });
+
+        const list = extractMyList(data);
+        if (!mounted) return;
+        setMyStudies(list);
+      } catch (e: any) {
+        if (!mounted) return;
+        setMyStudies([]);
+      }
+    })();
+
+
+    return () => {
+      mounted = false;
+    };
+  }, [isLoggedIn, myFilter]);
+
+
 
   // 공통 props
   const commonProps = {
@@ -185,7 +238,7 @@ export default function StudyPage() {
     onOpenStudy: (id: number) => setSelectedStudyId(id),
 
     // 위 “나만의 스터디”
-    myStudies: filteredMyStudies,
+    myStudies,
     myFilter,
     setMyFilter,
   };
