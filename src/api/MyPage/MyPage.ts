@@ -30,7 +30,7 @@ export const getStudyTime = async (
   period: TabKey,
   date: string
 ) => {
-  const res = await api.get<GetStudyTimeResponse>('/study-times', {
+  const res = await api.get<GetStudyTimeResponse>('/studytimes', {
     params: {
       period,
       date,
