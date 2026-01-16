@@ -43,7 +43,7 @@ const BookmarkSection = () => {
   // 북마크 추가
   const handleAddBookmark = async (name: string, link: string) => {
     try {
-      const res = await api.post('/bookmarks', { bookmarkName: name, bookmarkLink: link});
+      const res = await api.post('/bookmarks', { bookmarkName: name, link: link});
       if (res.data.success) {
         setBookmarks((prev) => [
           ...prev,
