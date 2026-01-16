@@ -24,41 +24,40 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    
+    // 로그 1: 에러가 발생하면 무조건 상태 코드를 찍어봅니다.
+    console.log("에러 발생! 상태코드:", error.response?.status);
 
-    //accessToken 만료 (401) + 재시도 안 한 요청
-    if (
-      error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes("/auth/refresh")) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      console.log(" 401 감지! 재발급 로직 진입");
       originalRequest._retry = true;
 
       try {
-        //const refreshToken = localStorage.getItem("refreshToken");
-        /*(삭제?)
-        if (!refreshToken) {
-          throw new Error("refresh token 없음");
-        }
-        */
+        console.log("refresh API 호출 시도...");
         const refreshResponse = await axios.post(
           `${api.defaults.baseURL}/auth/refresh`,
           {},
-          { withCredentials: true}
+          { withCredentials: true }
         );
+        
+        console.log("refresh 성공 응답:", refreshResponse.data);
         const newAccessToken = refreshResponse.data.data.accessToken;
 
         localStorage.setItem("accessToken", newAccessToken);
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 
         return api(originalRequest);
-      } catch (refreshError) {
-        console.error("세션 만료: 로그아웃 처리합니다.");
-        // refresh 실패 시 완전 로그아웃
-        localStorage.removeItem("accessToken");
-        // (삭제?)localStorage.removeItem("refreshToken");
+      } catch (refreshError: any) {
+        //  로그 2: 재발급 실패 이유 확인
+        console.error("refresh 실패 이유:", refreshError.response?.data || refreshError.message);
+        
         authLogout();
+        // localStorage.clear(); // 필요시 추가
         window.location.href = "/login";
         return Promise.reject(refreshError);
       }
     }
-      return Promise.reject(error);
+    return Promise.reject(error);
     
   }
 );
