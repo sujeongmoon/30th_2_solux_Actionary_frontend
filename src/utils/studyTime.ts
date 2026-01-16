@@ -1,13 +1,7 @@
-import Lv1 from '../assets/StudyTime/under2.svg';
-import Lv2 from '../assets/StudyTime/under4.svg';
-import Lv3 from '../assets/StudyTime/under6.svg';
-import Lv4 from '../assets/StudyTime/under8.svg';
-import Lv5 from '../assets/StudyTime/over8.svg';
-
 export const getStudyTimeSvg = (durationSeconds: number) => {
-    if (durationSeconds < 2 * 3600) return Lv1;
-    if (durationSeconds < 4 * 3600) return Lv2;
-    if (durationSeconds < 6 * 3600) return Lv3;
-    if (durationSeconds < 8 * 3600) return Lv4;
-    return Lv5;
+    if (durationSeconds < 2 * 3600) return "https://actionary-s3-bucket-v2.s3.ap-northeast-2.amazonaws.com/static/study_time_calendar/under2.png";
+    if (durationSeconds < 4 * 3600) return "https://actionary-s3-bucket-v2.s3.ap-northeast-2.amazonaws.com/static/study_time_calendar/under4.png";
+    if (durationSeconds < 6 * 3600) return "https://actionary-s3-bucket-v2.s3.ap-northeast-2.amazonaws.com/static/study_time_calendar/under6.png";
+    if (durationSeconds < 8 * 3600) return "https://actionary-s3-bucket-v2.s3.ap-northeast-2.amazonaws.com/static/study_time_calendar/under8.png";
+    return "https://actionary-s3-bucket-v2.s3.ap-northeast-2.amazonaws.com/static/study_time_calendar/over8.png";
 };

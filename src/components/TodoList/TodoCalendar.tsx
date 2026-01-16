@@ -3,12 +3,6 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import './TodoCalendar.css';
 
-import icona from "../../assets/TodoList/icona.svg";
-import iconb from "../../assets/TodoList/iconb.svg";
-import iconc from "../../assets/TodoList/iconc.svg";
-import icond from "../../assets/TodoList/icond.svg";
-import icone from "../../assets/TodoList/icone.svg";
-
 interface Todo {
   date: string;
   status: string;
@@ -132,11 +126,11 @@ const TodoCalendar: React.FC<TodoCalendarProps> = ({
           const totalCount = dayTodos.length;
           const ratio = totalCount > 0 ? doneCount / totalCount : 0;
 
-          let icon = icona;
-          if (ratio >= 0.9) icon = icone;
-          else if (ratio >= 0.6) icon = icond;
-          else if (ratio >= 0.4) icon = iconc;
-          else if (ratio >= 0.2) icon = iconb;
+          let icon = "https://actionary-s3-bucket-v2.s3.ap-northeast-2.amazonaws.com/static/study_time_calendar/under2.png";
+          if (ratio >= 0.9) icon = "https://actionary-s3-bucket-v2.s3.ap-northeast-2.amazonaws.com/static/study_time_calendar/over8.png";
+          else if (ratio >= 0.6) icon = "https://actionary-s3-bucket-v2.s3.ap-northeast-2.amazonaws.com/static/study_time_calendar/over6.png";
+          else if (ratio >= 0.4) icon = "https://actionary-s3-bucket-v2.s3.ap-northeast-2.amazonaws.com/static/study_time_calendar/over4.png";
+          else if (ratio >= 0.2) icon = "https://actionary-s3-bucket-v2.s3.ap-northeast-2.amazonaws.com/static/study_time_calendar/over2.png";
 
           return (
             <div className="todo-calendar-completion-icon">
