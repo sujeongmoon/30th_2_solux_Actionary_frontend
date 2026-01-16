@@ -1,4 +1,5 @@
 import axios from "axios";
+import { authLogout } from "../context/AuthContext";
 
 export const api = axios.create({
   baseURL: "/api",
@@ -28,31 +29,31 @@ api.interceptors.response.use(
 
     //accessToken 만료 (401) + 재시도 안 한 요청
     if (
-      error.response?.status === 401 && !originalRequest._retry) {
+      error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes("/auth/refresh")) {
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem("refreshToken");
-        
+        //const refreshToken = localStorage.getItem("refreshToken");
+        /*(삭제?)
         if (!refreshToken) {
           throw new Error("refresh token 없음");
         }
+        */
 
-        const refreshResponse = await api.post("/auth/refresh", {
-          refresh: refreshToken,
-        });
-
+        const refreshResponse = await api.post("/auth/refresh");
         const newAccessToken = refreshResponse.data.data.accessToken;
 
         localStorage.setItem("accessToken", newAccessToken);
-
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+
         return api(originalRequest);
       } catch (refreshError) {
         // refresh 실패 시 완전 로그아웃
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
+        // (삭제?)(localStorage.removeItem("accessToken");
+        // (삭제?)localStorage.removeItem("refreshToken");
+        authLogout();
         window.location.href = "/login";
+        return Promise.reject(refreshError);
       }
     }
       return Promise.reject(error);
