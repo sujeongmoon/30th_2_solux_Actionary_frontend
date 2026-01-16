@@ -27,20 +27,6 @@ const MyPageOwner: React.FC = () => {
   ];
 
   const [activeTab, setActiveTab] = useState<'DAY' | 'WEEK' | 'MONTH' | 'YEAR'>('DAY');
-
-  const [myMemberId, setMyMemberId] = useState<number | null>(null);
-
-  useEffect(() => {
-    const fetchMyInfo = async () => {
-      try {
-        const res = await api.get('/members/me/info');
-        setMyMemberId(res.data.data.memberId); // 서버에서 memberId 받아오기
-      } catch (err) {
-        console.error('본인 정보 조회 실패', err);
-      }
-    };
-    fetchMyInfo();
-  }, []);
   
   const fetchStudyData = React.useCallback(async (tab: TabKey, date: string) => {
   try {
@@ -133,11 +119,7 @@ const handleStatusChange = async (
       <div className='owner-container'>
         <ProfileSection />
         <div className='owner-profile-divider'></div>
-        {myMemberId ? (
-          <AchievementSection memberId={myMemberId} />
-        ) : (
-          <div>업적 로딩중...</div>
-        )}
+        <AchievementSection />
 
 
       </div>

@@ -76,7 +76,7 @@ const ProfileSection: React.FC = () => {
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
     const formData = new FormData();
-    formData.append('profileImageUrl', file); 
+    formData.append('profileImage', file); 
 
     try {
       const res = await api.patch("/members/me/profile", formData);

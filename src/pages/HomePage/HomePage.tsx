@@ -8,7 +8,6 @@ import BookmarkSection from "../../components/Bookmark/BookmarkSection";
 import { getPopularStudies } from "../../api/HomePage/getPopularStudies";
 import type {StudyPopularListItem} from '../../types/HomePageTypes';
 import { useNavigate } from "react-router-dom";
-import study_noimg from '../../assets/homepage/study_noimg.svg';
 import CTAbox from '../../components/HomePage/CTAbox';
 import { api } from '../../api/client';
 import MyStudyCarousel from "../StudyPage/MyStudyCarousel";
@@ -23,6 +22,7 @@ const HomePage: React.FC = () => {
   const isLoggedIn = Boolean(localStorage.getItem('accessToken'));
   const [myStudies, setMyStudies] = useState<StudyListItem[]>([]);
   const [nickname, setNickname] = useState<string | undefined>();
+  const [myMemberId, setMyMemberId] = useState<number | null>(null);
   const [myFilter, setMyFilter] = useState<string>("ALL");
   const [selectedStudyId, setSelectedStudyId] = useState<number | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -61,6 +61,7 @@ const handleStudyClick = (studyId: number) => {
       try {
         const response = await api.get('/members/me/info');
         if (response.data.success) {
+          setMyMemberId(response.data.data.memberId);
           setNickname(response.data.data.nickname);
         }
       } catch (error) {
