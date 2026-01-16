@@ -150,7 +150,7 @@ const handleStatusChange = async (
         <div className='owner-card-todo'>
           <div className='owner-study-header'>
             <span className='owner-todo-title'>오늘의 TO DO LIST</span>
-            <button className='owner-more-btn'>더보기</button>
+            <button onClick={() => navigate("/todolistpage")} className='owner-more-btn'>더보기</button>
           </div>
 
             

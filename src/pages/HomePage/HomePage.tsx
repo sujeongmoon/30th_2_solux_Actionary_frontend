@@ -241,7 +241,7 @@ useEffect(() => {
               <div key={item.studyId} className={`study-card ${bgClass}`} onClick={() => handleStudyClick(item.studyId)}
                 style={{ cursor: 'pointer'}}>
                 <img
-                  src = {item.coverImage || study_noimg}
+                  src = {item.coverImage || "https://actionary-s3-bucket-v2.s3.ap-northeast-2.amazonaws.com/static/default-study-image/default.png"}
                   alt = {item.studyName}
                   className="study-card-img"
                 />
