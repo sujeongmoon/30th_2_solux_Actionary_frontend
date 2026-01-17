@@ -32,6 +32,8 @@ const BoardEditPage = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
   const [originalPost, setOriginalPost] = useState<Post | null>(null);
+  const [loading, setLoading] = useState(true);
+
 
   // ----- Tiptap 에디터 -----
   const editor = useEditor({
@@ -50,23 +52,31 @@ const BoardEditPage = () => {
 
     const fetchPost = async () => {
       try {
+        setLoading(true)
         const res = await api.get(`/posts/${postId}`);
-        const post: Post = res.data;
+        const postResponse = res.data.data.post;
+        const imageUrls = res.data.data.postImageUrls;
 
-        setTitle(post.title);
-        setSelectedCategory(post.type);
-        setOriginalPost(post);
+        setTitle(postResponse.title);
+        setSelectedCategory(postResponse.type);
+        setOriginalPost({
+          postId: postResponse.postId,
+          title: postResponse.title,
+          type: postResponse.type,
+          text: postResponse.textContent,
+          imageUrls: imageUrls ?? [],
+        });
 
         const content: JSONContent[] = [];
 
-        if (post.text) {
+        if (postResponse.textContent) {
           content.push({
             type: 'paragraph',
-            content: [{ type: 'text', text: post.text }],
+            content: [{ type: 'text', text: postResponse.textContent }],
           });
         }
 
-        post.imageUrls?.forEach((url) => {
+        (imageUrls ?? []).forEach((url) => {
           content.push({ type: 'image', attrs: { src: url } });
         });
 
@@ -75,11 +85,16 @@ const BoardEditPage = () => {
         console.error('게시글 불러오기 실패', err);
         alert('게시글 정보를 불러오지 못했습니다.');
         navigate('/board');
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchPost();
   }, [postId, editor, navigate]);
+  if (loading) return <div className="loading">로딩중...</div>;
+  if (!originalPost) return <div className="error">게시글 정보를 불러올 수 없습니다.</div>;
+
 
   // ----- 이미지 업로드 -----
   const handlePhotoClick = () => fileInputRef.current?.click();
@@ -107,76 +122,58 @@ const BoardEditPage = () => {
     if (e.target.value.length <= 30) setTitle(e.target.value);
   };
 
-  // ----- 수정 제출 -----
   const handleSubmit = async () => {
-    if (!editor || !postId || !originalPost) return;
-    if (!title.trim()) {
-      alert('제목을 입력해주세요');
+  if (!editor || !postId || !originalPost) return;
+  if (!title.trim()) {
+    alert('제목을 입력해주세요');
+    return;
+  }
+
+  try {
+    // TipTap에서 base64가 아닌 URL만 추출
+    const editorJSON = editor.getJSON();
+    const imageUrls: string[] = [];
+    editorJSON.content?.forEach((node: any) => {
+      if (node.type === 'image' && !node.attrs.src.startsWith('data:')) {
+        imageUrls.push(node.attrs.src);
+      }
+    });
+
+    // 변경된 필드만 보내기
+    const postData: {
+      title?: string;
+      type?: string;
+      text?: string;
+      imageUrls?: string[];
+    } = {};
+
+    if (title !== originalPost.title) postData.title = title;
+    if (selectedCategory !== originalPost.type) postData.type = selectedCategory;
+    const textContent = editor.getText().trim();
+    if (textContent !== originalPost.text) postData.text = textContent;
+
+    // 이미지 URL은 항상 전체 배열
+    postData.imageUrls = imageUrls;
+
+    // 변경 사항 없으면 alert
+    if (Object.keys(postData).length === 1 && postData.imageUrls.length === originalPost.imageUrls.length &&
+        postData.imageUrls.every((url, idx) => url === originalPost.imageUrls[idx])) {
+      alert('변경된 내용이 없습니다.');
       return;
     }
 
-    try {
-      const formData = new FormData();
-      
-      // 새 이미지 파일 추가
-      newImageFiles.forEach((file) => formData.append('images', file));
-      
-      // 기존 이미지 URL 추출 (Base64 제외)
-      const editorJSON = editor.getJSON();
-      const remainingImageUrls: string[] = [];
-      editorJSON.content?.forEach((node: any) => {
-        if (node.type === 'image' && !node.attrs.src.startsWith('data:')) {
-          remainingImageUrls.push(node.attrs.src);
-        }
-      });
+    await api.patch(`/posts/${postId}`, postData); // JSON 그대로 전송
 
-      // 변경된 필드만 추출
-      const postData: {
-        title?: string;
-        type?: string;
-        text?: string;
-        imageUrls?: string[];
-      } = {};
+    alert('게시글이 수정되었습니다.');
+    navigate(`/board/${postId}`);
+  } catch (err) {
+    console.error('게시글 수정 실패:', err);
+    alert('게시글 수정에 실패했습니다.');
+  }
+};
 
-      if (title !== originalPost.title) {
-        postData.title = title;
-      }
-      
-      if (selectedCategory !== originalPost.type) {
-        postData.type = selectedCategory;
-      }
-      
-      const textContent = editor.getText().trim();
-      if (textContent !== originalPost.text) {
-        postData.text = textContent;
-      }
-      
-      // 이미지 변경 확인: 새 이미지 추가 OR 기존 이미지 변경
-      const imageUrlsChanged = 
-        newImageFiles.length > 0 || 
-        JSON.stringify(remainingImageUrls.sort()) !== JSON.stringify([...originalPost.imageUrls].sort());
-      
-      if (imageUrlsChanged) {
-        postData.imageUrls = remainingImageUrls;
-      }
 
-      // 변경사항 확인
-      if (Object.keys(postData).length === 0 && newImageFiles.length === 0) {
-        alert('변경된 내용이 없습니다.');
-        return;
-      }
 
-      formData.append('post', JSON.stringify(postData));
-
-      await api.patch(`/posts/${postId}`, formData);
-      
-      alert('게시글이 수정되었습니다.');
-      navigate(`/board/${postId}`);
-    } catch (err) {
-      console.error('게시글 수정 실패:', err);
-      alert('게시글 수정에 실패했습니다.');
-    }
-  };
 
   // ----- 렌더 -----
   return (
@@ -195,10 +192,10 @@ const BoardEditPage = () => {
               />
             </button>
             {isDropdownOpen && (
-              <ul className="category-dropdown">
+              <ul className="board-category-dropdown">
                 {categories.map((cat, idx) => (
                   <li key={cat}>
-                    <button className="dropdown-item" onClick={() => handleCategorySelect(cat)}>
+                    <button className="board-dropdown-item" onClick={() => handleCategorySelect(cat)}>
                       {cat}
                     </button>
                     {idx !== categories.length - 1 && <div className="dropdown-divider" />}
@@ -218,7 +215,7 @@ const BoardEditPage = () => {
             value={title}
             onChange={handleTitleChange}
           />
-          <span className="char-count">( {title.length}/30 )</span>
+          <span className="char-count">( {title?.length ?? 0}/30 )</span>
         </div>
 
         {/* Tiptap 에디터 */}
