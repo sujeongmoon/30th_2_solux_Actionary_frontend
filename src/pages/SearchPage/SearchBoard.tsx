@@ -89,7 +89,7 @@ const SearchBoard: React.FC = () => {
   return (
     <div className="board-container">
       <nav className="sub-navigation">
-        <a href="/board" className="nav-link-home-link">게시판</a>
+        <a href="/post" className="nav-link-home-link">게시판</a>
         <span className="nav-divider">|</span>
         <a href="/" className="nav-link">홈</a>
         <span className="nav-divider">|</span>
@@ -172,6 +172,16 @@ const SearchBoard: React.FC = () => {
                         <div className="dropdown-item-board" onClick={() => handleCategoryChange('질문')}>
                           질문
                         </div>
+                        <div className="dropdown-divider" />
+                        <div className="dropdown-item-board" onClick={() => handleCategoryChange('질문')}>
+                          구인
+                        </div>
+                        <div className="dropdown-divider" />
+                        <div className="dropdown-item-board" onClick={() => handleCategoryChange('질문')}>
+                          정보
+                        </div>
+
+
                       </div>
                     )}
                   </div>
@@ -185,7 +195,7 @@ const SearchBoard: React.FC = () => {
 
             <tbody>
               {displayPosts.map((item) => (
-                <tr key={item.postId} onClick={() => navigate(`/board/${item.postId}`)} style={{ cursor: 'pointer' }}>
+                <tr key={item.postId} onClick={() => navigate(`/post/${item.postId}`)} style={{ cursor: 'pointer' }}>
                   <td>
                     <div className="badge">
                       <span>{item.type}</span>

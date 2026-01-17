@@ -23,7 +23,7 @@ const BoardCreatePage = () => {
   const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const categories = ['소통', '인증', '질문'];
+  const categories = ['소통', '인증', '질문', '구인', '정보'];
 
   // ------------------ Tiptap 에디터 ------------------
   const editor = useEditor({
@@ -113,7 +113,7 @@ const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) =>
       setUploadedImageUrls([]);
       setSelectedCategory('소통');
 
-      navigate('/board');
+      navigate('/post');
     }
   } catch (err) {
     console.error(err);

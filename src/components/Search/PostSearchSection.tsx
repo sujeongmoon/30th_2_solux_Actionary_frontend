@@ -80,6 +80,16 @@ const PostSearchSection: React.FC<Props> = ({ posts= [] }) => {
                         <div className="pss-dropdown-item-board" onClick={() => handleCategoryChange('질문')}>
                           질문
                         </div>
+                        <div className="pss-dropdown-divider" />
+                        <div className="pss-dropdown-item-board" onClick={() => handleCategoryChange('구인')}>
+                          구인
+                        </div>
+                        <div className="pss-dropdown-divider" />
+                        <div className="pss-dropdown-item-board" onClick={() => handleCategoryChange('구인')}>
+                          정보
+                        </div>
+
+인
                       </div>
                     )}
                   </div>
@@ -95,7 +105,7 @@ const PostSearchSection: React.FC<Props> = ({ posts= [] }) => {
               {filteredPosts.map(item => (
                 <tr
                   key={item.postId}
-                  onClick={() => navigate(`/board/${item.postId}`)}
+                  onClick={() => navigate(`/post/${item.postId}`)}
                   style={{ cursor: 'pointer' }}
                 >
                   <td>
@@ -117,7 +127,7 @@ const PostSearchSection: React.FC<Props> = ({ posts= [] }) => {
         <div className="pss-bottom-section">
           <button
             className="pss-btn-load-more"
-            onClick={() => navigate('/board')}
+            onClick={() => navigate('/post')}
           >
             더보기 &gt;
           </button>

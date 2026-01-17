@@ -43,7 +43,7 @@ const AllSearch: React.FC = () => {
   return (
     <>
     <nav className="sub-navigation">
-      <a href="/board" className="nav-link-home-link">스터디</a>
+      <a href="/post" className="nav-link-home-link">스터디</a>
       <span className="nav-divider">|</span>
       <a href="/" className="nav-link">홈</a>
       <span className="nav-divider">|</span>
