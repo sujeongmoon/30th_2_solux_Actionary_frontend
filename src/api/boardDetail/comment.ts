@@ -35,7 +35,7 @@ export const updateComment = async (
     token: string
 ) => {
     try {
-        const res = await api.patch(`/posts/${postId}/comments/${commentId}`,
+        const res = await api.patch(`/posts/comments/${commentId}`,
             data,
             {
                 headers: {
@@ -53,6 +53,6 @@ export const updateComment = async (
 };
 
 export const deleteComment = async (commentId: number, postId: number) => {
-    const res = await api.delete(`/posts/${postId}/comments/${commentId}`);
+    const res = await api.delete(`/posts/comments/${commentId}`);
     return res.data;
 }
