@@ -5,19 +5,20 @@ import Searchbar from "./Searchbar";
 import LoginAlertModal from "../AlertModal/LoginAlertModal";
 import Nlogo from '../../assets/Navbar/Nlogo.svg';
 import ProfilePerson from "../../assets/Navbar/ProfilePerson.svg";
+import { useAuth } from "../../context/AuthContext";
 
 const Navbar = () => {
   const navigate = useNavigate();
-
-  const isLoggedIn = Boolean(localStorage.getItem("accessToken"));
+  const { isLoggedIn, logout } = useAuth();
   const profileImageUrl: string | null = null;
 
   const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
+    /* localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
-    localStorage.removeItem("profileImageUrl");
+    localStorage.removeItem("profileImageUrl");*/
+    logout();
     navigate("/");
   };
 

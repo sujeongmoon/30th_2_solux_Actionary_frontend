@@ -13,14 +13,18 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem("accessToken"));
-  const isLoggedIn = !!token;
+  const isLoggedIn = useMemo(() => !!token, [token]);
 
   useEffect(() => {
-    if (token) localStorage.setItem("accessToken", token);
-    else localStorage.removeItem("accessToken");
+    if (token) {
+      localStorage.setItem("accessToken", token);
+    } else localStorage.removeItem("accessToken");
   }, [token]);
 
-  const logout = () => setToken(null);
+  const logout = () => {
+    setToken(null);
+    localStorage.removeItem("accessToken");
+  };
 
   useEffect(() => {
     externalLogout = logout;
