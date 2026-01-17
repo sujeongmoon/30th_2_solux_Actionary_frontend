@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import type { PostDetailData, Comment } from '../../types/Board';
 import './BoardDetailPage.css';
-import { BADGE_MAP } from '../../utils/badgeMap';
+import { badgeMap } from '../../utils/badgeMap';
 import lock from '../../assets/Board/lock.svg';
 import unlock from '../../assets/Board/unlock.svg';
 import send from '../../assets/homepage/Gradient_Arrow.svg';
@@ -10,7 +10,7 @@ import { getPostDetail, deletePost } from '../../api/boardDetail/postApi';
 import { getComments, createComment, deleteComment, updateComment } from '../../api/boardDetail/comment';
 import { useNavigate } from 'react-router-dom'
 import LoginAlertModal from '../../components/AlertModal/LoginAlertModal';
-import { getMyInfo } from '../../api/sidebar';
+import { getMyInfo } from '../../api/boardDetail/postApi';
 
 /* ============================================= */
 
@@ -115,7 +115,7 @@ const handleCommentSubmit = async () => {
       await deleteComment(postId,commentId);
 
       setComments((prev) => 
-        prev.filter((comment) => comment.comment_id !== commentId)
+        prev.filter((comment) => comment.commentId !== commentId)
     );
     } catch(error) {
       console.error(error);
@@ -144,7 +144,7 @@ const handleCommentSubmit = async () => {
     // 서버 반영 후 상태 갱신
     setComments(prev =>
       prev.map(c =>
-        c.comment_id === editingCommentId
+        c.commentId === editingCommentId
           ? { ...c, content: editingCommentText, is_secret: editingIsSecret }
           : c
       )
@@ -173,6 +173,8 @@ const handleCommentSubmit = async () => {
 };
 
     const { post, author, postImageUrls } = data;
+    console.log('postImageUrls:', postImageUrls);
+
 
   // 게시글 작성자가 나인지 체크
   const isMyPost = isLoggedIn && myMemberId !== null && author.memberId === myMemberId;
@@ -190,8 +192,8 @@ const handleCommentSubmit = async () => {
             <div className="meta-text">
               <div className="nickname-row">
                 <span className="nickname">{author.nickname}</span>
-                {BADGE_MAP[author.badge] && (
-                  <img src={BADGE_MAP[author.badge]} alt="뱃지" className="badge-img" />
+                {badgeMap[author.badge] && (
+                  <img src={badgeMap[author.badge]} alt="뱃지" className="badge-img" />
                 )}
               </div>
               <span className="date">
@@ -269,18 +271,18 @@ const handleCommentSubmit = async () => {
           const isPostAuthor = myMemberId === author.memberId;
 
           const commentContent =
-            comment.is_secret && !isMyComment && !isPostAuthor
+            comment.isSecret && !isMyComment && !isPostAuthor
             ? '비밀 댓글입니다.'
             : comment.content;
           
-            const isEditing = editingCommentId === comment.comment_id;
+            const isEditing = editingCommentId === comment.commentId;
 
           return (
-          <div key={comment.comment_id} className="comment-item">
+          <div key={comment.commentId} className="comment-item">
             <div className="user-info">
               <div className='user-left'>
               <img
-                src={comment.author.profile_image_url}
+                src={comment.author.profileImageUrl}
                 alt="댓글 작성자 이미지"
                 className="profile-img"
               />
@@ -289,15 +291,15 @@ const handleCommentSubmit = async () => {
                   {comment.author.nickname}
                 </span>
 
-                {BADGE_MAP[comment.author.badge] && (
+                {badgeMap[comment.author.badgeId] && (
                   <img
-                    src={BADGE_MAP[comment.author.badge]}
+                    src={badgeMap[comment.author.badgeId]}
                     alt="작성자 뱃지"
                     className="badge-img"
                   />
                 )}
 
-                {comment.is_secret && (isMyComment || isPostAuthor) && (
+                {comment.isSecret  && (
                   <span className='secret-lock'>
                     <img src={lock} alt="자물쇠" className='lock-commentimg' />
                   </span>
@@ -311,25 +313,25 @@ const handleCommentSubmit = async () => {
                       onClick= {() => {
                         setOpenCommentMenuMap(prev => ({
                           ...prev,
-                          [comment.comment_id]: !prev[comment.comment_id]
+                          [comment.commentId]: !prev[comment.commentId]
                         }));
                       }}
                     >
                       ⋮
                     </button>
-                    {openCommentMenuMap[comment.comment_id] && (
+                    {openCommentMenuMap[comment.commentId] && (
                       <div className="dropdown-menu">
                         <button 
                           className="menu-item border-b"
                           onClick={() => {
-                            setEditingCommentId(comment.comment_id);
+                            setEditingCommentId(comment.commentId);
                             setEditingCommentText(commentContent);
-                            setEditingIsSecret(comment.is_secret);
+                            setEditingIsSecret(comment.isSecret);
                           }}>수정</button>
                           <button 
                             className="menu-item"
                             onClick={() => {
-                              handleDeleteComment(Number(postId), comment.comment_id);
+                              handleDeleteComment(Number(postId), comment.commentId);
                             }}>삭제</button>
                         </div>
                      )}
