@@ -94,7 +94,7 @@ const handleCommentSubmit = async () => {
   if (!commentText.trim() || !postId) return;
 
   try {
-    const body = { content: commentText, is_secret: isSecret };
+    const body = { content: commentText, isSecret: isSecret };
     const res = await createComment(Number(postId), body);
 
     if (res.success) {
@@ -124,7 +124,8 @@ const handleCommentSubmit = async () => {
   }; 
 
 
-  // 댓글 수정
+  
+
   const handleEditCommentSave = async () => {
   if (!editingCommentId || !postId) return;
   if (!isLoggedIn) {
@@ -134,18 +135,27 @@ const handleCommentSubmit = async () => {
 
   try {
     const token = accessToken!;
-    await updateComment(
-      Number(postId),
-      editingCommentId,
-      { content: editingCommentText, is_secret: editingIsSecret },
-      token
-    );
+    const originalComment = comments.find(c => c.commentId === editingCommentId);
+    if (!originalComment) return;
 
-    // 서버 반영 후 상태 갱신
+    const payload: Partial<{ content: string; isSecret: boolean }> = {};
+    if (editingCommentText !== originalComment.content) {
+      payload.content = editingCommentText;
+    }
+    if (editingIsSecret !== originalComment.isSecret) {
+      payload.isSecret = editingIsSecret;
+    }
+
+    // payload가 비어있으면 API 호출 안 해도 됨
+    if (Object.keys(payload).length > 0) {
+      await updateComment(Number(postId), editingCommentId, payload, token);
+    }
+
+    // 상태 갱신
     setComments(prev =>
       prev.map(c =>
         c.commentId === editingCommentId
-          ? { ...c, content: editingCommentText, is_secret: editingIsSecret }
+          ? { ...c, ...payload }
           : c
       )
     );
@@ -157,6 +167,9 @@ const handleCommentSubmit = async () => {
     alert('댓글 수정에 실패했습니다.');
   }
 };
+
+
+
 
  
   /** 바깥 클릭 시 드롭다운 닫기 */
