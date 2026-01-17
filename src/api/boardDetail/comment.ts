@@ -17,7 +17,7 @@ export const getComments = async (
 
 interface CreateCommentRequest {
     content: string;
-    is_secret: boolean;
+    isSecret: boolean;
 }
 
 export const createComment = async (
@@ -31,7 +31,7 @@ export const createComment = async (
 export const updateComment = async (
     postId: number,
     commentId: number,
-    data: { content: string; is_secret: boolean },
+    data: Partial<{ content: string; isSecret: boolean }>,
     token: string
 ) => {
     try {
