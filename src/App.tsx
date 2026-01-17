@@ -43,7 +43,7 @@ function App() {
           <Route path="/studies" element={<StudyPage />} />
           <Route path="/studies/:studyId" element={<StudyDetailPage />} />
           <Route path="/studies/my" element={<MyStudiesPage />} />
-          <Route path= "/board" element={<BoardListPage />} />
+          <Route path= "/post" element={<BoardListPage />} />
           <Route path= "/search/board" element={<SearchBoard /> } />
           <Route path = "/search/all" element={<AllSearch />} />
           <Route path="/search/study" element={<SearchStudy />} />
@@ -64,12 +64,12 @@ function App() {
           <Route path = "/studyTime" element={<StudyTime />} />
           <Route path = "/todolistpage" element={<TodoListPage />} />
           <Route path="/OwnerPage" element={<MyPageOwner />}/>
-          <Route path= "/board/:postId" element={<BoardDetailPage />} />
-          <Route path= "/board/edit/:postId" element={<BoardEditPage />} />
+          <Route path= "/post/:postId" element={<BoardDetailPage />} />
+          <Route path= "/post/edit/:postId" element={<BoardEditPage />} />
           <Route path = "/chatroom" element={<ChatRoom />} />
           <Route path= "/publicPage" element={<MyPagePublic />} />
           <Route path="/studies/new" element={<StudyCreatePage />} /> 
-          <Route path= "/board/write" element={<BoardCreatePage />} />
+          <Route path= "/post/write" element={<BoardCreatePage />} />
         </Route>
       </Routes>
     </TodoCategoriesProvider>

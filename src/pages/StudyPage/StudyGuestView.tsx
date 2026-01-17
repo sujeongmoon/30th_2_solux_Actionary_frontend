@@ -48,7 +48,7 @@ export default function StudyGuestView(props: Props) {
         <span className="nav-divider">|</span>
         <a href="/" className="nav-link">홈</a>
         <span className="nav-divider">|</span>
-        <a href="/board" className="nav-link">게시판</a>
+        <a href="/post" className="nav-link">게시판</a>
       </nav>
       <div className="sub-nav-divider"></div>
 

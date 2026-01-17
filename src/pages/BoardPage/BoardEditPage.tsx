@@ -20,7 +20,7 @@ interface Post {
 }
 
 // ----- 말머리 옵션 -----
-const categories = ['소통', '인증', '질문'];
+const categories = ['소통', '인증', '질문', '구인', '정보'];
 
 const BoardEditPage = () => {
   const navigate = useNavigate();
@@ -30,8 +30,8 @@ const BoardEditPage = () => {
   const [title, setTitle] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('소통');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
   const [originalPost, setOriginalPost] = useState<Post | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(true);
 
 
@@ -84,7 +84,7 @@ const BoardEditPage = () => {
       } catch (err) {
         console.error('게시글 불러오기 실패', err);
         alert('게시글 정보를 불러오지 못했습니다.');
-        navigate('/board');
+        navigate('/post');
       } finally {
         setLoading(false);
       }
@@ -97,20 +97,26 @@ const BoardEditPage = () => {
 
 
   // ----- 이미지 업로드 -----
-  const handlePhotoClick = () => fileInputRef.current?.click();
+  const handlePhotoClick = () => {
+  fileInputRef.current?.click();
+};
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !editor) return;
+const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const files = e.target.files;
+  if (!files || !editor) return;
 
-    setNewImageFiles((prev) => [...prev, file]);
+  const fileArray = Array.from(files);
+  setUploadedFiles(prev => [...prev, ...fileArray]);
 
+  fileArray.forEach(file => {
     const reader = new FileReader();
     reader.onload = () => {
       editor.chain().focus().setImage({ src: reader.result as string }).run();
     };
     reader.readAsDataURL(file);
-  };
+  });
+};
+
 
   // ----- 말머리 선택 -----
   const handleCategorySelect = (category: string) => {
@@ -123,54 +129,38 @@ const BoardEditPage = () => {
   };
 
   const handleSubmit = async () => {
-  if (!editor || !postId || !originalPost) return;
-  if (!title.trim()) {
-    alert('제목을 입력해주세요');
-    return;
-  }
+  if (!title.trim()) return alert('제목을 입력해주세요.');
+  if (!editor || !postId) return;
 
   try {
-    // TipTap에서 base64가 아닌 URL만 추출
-    const editorJSON = editor.getJSON();
-    const imageUrls: string[] = [];
-    editorJSON.content?.forEach((node: any) => {
-      if (node.type === 'image' && !node.attrs.src.startsWith('data:')) {
-        imageUrls.push(node.attrs.src);
-      }
+    const formData = new FormData();
+
+    // 새로 업로드된 파일만 추가
+    uploadedFiles.forEach(file => {
+      formData.append('images', file);
     });
 
-    // 변경된 필드만 보내기
-    const postData: {
-      title?: string;
-      type?: string;
-      text?: string;
-      imageUrls?: string[];
-    } = {};
+    const postData = {
+      title,
+      type: selectedCategory,
+      text: editor.getText().trim(),
+    };
 
-    if (title !== originalPost.title) postData.title = title;
-    if (selectedCategory !== originalPost.type) postData.type = selectedCategory;
-    const textContent = editor.getText().trim();
-    if (textContent !== originalPost.text) postData.text = textContent;
+    const postBlob = new Blob([JSON.stringify(postData)], { type: 'application/json' });
+    formData.append('post', postBlob);
 
-    // 이미지 URL은 항상 전체 배열
-    postData.imageUrls = imageUrls;
-
-    // 변경 사항 없으면 alert
-    if (Object.keys(postData).length === 1 && postData.imageUrls.length === originalPost.imageUrls.length &&
-        postData.imageUrls.every((url, idx) => url === originalPost.imageUrls[idx])) {
-      alert('변경된 내용이 없습니다.');
-      return;
-    }
-
-    await api.patch(`/posts/${postId}`, postData); // JSON 그대로 전송
+    await api.patch(`/posts/${postId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
 
     alert('게시글이 수정되었습니다.');
-    navigate(`/board/${postId}`);
+    navigate(`/post/${postId}`);
   } catch (err) {
-    console.error('게시글 수정 실패:', err);
+    console.error(err);
     alert('게시글 수정에 실패했습니다.');
   }
 };
+
 
 
 
