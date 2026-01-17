@@ -43,15 +43,15 @@ export interface PostDetailResponse {
 export interface CommentAuthor {
   memberId: number;
   nickname: string;
-  profile_image_url: string;
-  badge: number;
+  profileImageUrl: string;
+  badgeId: number;
 }
 
 export interface Comment {
-  comment_id: number;
+  commentId: number;
   content: string;
-  created_at: string;
-  is_secret: boolean;
+  createdAt: string;
+  isSecret: boolean;
   author: CommentAuthor;
 }
 

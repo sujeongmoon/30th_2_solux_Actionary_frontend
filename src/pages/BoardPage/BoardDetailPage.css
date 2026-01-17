@@ -86,6 +86,9 @@
 
 /* 본문 */
 .divider { border: 0; border-top: 1px solid #eee; margin: 30px 0; }
+.post-content {
+  overflow: visible;
+}
 
 .content-image-box {
   width: 100%;

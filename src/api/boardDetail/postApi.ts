@@ -1,6 +1,11 @@
 import { api } from '../client';
 import type { PostDetailResponse } from '../../types/Board';
 
+export const getMyInfo = async () => {
+    const res = await api.get('/members/me/info');
+    return res.data;
+}
+
 export const getPostDetail = async (postId: number) => {
   const res = await api.get<PostDetailResponse>(`/posts/${postId}`);
   return res.data;
