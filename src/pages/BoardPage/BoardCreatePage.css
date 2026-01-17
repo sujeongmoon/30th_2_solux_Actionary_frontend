@@ -215,10 +215,10 @@
 
 /* 제목 및 기타 버튼 스타일 유지 */
 .category-section { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
-.category-button {
+/*.category-button {
   background-color: #222; color: #fff; padding: 6px 16px; border-radius: 20px;
   border: none; display: flex; align-items: center; gap: 6px; cursor: pointer;
-}
+}*/
 .title-section { position: relative; margin-bottom: 30px; }
 .title-input { width: 100%; border: none; border-bottom: 1px solid #B3B3B3; padding-bottom: 12px; font-size: 1.3rem; outline: none; background-color: transparent; font-weight: 600;}
 .title-input::placeholder { color: #262627 }
