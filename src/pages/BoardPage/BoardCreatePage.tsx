@@ -47,31 +47,32 @@ const BoardCreatePage = () => {
   };
 
   // ------------------ 이미지 업로드 ------------------
-  const handlePhotoClick = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
+  // ------------------ 이미지 클릭 & 선택 ------------------
+const handlePhotoClick = useCallback(() => {
+  fileInputRef.current?.click();
+}, []);
 
-  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || !editor) return;
+const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const files = e.target.files;
+  if (!files || !editor) return;
 
-    const fileArray = Array.from(files);
+  const fileArray = Array.from(files);
 
-    setUploadedFiles(prev => [...prev, ...fileArray]);
+  // 1️⃣ 파일 상태에 저장 (업로드는 handleSubmit에서)
+  setUploadedFiles(prev => [...prev, ...fileArray]);
 
-    // TipTap 미리보기용
-    fileArray.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const url = reader.result as string;
-        editor.chain().focus().setImage({ src: url }).run();
+  // 2️⃣ TipTap 미리보기용 (base64)
+  fileArray.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = reader.result as string;
+      editor.chain().focus().setImage({ src: url }).run();
+    };
+    reader.readAsDataURL(file);
+  });
+}, [editor]);
 
-      };
-      reader.readAsDataURL(file);
-    })
-  }, [editor]);
-  
-  // ------------------ 게시글 생성 ------------------
+// ------------------ 게시글 생성 ------------------
   const handleSubmit = async () => {
   if (!title.trim()) return alert('제목을 입력해주세요.');
   if (!editor) return;
@@ -79,11 +80,12 @@ const BoardCreatePage = () => {
   try {
     const formData = new FormData();
 
-    // 1. 이미지 첨부
+    // 이미지 파일 추가
     uploadedFiles.forEach(file => {
-      formData.append('images', file); // key: images
+      formData.append('images', file);
     });
 
+    // 2️⃣ post 데이터를 application/json Blob으로 추가
     const loginUserId = Number(localStorage.getItem('userId'));
     const postData = {
       memberId: loginUserId,
@@ -91,22 +93,26 @@ const BoardCreatePage = () => {
       title,
       content: {
         text: editor.getText(),
-      }    
-    }
-    formData.append('post', JSON.stringify(postData)); // key: post, JSON 문자열
+      }
+    };
+    
+    const postBlob = new Blob([JSON.stringify(postData)], {
+      type: 'application/json'
+    });
+    formData.append('post', postBlob);
 
-    // 3. 요청 보내기
-    const res = await api.post<CreatePostResponse>('/posts', formData); 
+    // 요청 (백엔드가 S3 업로드 + DB 저장 처리)
+    const res = await api.post<CreatePostResponse>('/posts', formData);
 
     if (res.data.success) {
       alert('게시글이 생성되었습니다!');
-      // 초기화
+      
       setTitle('');
       editor.commands.clearContent(true);
+      setUploadedFiles([]);
       setUploadedImageUrls([]);
       setSelectedCategory('소통');
 
-      // 생성 후 목록 페이지 이동
       navigate('/board');
     }
   } catch (err) {
