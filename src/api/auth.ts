@@ -16,10 +16,10 @@ export interface RefreshResponse {
   };
 }
 
-/* 토큰 재발급 */
+/* 토큰 재발급 
 export const refreshTokenApi = (refresh: string) => {
   return api.post<RefreshResponse>("/auth/refresh", { refresh });
-};
+}; */
 
 /* ==== 회원가입 ====*/
 /* 회원가입 타입 */
