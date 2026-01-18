@@ -1,32 +1,31 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { PostDetailData, Comment } from '../../types/Board';
 import './BoardDetailPage.css';
 import { badgeMap } from '../../utils/badgeMap';
 import lock from '../../assets/Board/lock.svg';
 import unlock from '../../assets/Board/unlock.svg';
 import send from '../../assets/homepage/Gradient_Arrow.svg';
-import { getPostDetail, deletePost } from '../../api/boardDetail/postApi';
+import { getPostDetail, deletePost, getMyInfo } from '../../api/boardDetail/postApi';
 import { getComments, createComment, deleteComment, updateComment } from '../../api/boardDetail/comment';
 import { useNavigate } from 'react-router-dom'
 import LoginAlertModal from '../../components/AlertModal/LoginAlertModal';
-import { getMyInfo } from '../../api/boardDetail/postApi';
 
 /* ============================================= */
 
 const BoardDetailPage = () => {
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
-  const [data, setData] = useState<PostDetailData | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+
+  const accessToken = localStorage.getItem('accessToken');
+  const isLoggedIn = Boolean(accessToken);
 
   /** 게시글 메뉴 */
   const [isPostMenuOpen, setIsPostMenuOpen] = useState(false);
-
   /** 댓글 메뉴 */
   const [openCommentMenuMap, setOpenCommentMenuMap] = useState<{ [id: number]: boolean }>({});
-
   /** 댓글 입력 */
   const [commentText, setCommentText] = useState('');
   const [isSecret, setIsSecret] = useState(false);
@@ -39,150 +38,112 @@ const BoardDetailPage = () => {
   const [editingIsSecret, setEditingIsSecret] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  const accessToken = localStorage.getItem('accessToken');
-  const isLoggedIn = Boolean(accessToken);
+   /* ================= Query ================= */
+  /** 내 정보  **/
 
-  const [myMemberId, setMyMemberId] = useState<number | null>(null);
+  const { data: myInfo } = useQuery({
+    queryKey: ['myInfo'],
+    queryFn: getMyInfo,
+    enabled: isLoggedIn,
+  })
+
+  const myMemberId = myInfo?.data?.memberId ?? null;
+
+  /* 게시글 상세 조회 */
+  const { data: postData, isLoading, isError} = useQuery<PostDetailData>({
+    queryKey: ['postDetail', postId],
+    queryFn: () => getPostDetail(Number(postId)).then(res => res.data),
+    enabled: !!postId,
+  })
 
 
-  // 유저 정보 가져오기
-useEffect(() => {
-  const fetchMyInfo = async () => {
-    const res = await getMyInfo();
-    if(res.success) {
-      setMyMemberId(res.data.memberId); // 서버에서 받은 내 memberId
-    }
-  }
-  fetchMyInfo();
-}, []);
+  /* 댓글 목록*/
+  const {data: commentData } = useQuery<Comment[]>({
+    queryKey: ['comments', postId],
+    queryFn: () => getComments(Number(postId)).then(res => res.data.comments),
+  enabled: !!postId,
+  });
 
+  /* ==================== Mutaion ================== */
 
-  /* 실제 연동용 코드 */
-  useEffect(() => {
-    if (!postId) return;
-    const fetchData = async() => {
-      try {
-        setLoading(true);
-
-        const postRes = await getPostDetail(Number(postId));
-        if (postRes.success) {
-          setData(postRes.data);
-        }
-
-        const commentRes = await getComments(Number(postId));
-        if (commentRes.success) {
-          setComments(commentRes.data.comments);
-        }
-      } catch(error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [postId]);
-
-{/*댓글 작성 API 연동용 */}
-
-const handleCommentSubmit = async () => {
-
-  if (!isLoggedIn) {
-    setShowLoginModal(true);
-    return;
-  }
-  if (!commentText.trim() || !postId) return;
-
-  try {
-    const body = { content: commentText, isSecret: isSecret };
-    const res = await createComment(Number(postId), body);
-
-    if (res.success) {
-      const commentRes = await getComments(Number(postId));
-      if (commentRes.success) setComments(commentRes.data.comments);
-
+  const createCommentMutation = useMutation({
+    mutationFn: ({ content, isSecret} : {content: string; isSecret: boolean }) =>
+      createComment(Number(postId), {content, isSecret}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['comments', postId]});
       setCommentText('');
       setIsSecret(false);
     }
-  } catch (error) {
-    console.error(error);
-    alert('댓글 작성에 실패했습니다')
-  }
-} 
+  });
 
-  const handleDeleteComment = async (commentId: number, postId: number) => {
-    try {
-      await deleteComment(postId,commentId);
+  const deleteCommentMutation = useMutation({
+    mutationFn: (commentId: number) => 
+      deleteComment(Number(postId), commentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['comments', postId ]});
+    },
+  });
 
-      setComments((prev) => 
-        prev.filter((comment) => comment.commentId !== commentId)
-    );
-    } catch(error) {
-      console.error(error);
-      alert('댓글 삭제에 실패했습니다.');
-    }
-  }; 
+  const updateCommentMutation = useMutation({
+    mutationFn: ({
+      commentId, payload, }: {
+        commentId: number;
+        payload: Partial<{ content: string; isSecret: boolean }>;
+      }) => 
+        updateComment(Number(postId), commentId, payload, accessToken!),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['comments', postId] });
+        setEditingCommentId(null);
+      }
+    });
 
+    const deletePostMutation = useMutation({
+      mutationFn: (postId: number) => deletePost(postId),
+      onSuccess: () => {
+        alert('게시글이 삭제되었습니다.');
+        navigate('/post');
+      },
 
+      onError: (error) => {
+        console.error(error);
+        alert('게시글 삭제에 실패했습니다.')
+      }
+    });
+
+    /* ============== Handler =============== */
+
+    const handleCommentSubmit = () => {
+      if (!isLoggedIn) {
+        setShowLoginModal(true);
+        return;
+      }
+      if (!commentText.trim()) return;
+
+      createCommentMutation.mutate({
+        content: commentText,
+        isSecret,
+      });
+    };
+
+    const handleEditCommentSave = () => {
+      if (!editingCommentId) return;
+      updateCommentMutation.mutate({
+        commentId: editingCommentId,
+        payload: {
+          content: editingCommentText,
+          isSecret: editingIsSecret,
+        },
+      });
+    };
   
+    if (isLoading) return <div className="loading">로딩 중...</div>;
+    if (isError || !postData) return <div className="error">게시글을 찾을 수 없습니다.</div>;
 
-  const handleEditCommentSave = async () => {
-  if (!editingCommentId || !postId) return;
-  if (!isLoggedIn) {
-    setShowLoginModal(true);
-    return;
-  }
-
-  try {
-    const token = accessToken!;
-    const originalComment = comments.find(c => c.commentId === editingCommentId);
-    if (!originalComment) return;
-
-    const payload: Partial<{ content: string; isSecret: boolean }> = {};
-    if (editingCommentText !== originalComment.content) {
-      payload.content = editingCommentText;
-    }
-    if (editingIsSecret !== originalComment.isSecret) {
-      payload.isSecret = editingIsSecret;
-    }
-
-    // payload가 비어있으면 API 호출 안 해도 됨
-    if (Object.keys(payload).length > 0) {
-      await updateComment(Number(postId), editingCommentId, payload, token);
-    }
-
-    // 상태 갱신
-    setComments(prev =>
-      prev.map(c =>
-        c.commentId === editingCommentId
-          ? { ...c, ...payload }
-          : c
-      )
-    );
-
-    setEditingCommentId(null);
-
-  } catch (error) {
-    console.error(error);
-    alert('댓글 수정에 실패했습니다.');
-  }
-};
-
-const handleProfileClick = (memberId: number) => {
-  if (myMemberId === memberId) {
-    navigate('/mypage'); // 내 마이페이지
-  } else {
-    navigate(`/mypage/${memberId}`);
-  }
-};
+    const { post, author, postImageUrls } = postData;
+    const comments = commentData ?? [];
+    const isMyPost = isLoggedIn && myMemberId === author.memberId;
 
 
-
- 
-  /** 바깥 클릭 시 드롭다운 닫기 */
-
-  if (loading) return <div className="loading">로딩 중...</div>;
-  if (!data) return <div className="error">게시글을 찾을 수 없습니다.</div>;
 
   const formatDate = (dateString: string) => {
   const d = new Date(dateString);
@@ -191,13 +152,6 @@ const handleProfileClick = (memberId: number) => {
   const day = String(d.getDate()).padStart(2, '0');
   return `${year}/${month}/${day}`;
 };
-
-    const { post, author, postImageUrls } = data;
-    console.log('postImageUrls:', postImageUrls);
-
-
-  // 게시글 작성자가 나인지 체크
-  const isMyPost = isLoggedIn && myMemberId !== null && author.memberId === myMemberId;
 
 
   return (
@@ -208,8 +162,7 @@ const handleProfileClick = (memberId: number) => {
 
         <div className="post-header">
           <div className="author-info">
-            <img src={author.profileImageUrl} alt="프로필 이미지" className="profile-img"
-              onClick={() => handleProfileClick(author.memberId)} />
+            <img src={author.profileImageUrl} alt="프로필 이미지" className="profile-img" />
             <div className="meta-text">
               <div className="nickname-row">
                 <span className="nickname">{author.nickname}</span>
@@ -247,18 +200,9 @@ const handleProfileClick = (memberId: number) => {
                       className="menu-item"
                       onClick={async () => {
                         if(!window.confirm('정말로 게시글을 삭제하시겠습니까?')) return;
-
-                        try {
-                          // 실제 연동용
-                          const res = await deletePost(post.postId);
-                          if (!res.success) throw new Error('삭제 실패');
-                          alert('게시글이 삭제되었습니다.');
-                          navigate('/post');
-                        } catch (error) {
-                          console.error(error);
-                          alert('게시글 삭제에 실패했습니다.');
-                        }
-                      }}>삭제</button>
+                        deletePostMutation.mutate(post.postId);
+                      }}
+                        >삭제</button>
                   </div>
                 )}
               </div>
@@ -306,8 +250,6 @@ const handleProfileClick = (memberId: number) => {
                 src={comment.author.profileImageUrl}
                 alt="댓글 작성자 이미지"
                 className="profile-img"
-                onClick={() => handleProfileClick(author.memberId)}
-
               />
               <div className="nickname-badge-wrapper">
                 <span className="nickname">
@@ -354,7 +296,7 @@ const handleProfileClick = (memberId: number) => {
                           <button 
                             className="menu-item"
                             onClick={() => {
-                              handleDeleteComment(Number(postId), comment.commentId);
+                              deleteCommentMutation.mutate(comment.commentId);
                             }}>삭제</button>
                         </div>
                      )}
