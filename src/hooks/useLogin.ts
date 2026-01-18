@@ -21,8 +21,8 @@ export const useLogin = () => {
       const accessToken = response.data.accessToken
 
      /* 로그인 시 토큰 저장 */ 
-     //localStorage.setItem("accessToken", response.data.accessToken);
-     // (삭제?)localStorage.setItem("refreshToken", response.data.refreshToken);
+      //localStorage.setItem("accessToken", response.data.accessToken);
+      localStorage.setItem("refreshToken", response.data.refreshToken);
       setToken(accessToken);
       navigate("/");
 

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { authLogout } from "../context/AuthContext";
+
 
 export const api = axios.create({
   baseURL: "/api",
@@ -27,39 +27,39 @@ api.interceptors.response.use(
 
     //accessToken 만료 (401) + 재시도 안 한 요청
     if (
-      error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes("/auth/refresh")) {
-      originalRequest._retry = true;
+      error.response?.status === 401 && 
+      !(originalRequest as any)._retry && 
+      !originalRequest.url?.includes("/auth/refresh")
+    ) {
+      (originalRequest as any)._retry = true;
+
+      const refreshToken = localStorage.getItem("refreshToken");
+      if (!refreshToken) {
+        window.location.href = "/login";
+        return Promise.reject(error);
+      }
 
       try {
-        //const refreshToken = localStorage.getItem("refreshToken");
-        /*(삭제?)
-        if (!refreshToken) {
-          throw new Error("refresh token 없음");
-        }
-        */
         const refreshResponse = await axios.post(
-          `${api.defaults.baseURL}/auth/refresh`,
-          {},
-          { withCredentials: true}
+          "/api/auth/refresh",
+          { refresh: refreshToken },
+          { withCredentials: true }
         );
+
         const newAccessToken = refreshResponse.data.data.accessToken;
 
-        localStorage.setItem("accessToken", newAccessToken);
+        //localStorage.setItem("accessToken", newAccessToken);
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 
         return api(originalRequest);
-      } catch (refreshError) {
-        console.error("세션 만료: 로그아웃 처리합니다.");
-        // refresh 실패 시 완전 로그아웃
+      } catch {
         localStorage.removeItem("accessToken");
-        // (삭제?)localStorage.removeItem("refreshToken");
-        authLogout();
+        localStorage.removeItem("refreshToken");
         window.location.href = "/login";
-        return Promise.reject(refreshError);
-      }
+        return Promise.reject(error);
+      }      
     }
       return Promise.reject(error); 
-    
   }
 );
 export default api;
