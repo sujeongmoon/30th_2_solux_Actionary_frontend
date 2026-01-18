@@ -172,7 +172,7 @@ useEffect(() => {
       <span className="nav-divider">|</span>
       <a href="/studies" className="nav-link">스터디</a>
       <span className="nav-divider">|</span>
-      <a href="/post" className="nav-link">게시판</a>
+      <a href="/posts" className="nav-link">게시판</a>
     </nav>
     <div className="sub-nav-divider"></div>
     <div className="homepage-content-wrapper">
@@ -297,14 +297,14 @@ useEffect(() => {
           <h2 className="popular-board-title">인기 게시글</h2>
           <button
             className="popular-board-more"
-            onClick={() => navigate('/post')}>더보기</button>
+            onClick={() => navigate('/posts')}>더보기</button>
             </div>
             <div className="popular-board-grid">
               {boardLoading ? (
                 <p>로딩중...</p>
               ) : (
                 boardList.map(item => (
-                  <div key={item.postId} className="board-item" onClick={() => navigate(`/post/${item.postId}`)}>
+                  <div key={item.postId} className="board-item" onClick={() => navigate(`/posts/${item.postId}`)}>
                     <span className={`board-tag ${
                       item.type === '소통' ? 'tag-communication' :
                       item.type === '멘토' ? 'tag-study' : 'tag-question'

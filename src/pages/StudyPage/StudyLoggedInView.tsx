@@ -42,7 +42,7 @@ export default function StudyLoggedInView(props: Props) {
         <span className="nav-divider">|</span>
         <a href="/" className="nav-link">홈</a>
         <span className="nav-divider">|</span>
-        <a href="/post" className="nav-link">게시판</a>
+        <a href="/posts" className="nav-link">게시판</a>
       </nav>
       <div className="sub-nav-divider"></div>
 

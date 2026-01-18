@@ -101,7 +101,7 @@ const BoardDetailPage = () => {
       mutationFn: (postId: number) => deletePost(postId),
       onSuccess: () => {
         alert('게시글이 삭제되었습니다.');
-        navigate('/post');
+        navigate('/posts');
       },
 
       onError: (error) => {
@@ -195,7 +195,7 @@ const BoardDetailPage = () => {
                 {isPostMenuOpen && (
                   <div className="dropdown-menu" ref={postMenuRef}>
                     <button className="menu-item border-b"
-                      onClick={() => navigate(`/post/edit/${post.postId}`)}>수정</button>
+                      onClick={() => navigate(`/posts/edit/${post.postId}`)}>수정</button>
                     <button 
                       className="menu-item"
                       onClick={async () => {
