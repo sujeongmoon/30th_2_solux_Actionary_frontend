@@ -168,6 +168,13 @@ const handleCommentSubmit = async () => {
   }
 };
 
+const handleProfileClick = (memberId: number) => {
+  if (myMemberId === memberId) {
+    navigate('/mypage'); // 내 마이페이지
+  } else {
+    navigate(`/mypage/${memberId}`);
+  }
+};
 
 
 
@@ -201,7 +208,8 @@ const handleCommentSubmit = async () => {
 
         <div className="post-header">
           <div className="author-info">
-            <img src={author.profileImageUrl} alt="프로필 이미지" className="profile-img" />
+            <img src={author.profileImageUrl} alt="프로필 이미지" className="profile-img"
+              onClick={() => handleProfileClick(author.memberId)} />
             <div className="meta-text">
               <div className="nickname-row">
                 <span className="nickname">{author.nickname}</span>
@@ -298,6 +306,8 @@ const handleCommentSubmit = async () => {
                 src={comment.author.profileImageUrl}
                 alt="댓글 작성자 이미지"
                 className="profile-img"
+                onClick={() => handleProfileClick(author.memberId)}
+
               />
               <div className="nickname-badge-wrapper">
                 <span className="nickname">

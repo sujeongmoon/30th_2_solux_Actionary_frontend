@@ -63,13 +63,15 @@ function App() {
         <Route element = {<SimpleLayout />}>
           <Route path = "/studyTime" element={<StudyTime />} />
           <Route path = "/todolistpage" element={<TodoListPage />} />
-          <Route path="/OwnerPage" element={<MyPageOwner />}/>
+          <Route path="/mypage" element={<MyPageOwner />}/>
           <Route path= "/post/:postId" element={<BoardDetailPage />} />
           <Route path= "/post/edit/:postId" element={<BoardEditPage />} />
           <Route path = "/chatroom" element={<ChatRoom />} />
           <Route path= "/publicPage" element={<MyPagePublic />} />
           <Route path="/studies/new" element={<StudyCreatePage />} /> 
           <Route path= "/post/write" element={<BoardCreatePage />} />
+          <Route path="/mypage/:memberId" element={<MyPagePublic />} />
+
         </Route>
       </Routes>
     </TodoCategoriesProvider>

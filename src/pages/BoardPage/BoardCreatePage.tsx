@@ -48,29 +48,33 @@ const BoardCreatePage = () => {
 
   // ------------------ 이미지 업로드 ------------------
   // ------------------ 이미지 클릭 & 선택 ------------------
-const handlePhotoClick = useCallback(() => {
-  fileInputRef.current?.click();
-}, []);
+  const handlePhotoClick = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
 
-const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
   const files = e.target.files;
   if (!files || !editor) return;
 
   const fileArray = Array.from(files);
-
-  // 1️⃣ 파일 상태에 저장 (업로드는 handleSubmit에서)
   setUploadedFiles(prev => [...prev, ...fileArray]);
 
-  // 2️⃣ TipTap 미리보기용 (base64)
-  fileArray.forEach(file => {
+  for (const file of fileArray) {
     const reader = new FileReader();
-    reader.onload = () => {
-      const url = reader.result as string;
-      editor.chain().focus().setImage({ src: url }).run();
-    };
-    reader.readAsDataURL(file);
-  });
-}, [editor]);
+    await new Promise<void>((resolve) => {
+      reader.onload = () => {
+        const url = reader.result as string;
+        // insertContent 사용해서 순서 유지
+        editor.chain().focus().insertContent({
+          type: 'image',
+          attrs: { src: url }
+        }).run();
+        resolve();
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+};
 
 // ------------------ 게시글 생성 ------------------
   const handleSubmit = async () => {
@@ -163,7 +167,15 @@ const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) =>
             <div className="toolbar-group">
               <button onClick={handlePhotoClick}>Photo</button>
             </div>
-            <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleFileChange} title="입력창" />
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              style={{ display: 'none' }} 
+              accept="image/*" 
+              multiple
+              onChange={handleFileChange} 
+              title="입력창" 
+            />
           </div>
 
           <div className="editor-content">

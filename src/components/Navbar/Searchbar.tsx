@@ -18,7 +18,7 @@ const Searchbar = () => {
     if (!keyword.trim()) {
       switch (category) {
         case "게시글":
-          navigate(`/search/board`);
+          navigate(`/search/post`);
           break;
         case '스터디':
           navigate(`/search/study`);
@@ -32,7 +32,7 @@ const Searchbar = () => {
       return;
     }
     if (category === '게시글') {
-      navigate(`/search/board?keyword=${encodeURIComponent(keyword)}`);
+      navigate(`/search/post?keyword=${encodeURIComponent(keyword)}`);
     } else if (category==='스터디') {
       navigate(`/search/study?keyword=${encodeURIComponent(keyword)}`);
     } else {
