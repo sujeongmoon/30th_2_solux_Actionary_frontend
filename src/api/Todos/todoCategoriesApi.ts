@@ -1,4 +1,5 @@
 import { api } from '../client';
+import { type CreateCategoryResponse } from '../../types/Todo';
 
 // 카테고리 타입
 export interface TodoCategory {
@@ -16,9 +17,9 @@ export interface CreateCategoryRequest {
 
 export const createTodoCategory = async (
   data: CreateCategoryRequest
-) => {
+) : Promise<CreateCategoryResponse> => {
   try {
-    const res = await api.post('/todo-categories', data);
+    const res = await api.post<CreateCategoryResponse>('/todo-categories', data);
     return res.data;
   } catch (error) {
     console.error ('카테고리 생성 실패', error);

@@ -62,6 +62,17 @@ const TodoListPage: React.FC = () => {
   });
 
   const { categories } = useTodoCategoriesContext();
+const visibleCategories = categories.filter(cat => {
+  const createdUTC = new Date(cat.createdAt);
+  const createdKST = new Date(createdUTC.getTime() + 9 * 60 * 60 * 1000);
+  createdKST.setHours(0,0,0,0);
+
+  const selected = new Date(selectedDate);
+  selected.setHours(0,0,0,0);
+
+  return selected >= createdKST;
+});
+
 
   // 투두 드롭다운 위치 계산
   const handleTodoDropdownToggle = (todoId: number) => {
@@ -175,7 +186,7 @@ const TodoListPage: React.FC = () => {
 
           </div>
 
-          {categories.map(cat => (
+          {visibleCategories.map(cat => (
             <div key={cat.categoryId} className="category-block">
               <div className="category-header">
                 <div
