@@ -24,7 +24,7 @@ const Navbar = () => {
 
   const handleProfileClick = () => {
     if (isLoggedIn) {
-      navigate("/OwnerPage");
+      navigate("/mypage");
     } else {
       setLoginModalOpen(true);
     }
