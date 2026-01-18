@@ -105,7 +105,7 @@ const PostSearchSection: React.FC<Props> = ({ posts= [] }) => {
               {filteredPosts.map(item => (
                 <tr
                   key={item.postId}
-                  onClick={() => navigate(`/post/${item.postId}`)}
+                  onClick={() => navigate(`/posts/${item.postId}`)}
                   style={{ cursor: 'pointer' }}
                 >
                   <td>
@@ -127,7 +127,7 @@ const PostSearchSection: React.FC<Props> = ({ posts= [] }) => {
         <div className="pss-bottom-section">
           <button
             className="pss-btn-load-more"
-            onClick={() => navigate('/post')}
+            onClick={() => navigate('/posts')}
           >
             더보기 &gt;
           </button>

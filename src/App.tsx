@@ -43,7 +43,7 @@ function App() {
           <Route path="/studies" element={<StudyPage />} />
           <Route path="/studies/:studyId" element={<StudyDetailPage />} />
           <Route path="/studies/my" element={<MyStudiesPage />} />
-          <Route path= "/post" element={<BoardListPage />} />
+          <Route path= "/posts" element={<BoardListPage />} />
           <Route path= "/search/board" element={<SearchBoard /> } />
           <Route path = "/search/all" element={<AllSearch />} />
           <Route path="/search/study" element={<SearchStudy />} />
@@ -64,12 +64,12 @@ function App() {
           <Route path = "/studyTime" element={<StudyTime />} />
           <Route path = "/todolistpage" element={<TodoListPage />} />
           <Route path="/mypage" element={<MyPageOwner />}/>
-          <Route path= "/post/:postId" element={<BoardDetailPage />} />
-          <Route path= "/post/edit/:postId" element={<BoardEditPage />} />
+          <Route path= "/posts/:postId" element={<BoardDetailPage />} />
+          <Route path= "/posts/edit/:postId" element={<BoardEditPage />} />
           <Route path = "/chatroom" element={<ChatRoom />} />
           <Route path= "/publicPage" element={<MyPagePublic />} />
           <Route path="/studies/new" element={<StudyCreatePage />} /> 
-          <Route path= "/post/write" element={<BoardCreatePage />} />
+          <Route path= "/posts/write" element={<BoardCreatePage />} />
           <Route path="/mypage/:memberId" element={<MyPagePublic />} />
 
         </Route>

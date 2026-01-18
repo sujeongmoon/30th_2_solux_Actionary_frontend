@@ -89,7 +89,7 @@ const SearchBoard: React.FC = () => {
   return (
     <div className="board-container">
       <nav className="sub-navigation">
-        <a href="/post" className="nav-link-home-link">게시판</a>
+        <a href="/posts" className="nav-link-home-link">게시판</a>
         <span className="nav-divider">|</span>
         <a href="/" className="nav-link">홈</a>
         <span className="nav-divider">|</span>
@@ -195,7 +195,7 @@ const SearchBoard: React.FC = () => {
 
             <tbody>
               {displayPosts.map((item) => (
-                <tr key={item.postId} onClick={() => navigate(`/post/${item.postId}`)} style={{ cursor: 'pointer' }}>
+                <tr key={item.postId} onClick={() => navigate(`/posts/${item.postId}`)} style={{ cursor: 'pointer' }}>
                   <td>
                     <div className="badge">
                       <span>{item.type}</span>

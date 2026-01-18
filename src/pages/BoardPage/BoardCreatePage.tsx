@@ -117,7 +117,7 @@ const BoardCreatePage = () => {
       setUploadedImageUrls([]);
       setSelectedCategory('소통');
 
-      navigate('/post');
+      navigate('/posts');
     }
   } catch (err) {
     console.error(err);
