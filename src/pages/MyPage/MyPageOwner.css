@@ -5,8 +5,29 @@ body {
   background-color: #F8F8F6;
 }
 
+.owner-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.back-btn {
+  width: 36px;              /* 원 크기 */
+  height: 36px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #000;
+  border-radius: 50%;
+  background-color: transparent;
+  cursor: pointer;
+  margin-left: 30px;
+}
+
+
 .owner-title {
-    margin: 30px 60px 20px;
+    margin: 30px 60px 20px 20px;
     font-weight: 600;
     font-size: 20px;
     line-height: 100%;

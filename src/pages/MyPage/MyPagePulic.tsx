@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import './MyPageOwner.css';
-import { useParams } from 'react-router-dom';
 import ProfileSectionPublic from '../../components/MyPage/ProfileSectionPublic';        
-import AchievementSection from '../../components/MyPage/AchievementSection';
 import { getOtherUserInfo, type OtherUserInfo} from '../../api/MyPage/getOtherUserInfo';
+import { useParams, useNavigate } from 'react-router-dom';
+import AchievementSectionPublic from '../../components/MyPage/AchievementSectionPublic';
+
 
 const MyPagePublic: React.FC = () => {
   const { memberId } = useParams<{ memberId: string }>();
   const [userInfo, setUserInfo] = useState<OtherUserInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!memberId) return;
@@ -32,14 +34,22 @@ const MyPagePublic: React.FC = () => {
 
   return (
     <>
-    <div>
-      <div className='owner-title'>마이 페이지</div>
-      <div className='owner-divider'></div>
+    <div className="owner-header">
+      <button
+        className="back-btn"
+        onClick={() => navigate(-1)}
+      >
+        ←
+      </button>
+
+      <div className="owner-title">마이 페이지</div>
     </div>
+    <div className="owner-divider"></div>
+
     <div className='owner-container'>
       <ProfileSectionPublic userInfo={userInfo} />
       <div className='owner-profile-divider'></div>
-      <AchievementSection memberId={userInfo.memberId} nickname={userInfo.nickname} />
+      <AchievementSectionPublic memberId={userInfo.memberId} nickname={userInfo.nickname} />
     </div>
     </>
   );
