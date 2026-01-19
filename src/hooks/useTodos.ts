@@ -7,7 +7,7 @@ export interface Todo extends ApiTodo {}
 
 export const useTodos = () => {
   const today = new Date();
-  const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+  const todayString = today.toISOString().slice(0, 10);
 
   const [todos, setTodos] = useState<Todo[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>(todayString);
