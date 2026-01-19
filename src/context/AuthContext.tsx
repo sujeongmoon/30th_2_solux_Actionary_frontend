@@ -18,3 +18,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("accessToken", token);
     } else localStorage.removeItem("accessToken");
   }, [token]);
+
+  const logout = () => {
+    setToken(null);
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+  };
+
+  const value = useMemo(() => ({ isLoggedIn, token, setToken, logout }), [isLoggedIn, token]);
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}
