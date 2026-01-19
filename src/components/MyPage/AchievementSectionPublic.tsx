@@ -84,24 +84,24 @@ const AchievementSectionPublic: React.FC<AchievementSectionPublicProps> = ({
           <div className='owner-stats-list'>
             <div className='owner-stat-pill'>
               <div className='owner-stat-label'>
-                <img src={StudyTime} alt='공부시간' />
-                <span>공부시간</span>
+                <img src={StudyTime} alt='공부시간 아이콘' className='own-study-icon' />
+                <span className='icon-clock'>공부시간</span>
               </div>
               <span className='owner-stat-value'>{points.study}P</span>
             </div>
 
             <div className='owner-stat-pill'>
               <div className='owner-stat-label'>
-                <img src={StudyIcon} alt='스터디' />
-                <span>스터디</span>
+                <img src={StudyIcon} alt='스터디' className='own-study-icon'/>
+                <span className='icon-study'>스터디</span>
               </div>
               <span className='owner-stat-value'>{points.studyParticipation}P</span>
             </div>
 
             <div className='owner-stat-pill'>
               <div className='owner-stat-label'>
-                <img src={CheckIcon} alt='투두리스트' />
-                <span>투두리스트</span>
+                <img src={CheckIcon} alt='투두리스트' className='owner-icon' />
+                <span className='icon-todo'>투두리스트</span>
               </div>
               <span className='owner-stat-value'>{points.todo}P</span>
             </div>
@@ -109,7 +109,7 @@ const AchievementSectionPublic: React.FC<AchievementSectionPublicProps> = ({
 
           <div className='owner-total-points'>
             <div className='owner-total-label'>
-              <img src={OwnerUnion} alt='총 포인트' />
+              <img src={OwnerUnion} alt='총 포인트' className='owner-total-dot' />
               <span>총 포인트</span>
             </div>
             <span className='owner-total-value'>{points.total}P</span>
