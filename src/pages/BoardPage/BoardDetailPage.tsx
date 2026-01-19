@@ -153,6 +153,13 @@ const BoardDetailPage = () => {
   return `${year}/${month}/${day}`;
 };
 
+  const navigateToProfile = (memberId: number) => {
+    if (!isLoggedIn) return setShowLoginModal(true); // 로그인 안 했으면 로그인 모달
+    if (memberId === myMemberId) navigate('/mypage'); // 자기 글이면 내 마이페이지
+    else navigate(`/mypage/${memberId}`); // 타인 글이면 공개용 마이페이지
+  };
+
+
 
   return (
     <div className="board-detail-container">
@@ -162,7 +169,8 @@ const BoardDetailPage = () => {
 
         <div className="post-header">
           <div className="author-info">
-            <img src={author.profileImageUrl} alt="프로필 이미지" className="profile-img" />
+            <img src={author.profileImageUrl} alt="프로필 이미지" className="profile-img"
+              onClick={() => navigateToProfile(author.memberId)} />
             <div className="meta-text">
               <div className="nickname-row">
                 <span className="nickname">{author.nickname}</span>
@@ -250,6 +258,7 @@ const BoardDetailPage = () => {
                 src={comment.author.profileImageUrl}
                 alt="댓글 작성자 이미지"
                 className="profile-img"
+                onClick={() => navigateToProfile(comment.author.memberId)}
               />
               <div className="nickname-badge-wrapper">
                 <span className="nickname">
