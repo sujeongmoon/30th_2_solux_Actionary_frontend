@@ -31,16 +31,14 @@ const CATEGORY_OPTIONS: { label: string; value?: CategoryEnum }[] = [
   { label: "기타", value: "OTHER" },
 ];
 
-// “나만의 스터디” 상단 필터 (아래 필터랑 완전 별개)
-type MyFilter = "ALL" | "OWNED" | "JOINED" | "LIKED";
+// “나만의 스터디” 상단 필터
+export type MyScope = "ALL" | "OWNED" | "JOINED" | "LIKED";
 
 export type StudyListItem = {
   studyId: number;
   studyName: string;
   coverImage?: string | null;
   isPublic: boolean;
-
-  // 아래 필터용(카테고리)
   category?: CategoryEnum;
 };
 
@@ -60,7 +58,6 @@ function mapStudyItem(raw: any): StudyListItem {
     studyName: String(raw?.studyName ?? raw?.name ?? ""),
     coverImage: (raw?.coverImage ?? raw?.coverImageUrl ?? raw?.image ?? null) as string | null,
     isPublic: Boolean(raw?.isPublic ?? raw?.public ?? raw?.visibility === "PUBLIC"),
-
     category: (raw?.category ?? raw?.studyCategory ?? raw?.categoryEnum ?? undefined) as
       | CategoryEnum
       | undefined,
@@ -68,39 +65,21 @@ function mapStudyItem(raw: any): StudyListItem {
 }
 
 function extractPaged(raw: any) {
-  const itemsRaw =
-    raw?.items ??
-    raw?.content ??
-    raw?.studies ??
-    raw?.list ??
-    raw?.data ??
-    [];
-
+  const itemsRaw = raw?.items ?? raw?.content ?? raw?.studies ?? raw?.list ?? raw?.data ?? [];
   const items = Array.isArray(itemsRaw) ? itemsRaw.map(mapStudyItem) : [];
 
-  const totalElements =
-    Number(raw?.totalElements ?? raw?.totalCount ?? raw?.total ?? items.length) || 0;
-
-  const totalPages =
-    Number(
-      raw?.totalPages ??
-        raw?.pageCount ??
-        Math.max(1, Math.ceil(totalElements / (raw?.size ?? 8)))
-    ) || 1;
+  const totalElements = Number(raw?.totalElements ?? raw?.totalCount ?? raw?.total ?? items.length) || 0;
 
   const size = Number(raw?.size ?? raw?.pageSize ?? 8) || 8;
+
+  const totalPages =
+    Number(raw?.totalPages ?? raw?.pageCount ?? Math.max(1, Math.ceil(totalElements / size))) || 1;
 
   return { items, totalElements, totalPages, size };
 }
 
 function extractMyList(raw: any): StudyListItem[] {
-  const itemsRaw =
-    raw?.items ??
-    raw?.content ??
-    raw?.studies ??
-    raw?.list ??
-    raw?.data ??
-    [];
+  const itemsRaw = raw?.items ?? raw?.content ?? raw?.studies ?? raw?.list ?? raw?.data ?? [];
   return Array.isArray(itemsRaw) ? itemsRaw.map(mapStudyItem) : [];
 }
 
@@ -108,25 +87,28 @@ export default function StudyPage() {
   const navigate = useNavigate();
   const { isLoggedIn, user } = useAuth();
 
+  // ===== 전체 스터디 필터/페이지 =====
   const [visibility, setVisibility] = useState<VisibilityParam>("public");
   const [categoryLabel, setCategoryLabel] = useState<string>("전체");
   const [category, setCategory] = useState<CategoryEnum | undefined>(undefined);
 
-  const [myFilter, setMyFilter] = useState<MyFilter>("ALL");
-
-  // 모달
-  const [selectedStudyId, setSelectedStudyId] = useState<number | null>(null);
-
   const [page, setPage] = useState(1);
-
   const [items, setItems] = useState<StudyListItem[]>([]);
   const [totalElements, setTotalElements] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [size, setSize] = useState<number>(8);
 
-  const [myStudies, setMyStudies] = useState<StudyListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // ===== 나만의 스터디(백 페이지네이션) =====
+  const [myFilter, setMyFilter] = useState<MyScope>("ALL");
+  const [myPage, setMyPage] = useState(1); // UI 1부터
+  const [myTotalPages, setMyTotalPages] = useState(1);
+  const [myStudies, setMyStudies] = useState<StudyListItem[]>([]);
+
+  // ===== 모달 =====
+  const [selectedStudyId, setSelectedStudyId] = useState<number | null>(null);
 
   const pageNumbers = useMemo(() => buildPageNumbers(page, totalPages, 5), [page, totalPages]);
 
@@ -140,6 +122,11 @@ export default function StudyPage() {
     setCategory(value);
     setPage(1);
   };
+
+  // myFilter 바뀌면 “나만의 스터디”도 1페이지로 리셋
+  useEffect(() => {
+    setMyPage(1);
+  }, [myFilter]);
 
   // ===== 전체 스터디 목록 =====
   useEffect(() => {
@@ -187,12 +174,13 @@ export default function StudyPage() {
     if (page > totalPages) setPage(totalPages);
   }, [totalPages, page]);
 
-  // ===== 나만의 스터디 목록 =====
+  // ===== 나만의 스터디 목록 (페이지네이션 적용) =====
   useEffect(() => {
     let mounted = true;
 
     if (!isLoggedIn) {
       setMyStudies([]);
+      setMyTotalPages(1);
       return;
     }
 
@@ -200,30 +188,32 @@ export default function StudyPage() {
       try {
         const data = await getMyStudies({
           scope: myFilter,
-          page: 1,
-          size: 50,
+          page: myPage, 
+          size: 3, 
         });
 
         const list = extractMyList(data);
         if (!mounted) return;
+
         setMyStudies(list);
-      } catch (e: any) {
+        setMyTotalPages(Number(data?.totalPages ?? 1) || 1);
+      } catch {
         if (!mounted) return;
         setMyStudies([]);
+        setMyTotalPages(1);
       }
     })();
 
     return () => {
       mounted = false;
     };
-  }, [isLoggedIn, myFilter]);
+  }, [isLoggedIn, myFilter, myPage]);
 
-  // 공통 props
   const commonProps = {
     navigate,
     nickname: user?.nickname ?? "",
 
-    // 아래 필터
+    // 아래 필터(전체 스터디)
     visibility,
     categoryLabel,
     CATEGORY_OPTIONS,
@@ -247,13 +237,17 @@ export default function StudyPage() {
     myStudies,
     myFilter,
     setMyFilter,
+
+    // 나만의 스터디 페이지네이션
+    myPage,
+    setMyPage,
+    myTotalPages,
   };
 
   return (
     <div className="studyPage">
       {isLoggedIn ? <StudyLoggedInView {...commonProps} /> : <StudyGuestView {...commonProps} />}
 
-      {/* 모달 */}
       {selectedStudyId !== null && (
         <StudyViewModal
           open={selectedStudyId !== null}
