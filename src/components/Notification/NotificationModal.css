@@ -71,12 +71,12 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.noti-card.unread {
+.noti-card.read {
   background-color: #e6e6e6;
   border: 1px solid #d4d4d4;
 }
 
-.noti-card.read {
+.noti-card.unread {
   background-color: #FFFFFF;
 }
 
