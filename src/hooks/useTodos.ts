@@ -7,7 +7,7 @@ export interface Todo extends ApiTodo {}
 
 export const useTodos = () => {
   const today = new Date();
-  const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+  const todayString = today.toISOString().slice(0, 10);
 
   const [todos, setTodos] = useState<Todo[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>(todayString);
@@ -34,12 +34,12 @@ export const useTodos = () => {
       const res = await createTodo({ title: "", date: selectedDate, categoryId});
       setTodos(prev => [...prev, res.data]);
     } catch (err) {
-      console.error("추두 생성 실패", err);
+      console.error("투두 생성 실패", err);
     }
   };
 
   // 투두 수정
-  const editTodo = async (todoId: number, data: { title?: string; categoryId?: number }) => {
+  const editTodo = async (todoId: number, data: { title?: string; categoryId?: number}) => {
     const payload = {...data};
 
     if (payload.categoryId === null) {
@@ -47,8 +47,8 @@ export const useTodos = () => {
     }
 
     try {
-      const res = await updateTodo(todoId, data);
-      setTodos(prev => prev.map(t => t.todoId === todoId ? res.data : t));
+      const res = await updateTodo(todoId, payload);
+      setTodos(prev => prev.map(t => (t.todoId === todoId ? res.data : t)));
     } catch (err) {
       console.error("투두 수정 실패", err);
     }

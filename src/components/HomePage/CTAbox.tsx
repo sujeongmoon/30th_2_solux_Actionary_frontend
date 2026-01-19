@@ -11,6 +11,10 @@ interface CTABoxProps {
 
 const CTABox: React.FC<CTABoxProps> = ({ isLoggedIn, nickname }) => {
   const navigate = useNavigate();
+  //safeNickname변수추가
+  const raw = (nickname ?? "").trim();
+  const safeNickname =
+    raw && !["undefined", "null"].includes(raw.toLowerCase()) ? raw : "";
 
   const handlePlusClick = () => {
     if (!isLoggedIn) {
@@ -26,8 +30,14 @@ const CTABox: React.FC<CTABoxProps> = ({ isLoggedIn, nickname }) => {
       {isLoggedIn && (
         <div className="cta-header-row">
           <h2 className="cta-title">
-            <span className="cta-nickname">{nickname}</span>{"  "} 의 스터디
-          </h2>
+  {safeNickname ? (
+    <>
+      <span className="cta-nickname">{safeNickname}</span> 의 스터디
+    </>
+  ) : (
+    <>나의 스터디</>
+  )}
+</h2>
       </div>
       )}
 
@@ -38,7 +48,7 @@ const CTABox: React.FC<CTABoxProps> = ({ isLoggedIn, nickname }) => {
         <p className="cta-text">
           <img src={MainPageLogo} alt="Actionary Logo" className="cta-logo" /> 
           {isLoggedIn
-            ? `${nickname}님, 나만의 스터디를 만들어보세요!`
+            ? `${safeNickname || "회원"}님, 나만의 스터디를 만들어보세요!`
             : "지금 로그인 하고, 나만의 스터디를 만들어보세요!"}
         </p>
 

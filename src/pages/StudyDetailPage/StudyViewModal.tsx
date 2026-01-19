@@ -55,73 +55,7 @@ function toHM(sec: number) {
   return `${h}시간 ${m}분`;
 }
 
-/* ===== 목업 ===== 
-const MOCK_DETAIL: Record<number, StudyDetail> = {
-  1: {
-    studyId: 1,
-    studyName: "같이 공부해요",
-    coverImage: "https://picsum.photos/seed/study1/600/600",
-    categoryLabel: "기타",
-    description: "설명설명설명설명설명설명설명",
-    memberNow: 5,
-    memberLimit: 15,
-    isPublic: true,
-    isStudyLike: false,
-    isStudyOwner: true,
-  },
-  2: {
-    studyId: 2,
-    studyName: "공무원 한국사",
-    coverImage: "https://picsum.photos/seed/study2/600/600",
-    categoryLabel: "공무원",
-    description: "공무원 한국사 같이 달려요",
-    memberNow: 3,
-    memberLimit: 10,
-    isPublic: true,
-    isStudyLike: true,
-    isStudyOwner: false,
-  },
-  3: {
-    studyId: 3,
-    studyName: "토익 900+",
-    coverImage: "https://picsum.photos/seed/study3/600/600",
-    categoryLabel: "어학",
-    description: "토익 점수 올리기",
-    memberNow: 8,
-    memberLimit: 20,
-    isPublic: true,
-    isStudyLike: true,
-    isStudyOwner: false,
-  },
-  6: {
-    studyId: 6,
-    studyName: "비공개 스터디입니다",
-    coverImage: "https://picsum.photos/seed/private/600/600",
-    categoryLabel: "임용",
-    description: "이 스터디는 비공개입니다. 비밀번호가 필요합니다.",
-    memberNow: 3,
-    memberLimit: 10,
-    isPublic: false,
-    isStudyLike: false,
-    isStudyOwner: false,
-  },
-};
 
-const MOCK_PRIVATE_PASSWORD: Record<number, string> = {
-  6: "000000",
-};
-
-const MOCK_RANKINGS: Record<number, RankingRow[]> = {
-  1: [
-    { userId: 1, userNickname: "민지", todayDurationSeconds: 3600, totalDurationSeconds: 12800 },
-    { userId: 2, userNickname: "수아", todayDurationSeconds: 2400, totalDurationSeconds: 9900 },
-    { userId: 3, userNickname: "지후", todayDurationSeconds: 1800, totalDurationSeconds: 8500 },
-  ],
-  6: [
-    { userId: 10, userNickname: "비공개킹", todayDurationSeconds: 4200, totalDurationSeconds: 22100 },
-    { userId: 11, userNickname: "새벽공부", todayDurationSeconds: 3000, totalDurationSeconds: 17000 },
-  ],
-}; */
 
 
 export default function StudyViewModal({ open, onClose, studyId }: Props) {

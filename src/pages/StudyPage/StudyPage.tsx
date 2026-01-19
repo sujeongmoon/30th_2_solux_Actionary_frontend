@@ -8,7 +8,6 @@ import StudyGuestView from "./StudyGuestView";
 import StudyLoggedInView from "./StudyLoggedInView";
 import { getStudies, getMyStudies } from "../../api/studies";
 
-
 // ===== 타입/옵션 =====
 type VisibilityParam = "public" | "private";
 
@@ -33,7 +32,7 @@ const CATEGORY_OPTIONS: { label: string; value?: CategoryEnum }[] = [
 ];
 
 // “나만의 스터디” 상단 필터 (아래 필터랑 완전 별개)
-type MyFilter = "ALL" | "CREATED" | "JOINED" | "FAVORITE";
+type MyFilter = "ALL" | "OWNED" | "JOINED" | "LIKED";
 
 export type StudyListItem = {
   studyId: number;
@@ -59,10 +58,12 @@ function mapStudyItem(raw: any): StudyListItem {
   return {
     studyId: Number(raw?.studyId ?? raw?.id ?? 0),
     studyName: String(raw?.studyName ?? raw?.name ?? ""),
-    coverImage: (raw?.coverImage ?? raw?.image ?? null) as string | null,
+    coverImage: (raw?.coverImage ?? raw?.coverImageUrl ?? raw?.image ?? null) as string | null,
     isPublic: Boolean(raw?.isPublic ?? raw?.public ?? raw?.visibility === "PUBLIC"),
 
-    category: (raw?.category ?? raw?.categoryEnum ?? undefined) as CategoryEnum | undefined,
+    category: (raw?.category ?? raw?.studyCategory ?? raw?.categoryEnum ?? undefined) as
+      | CategoryEnum
+      | undefined,
   };
 }
 
@@ -81,8 +82,11 @@ function extractPaged(raw: any) {
     Number(raw?.totalElements ?? raw?.totalCount ?? raw?.total ?? items.length) || 0;
 
   const totalPages =
-    Number(raw?.totalPages ?? raw?.pageCount ?? Math.max(1, Math.ceil(totalElements / (raw?.size ?? 8)))) ||
-    1;
+    Number(
+      raw?.totalPages ??
+        raw?.pageCount ??
+        Math.max(1, Math.ceil(totalElements / (raw?.size ?? 8)))
+    ) || 1;
 
   const size = Number(raw?.size ?? raw?.pageSize ?? 8) || 8;
 
@@ -90,14 +94,19 @@ function extractPaged(raw: any) {
 }
 
 function extractMyList(raw: any): StudyListItem[] {
-  const itemsRaw = raw?.items ?? raw?.content ?? raw?.studies ?? raw?.list ?? raw?.data ?? [];
+  const itemsRaw =
+    raw?.items ??
+    raw?.content ??
+    raw?.studies ??
+    raw?.list ??
+    raw?.data ??
+    [];
   return Array.isArray(itemsRaw) ? itemsRaw.map(mapStudyItem) : [];
 }
 
-
 export default function StudyPage() {
   const navigate = useNavigate();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth();
 
   const [visibility, setVisibility] = useState<VisibilityParam>("public");
   const [categoryLabel, setCategoryLabel] = useState<string>("전체");
@@ -132,12 +141,11 @@ export default function StudyPage() {
     setPage(1);
   };
 
+  // ===== 전체 스터디 목록 =====
   useEffect(() => {
     let mounted = true;
     setLoading(true);
     setErrorMsg(null);
-
-
 
     (async () => {
       try {
@@ -145,30 +153,30 @@ export default function StudyPage() {
           visibility,
           category,
           page,
-          size: 8, 
+          size: 8,
         });
 
         const { items, totalElements, totalPages, size } = extractPaged(data);
 
-      if (!mounted) return;
-      setItems(items);
-      setTotalElements(totalElements);
-      setTotalPages(totalPages);
-      setSize(size);
-    } catch (e: any) {
-      if (!mounted) return;
-      const status = e?.response?.status;
-      if (status === 401) setErrorMsg("로그인이 필요해요.");
-      else setErrorMsg(e?.response?.data?.message ?? "스터디 목록을 불러오지 못했어요.");
-      setItems([]);
-      setTotalElements(0);
-      setTotalPages(1);
-      setSize(8);
-    } finally {
-      if (mounted) setLoading(false);
-    }
-  })();
+        if (!mounted) return;
+        setItems(items);
+        setTotalElements(totalElements);
+        setTotalPages(totalPages);
+        setSize(size);
+      } catch (e: any) {
+        if (!mounted) return;
+        const status = e?.response?.status;
+        if (status === 401) setErrorMsg("로그인이 필요해요.");
+        else setErrorMsg(e?.response?.data?.message ?? "스터디 목록을 불러오지 못했어요.");
 
+        setItems([]);
+        setTotalElements(0);
+        setTotalPages(1);
+        setSize(8);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
 
     return () => {
       mounted = false;
@@ -179,6 +187,7 @@ export default function StudyPage() {
     if (page > totalPages) setPage(totalPages);
   }, [totalPages, page]);
 
+  // ===== 나만의 스터디 목록 =====
   useEffect(() => {
     let mounted = true;
 
@@ -187,13 +196,12 @@ export default function StudyPage() {
       return;
     }
 
-
     (async () => {
       try {
         const data = await getMyStudies({
-          scope: myFilter, 
+          scope: myFilter,
           page: 1,
-          size: 50, 
+          size: 50,
         });
 
         const list = extractMyList(data);
@@ -205,17 +213,15 @@ export default function StudyPage() {
       }
     })();
 
-
     return () => {
       mounted = false;
     };
   }, [isLoggedIn, myFilter]);
 
-
-
   // 공통 props
   const commonProps = {
     navigate,
+    nickname: user?.nickname ?? "",
 
     // 아래 필터
     visibility,
@@ -249,7 +255,11 @@ export default function StudyPage() {
 
       {/* 모달 */}
       {selectedStudyId !== null && (
-        <StudyViewModal open={selectedStudyId !== null} onClose={() => setSelectedStudyId(null)} studyId={selectedStudyId} />
+        <StudyViewModal
+          open={selectedStudyId !== null}
+          onClose={() => setSelectedStudyId(null)}
+          studyId={selectedStudyId}
+        />
       )}
     </div>
   );
