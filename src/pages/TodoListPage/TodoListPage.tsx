@@ -6,6 +6,7 @@ import ddd from "../../assets/TodoList/ddd.svg";
 import todoCheck from "../../assets/TodoList/todoCheck.svg";
 import { useTodoCategoriesContext } from '../../context/TodoCategoriesContext';
 import { useTodos } from '../../hooks/useTodos';
+import type { Todo } from '../../api/Todos/todosApi';
 
 // 모달 컴포넌트
 import CategoryCreateModal from '../../components/TodoList/CategoryCreateModal';
@@ -13,14 +14,8 @@ import CategoryManageModal from '../../components/TodoList/CategoryManageModal';
 import CategoryEditModal from '../../components/TodoList/CategoryEditModal';
 import { ReactMarkView } from '@tiptap/react';
 
-// 목업 데이터 타입
-interface Todo {
-  todoId: number;
-  categoryId: number;
-  title: string;
-  status: 'DONE' | 'TODO' | 'FAIL';
-  date: string;
-}
+
+
 
 interface Category {
   categoryId: number;
@@ -34,20 +29,19 @@ interface TodoDropdownPosition {
 }
 
 const TodoListPage: React.FC = () => {
-  // 상태
+  const { todos, selectedDate, setSelectedDate, addTodoItem, editTodo, removeTodo, changeStatus, } = useTodos();
+  /* 상태
   const today = new Date();
   const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
 
-  const [selectedDate, setSelectedDate] = useState(todayString);
-
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const [selectedDate, setSelectedDate] = useState(todayString); */
 
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [manageModalOpen, setManageModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editTodoId, setEditTodoId] = useState<number | null>(null);
-  const [editTodoText, setEditTodoText] = useState<string>('');
+  const [editingTitle, setEditingTitle] = useState('');
 
   const [todoDropdownOpenId, setTodoDropdownOpenId] = useState<number | null>(null);
   const [todoDropdownPosition, setTodoDropdownPosition] = useState<TodoDropdownPosition>({ top: 0, left: 0 });
@@ -96,39 +90,8 @@ const TodoListPage: React.FC = () => {
     const days = ["일요일","월요일","화요일","수요일","목요일","금요일","토요일"];
     return `${date.getFullYear()} / ${date.getMonth() + 1} / ${date.getDate()} / ${days[date.getDay()]}`;
   };
-
-  // 투두 상태 토글
-  const toggleTodoStatus = (todoId: number, status: 'DONE' | 'FAIL') => {
-    setTodos(prev =>
-      prev.map(todo =>
-        todo.todoId === todoId
-          ? { ...todo, status: status }
-          : todo
-      )
-    );
-  };
-
-
-  // 투두 삭제
-  const removeTodo = (todoId: number) => {
-    setTodos(prev => prev.filter(todo => todo.todoId !== todoId));
-    setTodoDropdownOpenId(null);
-  };
-
-  // 투두 추가 (간단한 목업)
-  const addTodo = (categoryId: number) => {
-    const newTodo: Todo = {
-      todoId: Date.now(),
-      categoryId,
-      title: '',
-      status: 'TODO',
-      date: selectedDate,
-    };
-    setTodos(prev => [...prev, newTodo]);
-    setEditTodoId(newTodo.todoId);
-  }
   
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, todo: Todo) => {
+  /*const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, todo: Todo) => {
     if (e.key === 'Enter') {
       if (todo.title.trim() === '') {
         setTodos(prev =>
@@ -141,7 +104,7 @@ const TodoListPage: React.FC = () => {
     }
   };
 
-  const isToday = selectedDate === todayString;
+  const isToday = selectedDate === todayString;*/
 
 
   return (
@@ -185,7 +148,7 @@ const TodoListPage: React.FC = () => {
                   {cat.name}
                 </div>
 
-                <button className="add-cat-button" onClick={() => addTodo(cat.categoryId)}>+</button>
+                <button className="add-cat-button" onClick={() => addTodoItem(cat.categoryId)}>+</button>
               
               </div>
 
@@ -198,18 +161,16 @@ const TodoListPage: React.FC = () => {
                   {editTodoId === todo.todoId ? (
                     <input
                       type="text"
-                      value={todo.title}
+                      value={editingTitle}
                       placeholder="| 새 할 일 + Enter"
-                      onChange={e => {
-                        const value = e.target.value;
-                        setTodos(prev =>
-                          prev.map(td => td.todoId === todo.todoId ? {...td, title:value} : td)
-                        );
-                      }}
-                      onKeyDown={e => {
+                      onChange={e => setEditingTitle(e.target.value)}
+                      onKeyDown={async e => {
                         if (e.key === 'Enter') {
-                          if (todo.title.trim() === '') {
-                            removeTodo(todo.todoId);
+                          const trimmed = editingTitle.trim();
+                          if (trimmed === '') {
+                            await removeTodo(todo.todoId);
+                          } else {
+                            await editTodo(todo.todoId, { title: trimmed});
                           }
                           setEditTodoId(null);
                         }
@@ -223,13 +184,13 @@ const TodoListPage: React.FC = () => {
                   <div className="btn-group">
                     <button
                       className={`todo-status-btn success ${todo.status === 'DONE' ? 'active' : ''}`}
-                      onClick={() => toggleTodoStatus(todo.todoId, 'DONE')}
+                      onClick={() => changeStatus(todo.todoId, 'DONE')}
                     >
                       달성
                     </button>
                     <button
-                      className={`todo-status-btn fail ${todo.status === 'FAIL' ? 'active' : ''}`}
-                      onClick={() => toggleTodoStatus(todo.todoId, 'FAIL')}
+                      className={`todo-status-btn fail ${todo.status === 'FAILED' ? 'active' : ''}`}
+                      onClick={() => changeStatus(todo.todoId, 'FAILED')}
                     >
                       실패
                     </button>
@@ -260,6 +221,8 @@ const TodoListPage: React.FC = () => {
           }}
         >
             <li onClick={() => {
+              const todo = todos.find(t => t.todoId === todoDropdownOpenId);
+              if (todo) setEditingTitle(todo.title);
               setEditTodoId(todoDropdownOpenId);
               setTodoDropdownOpenId(null);
             }}>
