@@ -116,7 +116,7 @@ const BoardListPage: React.FC = () => {
                 setIsCategoryOpen(false);
               }}
             >
-              {selectedSort === 'popular' ? '인기순' : '최신순'}
+              {selectedSort === 'latest' ? '인기순' : '최신순'}
               <span className={`arrow ${isSortOpen ? 'up' : 'down'}`}>
                 <img src={DropdownIcon} alt="arrow" className="board-pagination-icon" />
               </span>
