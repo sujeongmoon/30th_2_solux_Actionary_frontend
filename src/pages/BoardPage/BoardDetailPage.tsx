@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { PostDetailData, Comment } from '../../types/Board';
+import type { CommentResponse, PostDetailData } from '../../types/Board';
 import './BoardDetailPage.css';
 import { badgeMap } from '../../utils/badgeMap';
 import lock from '../../assets/Board/lock.svg';
@@ -11,6 +11,7 @@ import { getPostDetail, deletePost, getMyInfo } from '../../api/boardDetail/post
 import { getComments, createComment, deleteComment, updateComment } from '../../api/boardDetail/comment';
 import { useNavigate } from 'react-router-dom'
 import LoginAlertModal from '../../components/AlertModal/LoginAlertModal';
+import Pagination from '../../components/Pagination/Pagination';
 
 /* ============================================= */
 
@@ -26,6 +27,9 @@ const BoardDetailPage = () => {
   const [isPostMenuOpen, setIsPostMenuOpen] = useState(false);
   /** 댓글 메뉴 */
   const [openCommentMenuMap, setOpenCommentMenuMap] = useState<{ [id: number]: boolean }>({});
+  const [commentPage, setCommentPage] = useState(0);
+
+
   /** 댓글 입력 */
   const [commentText, setCommentText] = useState('');
   const [isSecret, setIsSecret] = useState(false);
@@ -57,12 +61,13 @@ const BoardDetailPage = () => {
   })
 
 
-  /* 댓글 목록*/
-  const {data: commentData } = useQuery<Comment[]>({
-    queryKey: ['comments', postId],
-    queryFn: () => getComments(Number(postId)).then(res => res.data.comments),
-  enabled: !!postId,
-  });
+  const { data: commentResponse } = useQuery<CommentResponse>({
+  queryKey: ['comments', postId, commentPage],
+  queryFn: () => getComments(Number(postId), commentPage, 10),
+});
+const comments = commentResponse?.data.comments ?? [];
+  const pageInfo = commentResponse?.data.pageInfo;
+
 
   /* ==================== Mutaion ================== */
 
@@ -140,7 +145,6 @@ const BoardDetailPage = () => {
     if (isError || !postData) return <div className="error">게시글을 찾을 수 없습니다.</div>;
 
     const { post, author, postImageUrls } = postData;
-    const comments = commentData ?? [];
     const isMyPost = isLoggedIn && myMemberId === author.memberId;
 
 
@@ -186,7 +190,7 @@ const BoardDetailPage = () => {
 
           <div className="header-right">
             <div className="comment-info">
-              댓글 <span className="highlight">{comments.length}</span>
+              댓글 <span className="highlight">{pageInfo?.totalElements ?? 0}</span>
             </div>
 
             {isMyPost && (
@@ -236,7 +240,7 @@ const BoardDetailPage = () => {
       {/* ================= 댓글 ================= */}
       <section className="comment-section">
         <h2 className="comment-title">
-          댓글 <span className="count-grey">{comments.length}</span>
+          댓글 <span className="count-grey">{pageInfo?.totalElements ?? 0}</span>
         </h2>
         
         {comments.map((comment) => {
@@ -385,15 +389,25 @@ const BoardDetailPage = () => {
           </button>
         </div>
       </div>
+      {pageInfo && pageInfo.totalPages > 1 && (
+        <div className='psd-pagination-wrapper'>
+        <Pagination
+          currentPage={pageInfo.page + 1} // UI는 1부터
+          totalPages={pageInfo.totalPages}
+          onPageChange={(page) => setCommentPage(page - 1)} // API는 0부터
+        />
+        </div>
+      )}
+
       {showLoginModal && (
-  < LoginAlertModal
-    isOpen={showLoginModal}
-    onClose={() => setShowLoginModal(false)}
-    onLogin={() => {                       // 로그인 버튼 눌렀을 때
-    setShowLoginModal(false);              // 모달 닫기
-    navigate('/login');                     // 로그인 페이지로 이동
-  }}
-  />
+      < LoginAlertModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onLogin={() => {                       // 로그인 버튼 눌렀을 때
+        setShowLoginModal(false);              // 모달 닫기
+        navigate('/login');                     // 로그인 페이지로 이동
+      }}
+      />
 )}
 
     </div>
