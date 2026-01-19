@@ -83,7 +83,7 @@ const comments = commentResponse?.data.comments ?? [];
 
   const deleteCommentMutation = useMutation({
     mutationFn: (commentId: number) => 
-      deleteComment(Number(postId), commentId),
+      deleteComment(commentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['comments', postId ]});
     },

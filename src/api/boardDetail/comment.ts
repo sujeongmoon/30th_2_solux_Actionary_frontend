@@ -52,7 +52,7 @@ export const updateComment = async (
     }
 };
 
-export const deleteComment = async (commentId: number, postId: number) => {
+export const deleteComment = async (commentId: number) => {
     const res = await api.delete(`/posts/comments/${commentId}`);
     return res.data;
 }
