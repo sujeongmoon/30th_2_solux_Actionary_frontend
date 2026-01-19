@@ -29,25 +29,22 @@ export const useTodos = () => {
   }, [selectedDate]);
 
   // 투두 추가
-  const addTodoItem = async (categoryId: number) => {
+  const addTodoItem = async (categoryId: number): Promise<Todo> => {
     try {
-      const res = await createTodo({ title: "", date: selectedDate, categoryId});
+      const res = await createTodo({ title: "|", date: selectedDate, categoryId});
+      console.log("새 투두:", res.data);
       setTodos(prev => [...prev, res.data]);
+      return res.data;
     } catch (err) {
       console.error("투두 생성 실패", err);
+      throw err;
     }
   };
 
   // 투두 수정
   const editTodo = async (todoId: number, data: { title?: string; categoryId?: number}) => {
-    const payload = {...data};
-
-    if (payload.categoryId === null) {
-      delete payload.categoryId;
-    }
-
     try {
-      const res = await updateTodo(todoId, payload);
+      const res = await updateTodo(todoId, data);
       setTodos(prev => prev.map(t => (t.todoId === todoId ? res.data : t)));
     } catch (err) {
       console.error("투두 수정 실패", err);

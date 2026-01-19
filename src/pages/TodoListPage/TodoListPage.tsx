@@ -6,7 +6,7 @@ import ddd from "../../assets/TodoList/ddd.svg";
 import todoCheck from "../../assets/TodoList/todoCheck.svg";
 import { useTodoCategoriesContext } from '../../context/TodoCategoriesContext';
 import { useTodos } from '../../hooks/useTodos';
-import type { Todo } from '../../api/Todos/todosApi';
+import { updateTodo, type Todo } from '../../api/Todos/todosApi';
 
 // 모달 컴포넌트
 import CategoryCreateModal from '../../components/TodoList/CategoryCreateModal';
@@ -30,6 +30,7 @@ interface TodoDropdownPosition {
 
 const TodoListPage: React.FC = () => {
   const { todos, selectedDate, setSelectedDate, addTodoItem, editTodo, removeTodo, changeStatus, } = useTodos();
+  const { categories } = useTodoCategoriesContext();
   /* 상태
   const today = new Date();
   const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
@@ -42,6 +43,7 @@ const TodoListPage: React.FC = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editTodoId, setEditTodoId] = useState<number | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const [isNewTodo, setIsNewTodo] = useState(false); //새 투두 여부
 
   const [todoDropdownOpenId, setTodoDropdownOpenId] = useState<number | null>(null);
   const [todoDropdownPosition, setTodoDropdownPosition] = useState<TodoDropdownPosition>({ top: 0, left: 0 });
@@ -49,13 +51,12 @@ const TodoListPage: React.FC = () => {
 
   // 카테고리 드롭다운 위치 계산
   const categoryButtonRef = useRef<HTMLButtonElement | null>(null);
-
   const [categoryDropdownPosition, setCategoryDropdownPosition] = useState({
     top: 0,
     left: 0,
   });
 
-  const { categories } = useTodoCategoriesContext();
+  /*const { categories } = useTodoCategoriesContext();
 const visibleCategories = categories.filter(cat => {
   const createdUTC = new Date(cat.createdAt);
   const createdKST = new Date(createdUTC.getTime() + 9 * 60 * 60 * 1000);
@@ -65,8 +66,17 @@ const visibleCategories = categories.filter(cat => {
   selected.setHours(0,0,0,0);
 
   return selected >= createdKST;
-});
+});*/
 
+  const handleAddTodo = async (categoryId: number) => {
+    try {
+      const newTodo = await addTodoItem(categoryId);
+      setEditTodoId(newTodo.todoId);
+      setEditingTitle('');
+    } catch (err) {
+      console.error("새 투두 추가 실패", err);
+    }
+  };
 
   // 투두 드롭다운 위치 계산
   const handleTodoDropdownToggle = (todoId: number) => {
@@ -101,21 +111,6 @@ const visibleCategories = categories.filter(cat => {
     const days = ["일요일","월요일","화요일","수요일","목요일","금요일","토요일"];
     return `${date.getFullYear()} / ${date.getMonth() + 1} / ${date.getDate()} / ${days[date.getDay()]}`;
   };
-  
-  /*const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, todo: Todo) => {
-    if (e.key === 'Enter') {
-      if (todo.title.trim() === '') {
-        setTodos(prev =>
-          prev.map(td =>
-            td.todoId === todo.todoId ? {...td, title: td.title || todo.title} : td
-          )
-        );
-      }
-      setEditTodoId(null);
-    }
-  };
-
-  const isToday = selectedDate === todayString;*/
 
 
   return (
@@ -149,7 +144,7 @@ const visibleCategories = categories.filter(cat => {
 
           </div>
 
-          {visibleCategories.map(cat => (
+          {categories.map(cat => (
             <div key={cat.categoryId} className="category-block">
               <div className="category-header">
                 <div
@@ -159,7 +154,7 @@ const visibleCategories = categories.filter(cat => {
                   {cat.name}
                 </div>
 
-                <button className="add-cat-button" onClick={() => addTodoItem(cat.categoryId)}>+</button>
+                <button className="add-cat-button" onClick={() => handleAddTodo(cat.categoryId)}>+</button>
               
               </div>
 
@@ -178,18 +173,24 @@ const visibleCategories = categories.filter(cat => {
                       onKeyDown={async e => {
                         if (e.key === 'Enter') {
                           const trimmed = editingTitle.trim();
-                          if (trimmed === '') {
-                            await removeTodo(todo.todoId);
+                          if (trimmed !== '') {
+                            await editTodo(todo.todoId, { title: trimmed });
+                            setEditingTitle('');
+                            setIsNewTodo(false);
                           } else {
-                            await editTodo(todo.todoId, { title: trimmed});
+                            e.preventDefault();
                           }
-                          setEditTodoId(null);
                         }
                       }}
                       autoFocus
                     />
                   ):(
-                    <span>{todo.title}</span>
+                    <span
+                      onClick={() => {
+                        setEditTodoId(todo.todoId);
+                        setEditingTitle(todo.title);
+                      }}
+                    >{todo.title || "새 할 일"}</span>
                   )}
 
                   <div className="btn-group">
