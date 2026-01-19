@@ -1,24 +1,54 @@
-import api from "../client"; // 이미 interceptor 적용된 axios 인스턴스 사용
+import api from "../client";
+
+/* ================== 타입 ================== */
 
 export interface NotificationResponse {
   notificationId: number;
   type: string;
   title: string;
   content: string;
-  link: string;
+  link: string | null;   // ⭐ null 허용
   isRead: boolean;
   createdAt: string;
 }
 
-export interface GetNotificationsResult {
+interface ApiResponse<T> {
   success: boolean;
   message: string;
-  data: NotificationResponse[];
+  data: T;
 }
 
-export const getNotifications = async (limit?: number): Promise<NotificationResponse[]> => {
-  const url = limit ? `/notifications?limit=${limit}` : '/notifications';
-  const response = await api.get<GetNotificationsResult>(url); // 여기서 axios 인스턴스 사용
-  if (!response.data.success) throw new Error(response.data.message || '알림 조회 실패');
-  return response.data.data;
+/* ================== 알림 목록 ================== */
+
+export const getNotifications = async (
+  limit?: number
+): Promise<NotificationResponse[]> => {
+  const res = await api.get<ApiResponse<NotificationResponse[]>>(
+    '/notifications',
+    { params: limit ? { limit } : undefined }
+  );
+
+  if (!res.data.success) {
+    throw new Error(res.data.message || '알림 조회 실패');
+  }
+
+  return res.data.data;
+};
+
+/* ================== 읽음 처리 ================== */
+
+export const markNotificationAsRead = async (
+  notificationId: number
+): Promise<NotificationResponse> => {
+  console.log('[API] markNotificationAsRead', notificationId); // ⭐ 디버깅용
+
+  const res = await api.patch<ApiResponse<NotificationResponse>>(
+    `/notifications/${notificationId}/read`
+  );
+
+  if (!res.data.success) {
+    throw new Error(res.data.message || '알림 읽음 처리 실패');
+  }
+
+  return res.data.data;
 };

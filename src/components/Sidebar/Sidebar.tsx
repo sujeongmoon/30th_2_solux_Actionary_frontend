@@ -222,11 +222,18 @@ const RightSidebar = () => {
       </aside>
       {isNotificationOpen && (
       <NotificationModal
-        isOpen={isNotificationOpen}
-        onClose={() => setIsNotificationOpen(false)}
-        notifications={notifications} 
-      />
-)}
+          isOpen={isNotificationOpen}
+          onClose={() => setIsNotificationOpen(false)}
+          notifications={notifications}
+          onUpdateNotification={(updated: NotificationItem) =>
+            setNotifications((prev) =>
+              prev.map((noti) =>
+                noti.notificationId === updated.notificationId ? updated : noti
+              )
+            )
+          }
+        />
+      )}
 
     </>
   );
