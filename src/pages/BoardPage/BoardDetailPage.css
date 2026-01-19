@@ -344,3 +344,10 @@
   cursor: pointer;
   font-weight: 500;
 }
+
+.psd-pagination-wrapper {
+  display: flex;      /* 컨텐츠 크기만큼만 너비 */
+  justify-content: center !important;   /* 버튼 중앙 정렬 */
+  margin: 0px auto;
+  width: 100%;         /* 위아래 여백 + 중앙 배치 */
+}

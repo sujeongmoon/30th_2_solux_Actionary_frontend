@@ -28,7 +28,6 @@ const ProfileSectionPublic: React.FC<ProfileSectionPublicProps> = ({ userInfo })
       <div className="owner-info-container-public">
         <div className="owner-nickname-group">
           <span className="owner-nickname">{userInfo.nickname}</span>
-          <div className="owner-nickname-underline"></div>
         </div>
       </div>
     </div>
