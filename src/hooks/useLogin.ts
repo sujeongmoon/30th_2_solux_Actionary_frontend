@@ -18,10 +18,29 @@ export const useLogin = () => {
       //setErrorMessage(null);
 
       const response = await loginApi(body);
-      const accessToken = response.data.accessToken
+
+      //삭제 const accessToken = response.data.accessToken
+      const { accessToken, refreshToken, memberId, nickname, profileImageUrl } = response.data;
+      
+      setAuth({
+        token: accessToken,
+        refreshToken,
+        user: { memberId, nickname, profileImageUrl },
+      });
+
+      navigate("/");
+      return response;
+    } catch (error: any) {
+      setErrorMessage(error?.response?.data?.message ?? "로그인 오류가 발생했습니다.");
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
      /* 로그인 시 토큰 저장 */ 
-      //localStorage.setItem("accessToken", response.data.accessToken);
+      /* localStorage.setItem("accessToken", response.data.accessToken);
       localStorage.setItem("refreshToken", response.data.refreshToken);
       setToken(accessToken);
       navigate("/");
