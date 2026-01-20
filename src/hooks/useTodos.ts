@@ -1,102 +1,136 @@
 import { useEffect, useState } from "react";
-import React from "react";
-import type { ApiEnvelope } from "../api/types";
-import { getTodosByDate, createTodo, updateTodo, updateTodoStatus, deleteTodo } from "../api/Todos/todosApi";
-import type{ Todo as ApiTodo } from "../api/Todos/todosApi";
+import {
+  getTodosByDate,
+  createTodo,
+  updateTodo,
+  updateTodoStatus,
+  deleteTodo,
+} from "../api/Todos/todosApi";
+import type { Todo } from '../api/Todos/todosApi';
 
-export interface Todo extends ApiTodo {}
+export type TodoStatus = "PENDING" | "DONE" | "FAILED";
+
 
 export const useTodos = () => {
-  const today = new Date();
-  const todayString = today.toISOString().slice(0, 10);
+  // 오늘 날짜 (YYYY-MM-DD)
+  const todayString = new Date().toISOString().slice(0, 10);
 
   const [todos, setTodos] = useState<Todo[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>(todayString);
   const [loading, setLoading] = useState(false);
 
-  const normalizeDate = (date: string) => 
-    new Date(date).toISOString().slice(0,10);
-
+  // ---------------- 특정 날짜 투두 조회 ----------------
   useEffect(() => {
     const fetchTodos = async () => {
       setLoading(true);
       try {
         const data = await getTodosByDate(selectedDate);
-        const normalized = data.map(todo => ({
-          ...todo,
-          date: normalizeDate(todo.date),
-        }));
-        setTodos(normalized);
+        setTodos(data);
       } catch (err) {
         console.error("투두 조회 실패", err);
       } finally {
         setLoading(false);
       }
     };
+
     fetchTodos();
   }, [selectedDate]);
 
-  // 투두 추가
+  // ---------------- 캘린더용 맵 ----------------
+const calendarMap = todos.reduce<Record<string, Todo[]>>((acc, todo) => {
+  const date = selectedDate; // 서버에서 날짜별 조회하므로 전부 이 날짜
+  acc[date] = acc[date] ? [...acc[date], todo] : [todo];
+  return acc;
+}, {});
+
+
+  
+
+  // ---------------- 투두 임시 추가 (UI용) ----------------
   const addTodoItem = (categoryId: number): Todo => {
     const tempTodo: Todo = {
-      todoId: Date.now() * -1,
-      title: '',
-      date: selectedDate,
+      todoId: Date.now() * -1, // 임시 음수 ID
+      title: "",
       categoryId,
-      status: 'PENDING',
-      createdAt: new Date().toISOString(),
+      status: "PENDING",
     };
+
     setTodos(prev => [...prev, tempTodo]);
     return tempTodo;
   };
 
+  // ---------------- 서버에 투두 생성 ----------------
   const createTodoOnServer = async (
     tempTodoId: number,
     title: string,
     categoryId?: number | null
   ) => {
-    const res = await createTodo({
-      title,
-      date: selectedDate,
-      categoryId,
-    });
-    const normalizedTodo = {
-      ...res.data,
-      date: normalizeDate(res.data.date),
+    try {
+      const res = await createTodo({
+        title,
+        date: selectedDate,
+        categoryId,
+      });
+
+      const createdTodo: Todo = {
+      todoId: res.data.todoId,
+      title: res.data.title,
+      categoryId: res.data.categoryId,
+      status: res.data.status,
     };
-    setTodos(prev =>
-      prev.map(t => (t.todoId === tempTodoId ? normalizedTodo : t))
-    );
+
+      setTodos(prev =>
+        prev.map(t => (t.todoId === tempTodoId ? createdTodo : t))
+      );
+    } catch (err) {
+      console.error("투두 생성 실패", err);
+      // 실패 시 임시 투두 제거
+      setTodos(prev => prev.filter(t => t.todoId !== tempTodoId));
+    }
   };
 
-  // 투두 수정
-  const editTodo = async (todoId: number, data: { title?: string; categoryId?: number}) => {
+  // ---------------- 투두 수정 ----------------
+  const editTodo = async (
+    todoId: number,
+    data: { title?: string; categoryId?: number }
+  ) => {
     try {
       const res = await updateTodo(todoId, data);
-      const normalizedTodo = {
-        ...res.data,
-        date: normalizeDate(res.data.date),
+      const updatedTodo: Todo = {
+        todoId: res.data.todoId,
+        title: res.data.title,
+        categoryId: res.data.categoryId,
+        status: res.data.status,
       };
-      setTodos(prev => 
-        prev.map(t => (t.todoId === todoId ? normalizedTodo : t))
+
+
+      setTodos(prev =>
+        prev.map(t => (t.todoId === todoId ? updatedTodo : t))
       );
     } catch (err) {
       console.error("투두 수정 실패", err);
     }
   };
 
-  // 상태 변경
-  const changeStatus = async (todoId: number, status: "PENDING" | "DONE" | "FAILED") => {
+  // ---------------- 상태 변경 ----------------
+  const changeStatus = async (
+    todoId: number,
+    status: "PENDING" | "DONE" | "FAILED"
+  ) => {
     try {
       const res = await updateTodoStatus(todoId, status);
-      setTodos(prev => prev.map(t => t.todoId === todoId ? { ...t, status: res.data.status } : t));
+      setTodos(prev =>
+        prev.map(t =>
+          t.todoId === todoId ? { ...t, status: res.data.status } : t
+        )
+      );
     } catch (err) {
       console.error("투두 상태 변경 실패", err);
     }
   };
 
-  // 투두 삭제
-  const removeTodo = async(todoId: number) => {
+  // ---------------- 투두 삭제 ----------------
+  const removeTodo = async (todoId: number) => {
     try {
       await deleteTodo(todoId);
       setTodos(prev => prev.filter(t => t.todoId !== todoId));
@@ -109,14 +143,17 @@ export const useTodos = () => {
     selectedDate,
     setSelectedDate,
     todos,
+    loading,
     addTodoItem,
     createTodoOnServer,
-    removeTodo,
     editTodo,
     changeStatus,
+    removeTodo,
     setTodos,
+    calendarMap,
   };
 };
 
-export default useTodos;
 
+
+export default useTodos;
