@@ -151,23 +151,18 @@ export type UpdateStudyResponse = {
   isPublic?: boolean;
 };
 
-// studies.ts
-
-export type UpdateStudyPayload = {
-  studyName: string;
-  coverImage: string;                 // 문서 예시상 필드 존재
-  category: "CSAT" | "CIVIL_SERVICE" | "TEACHER_EXAM" | "LICENSE" | "LANGUAGE" | "EMPLOYMENT" | "OTHER";
-  description: string;
-
-  // 문서 예시가 문자열이라 string으로 맞추는 게 안전
-  memberLimit: string;                // "15"
-  isPublic: string;                   // "true" | "false"
-  password: string | null;            // 비공개면 "060522", 공개면 null
-};
-
 export async function updateStudy(studyId: number, payload: UpdateStudyPayload) {
-  // ✅ JSON 그대로 보냄 (multipart X)
-  const res = await api.put<ApiEnvelope<UpdateStudyResponse>>(`/studies/${studyId}`, payload);
+  const req = {
+    studyName: payload.studyName,
+    coverImage: payload.coverImage ?? null,          
+    category: payload.category,
+    description: payload.description,
+    memberLimit: String(payload.memberLimit),       
+    isPublic: String(payload.isPublic),             
+    password: payload.password == null ? null : String(payload.password), 
+  };
+
+  const res = await api.put<ApiEnvelope<UpdateStudyResponse>>(`/studies/${studyId}`, req);
   return res.data.data;
 }
 export { getStudyList as getStudies };
