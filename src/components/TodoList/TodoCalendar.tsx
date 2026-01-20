@@ -13,6 +13,11 @@ interface TodoCalendarProps {
   onChangeDate: (date: string) => void;
   todos: Todo[];
 }
+const pad = (n: number) => String(n).padStart(2, '0');
+const parseDate = (dateStr: string) => {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d);
+};
 
 const TodoCalendar: React.FC<TodoCalendarProps> = ({
   selectedDate,
@@ -21,12 +26,11 @@ const TodoCalendar: React.FC<TodoCalendarProps> = ({
 }) => {
   const [activeMonth, setActiveMonth] = useState(new Date(selectedDate));
   const [view, setView] = useState<'month' | 'year' | 'decade' | 'century'>('month');
-
   // 날짜 변경
   const handleChange = (value: any) => {
     if (!value || Array.isArray(value)) return;
     onChangeDate(
-      `${value.getFullYear()}-${value.getMonth() + 1}-${value.getDate()}`
+      `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`
     );
   };
 
@@ -100,7 +104,7 @@ const TodoCalendar: React.FC<TodoCalendarProps> = ({
 
       <Calendar
         className="todo-calendar"
-        value={new Date(selectedDate)}
+        value={parseDate(selectedDate)}
         onChange={handleChange}
         view={view}
         onViewChange={({ view }) => setView(view)}
@@ -115,8 +119,7 @@ const TodoCalendar: React.FC<TodoCalendarProps> = ({
         }}
         tileContent={({ date, view }) => {
           if (view !== 'month') return null;
-
-          const dateStr = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+          const dateStr = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
           const dayTodos = todos.filter(t => t.date === dateStr);
 
           // 투두가 없으면 아이콘 안 보이게

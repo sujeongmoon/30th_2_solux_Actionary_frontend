@@ -6,7 +6,6 @@ import ddd from "../../assets/TodoList/ddd.svg";
 import todoCheck from "../../assets/TodoList/todoCheck.svg";
 import { useTodoCategoriesContext } from '../../context/TodoCategoriesContext';
 import { useTodos } from '../../hooks/useTodos';
-import { updateTodo, type Todo } from '../../api/Todos/todosApi';
 
 // 모달 컴포넌트
 import CategoryCreateModal from '../../components/TodoList/CategoryCreateModal';
@@ -29,7 +28,7 @@ interface TodoDropdownPosition {
 }
 
 const TodoListPage: React.FC = () => {
-  const { todos, selectedDate, setSelectedDate, addTodoItem, editTodo, removeTodo, changeStatus, } = useTodos();
+  const { todos, selectedDate, setSelectedDate, addTodoItem, editTodo, setTodos, removeTodo, changeStatus, createTodoOnServer} = useTodos();
   /* 상태
   const today = new Date();
   const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
@@ -76,9 +75,9 @@ const TodoListPage: React.FC = () => {
 
   const handleAddTodo = async (categoryId: number) => {
     try {
-      const newTodo = await addTodoItem(categoryId);
-      console.log(newTodo);
-      setEditTodoId(newTodo.todoId);
+      const tempTodo = addTodoItem(categoryId);
+      console.log(tempTodo);
+      setEditTodoId(tempTodo.todoId);
       setEditingTitle('');
     } catch (err) {
       console.error("새 투두 추가 실패", err);
@@ -180,11 +179,13 @@ const TodoListPage: React.FC = () => {
                       onKeyDown={async e => {
                         if (e.key === 'Enter') {
                           const trimmed = editingTitle.trim();
-                          if (trimmed !== '') {
-                            await editTodo(todo.todoId, { title: trimmed });
+                          if (trimmed === '') {
+                            setTodos(prev => prev.filter(t => t.todoId !== todo.todoId));
+                            setEditTodoId(null);
+                            return;
                           }
+                          await createTodoOnServer(todo.todoId, trimmed, todo.categoryId);
                           setEditingTitle('');
-                          setIsNewTodo(false);
                           setEditTodoId(null);
                         }
                       }}
