@@ -35,9 +35,9 @@ export const useTodoCategories = () => {
   // ---------------- 카테고리 수정 ----------------
   const editCategory = async (categoryId: number, data: { name: string; color: string }) => {
     try {
-      const res = await api.patch(`/todo-categories/${categoryId}`, data);
+      await api.patch(`/todo-categories/${categoryId}`, data);
       setCategories(prev =>
-        prev.map(cat => cat.categoryId === categoryId ? res.data.data : cat)
+        prev.map(cat => cat.categoryId === categoryId ? { ...cat, ...data } : cat)
       );
     } catch (err) {
       console.error('카테고리 수정 실패', err);
