@@ -13,25 +13,17 @@ import type {
   ApiEnvelope,
 } from "./types";
 
-
-
 export async function getStudyList(params: {
-  visibility?: StudyVisibility; 
+  visibility?: StudyVisibility;
   category?: StudyCategory;
   page?: number; 
-  size?: number; 
+  size?: number;
 }) {
   const { visibility = "public", category, page = 1, size = 8 } = params;
-
   const apiPage = Math.max(0, page - 1);
 
   const res = await api.get<ApiEnvelope<StudyListResponse>>("/studies", {
-    params: {
-      visibility,
-      category,
-      page: apiPage,
-      size,
-    },
+    params: { visibility, category, page: apiPage, size },
   });
   return res.data.data;
 }
@@ -61,13 +53,9 @@ export async function createStudy(
   },
   coverFile?: File | null
 ) {
-
   const form = new FormData();
 
-  form.append(
-    "studyInfo",
-    new Blob([JSON.stringify(payload)], { type: "application/json" })
-  );
+  form.append("studyInfo", new Blob([JSON.stringify(payload)], { type: "application/json" }));
   if (coverFile) form.append("coverImage", coverFile);
 
   const res = await api.post<ApiEnvelope<any>>(`/studies`, form, {
@@ -80,14 +68,13 @@ export async function searchStudies(params: {
   q: string;
   sort?: "RECENT" | "POPULAR";
   page?: number;
-  size?: number; 
+  size?: number;
 }) {
   const { q, sort = "RECENT", page = 1, size = 10 } = params;
 
-  const res = await api.get<ApiEnvelope<Paginated<SearchStudyItem>>>(
-    "/search/studies",
-    { params: { q, sort, page, size } }
-  );
+  const res = await api.get<ApiEnvelope<Paginated<SearchStudyItem>>>("/search/studies", {
+    params: { q, sort, page, size },
+  });
 
   return res.data.data;
 }
@@ -96,7 +83,6 @@ export async function getStudyDetail(studyId: number) {
   const res = await api.get<ApiEnvelope<StudyDetail>>(`/studies/${studyId}`);
   return res.data.data;
 }
-
 
 export async function toggleStudyLike(studyId: number) {
   const res = await api.post<ApiEnvelope<any>>(`/studies/${studyId}/likes`);
@@ -108,15 +94,12 @@ export async function deleteStudy(studyId: number) {
   return res.data.data;
 }
 
-
 export async function getStudyRankings(studyId: number, type: "today" | "total" = "today") {
-  const res = await api.get<ApiEnvelope<RankingsResponse>>(
-    `/studies/${studyId}/rankings`,
-    { params: { type } }
-  );
+  const res = await api.get<ApiEnvelope<RankingsResponse>>(`/studies/${studyId}/rankings`, {
+    params: { type },
+  });
   return res.data.data;
 }
-
 
 export async function enterPublicStudy(studyId: number) {
   const res = await api.post<ApiEnvelope<StudyEnterResponse>>(
@@ -124,7 +107,6 @@ export async function enterPublicStudy(studyId: number) {
   );
   return res.data.data;
 }
-
 
 export async function enterPrivateStudy(studyId: number, password: string | number) {
   const res = await api.post<ApiEnvelope<StudyEnterResponse>>(
@@ -138,9 +120,11 @@ export async function exitStudy(studyId: number, type: "STUDY" | "BREAK") {
   const res = await api.patch<ApiEnvelope<null>>(`/studies/${studyId}/participating`, { type });
   return res.data.data;
 }
-export type UpdateStudyPayload = {
+
+
+type UpdateStudyPayload = {
   studyName: string; 
-  coverImage: string | null; 
+  coverImage: string | null;
   category:
     | "CSAT"
     | "CIVIL_SERVICE"
@@ -152,20 +136,30 @@ export type UpdateStudyPayload = {
   description: string; 
   memberLimit: number;
   isPublic: boolean;
-  password: string | null; 
+  password: number | null; 
 };
 
 export type UpdateStudyResponse = {
   studyId: number;
   name?: string;
   studyName?: string;
+  coverImage?: string | null;
+  category?: UpdateStudyPayload["category"];
+  categoryLabel?: string;
+  description?: string;
+  memberLimit?: number;
+  isPublic?: boolean;
 };
 
 export async function updateStudy(studyId: number, payload: UpdateStudyPayload) {
-  const res = await api.put<ApiEnvelope<UpdateStudyResponse>>(`/studies/${studyId}`, payload);
+  const req = {
+    ...payload,
+    memberLimit: String(payload.memberLimit),             
+    password: payload.password ? String(payload.password) : null, 
+  };
+
+  const res = await api.put<ApiEnvelope<UpdateStudyResponse>>(`/studies/${studyId}`, req);
   return res.data.data;
 }
-
 export { getStudyList as getStudies };
 export { getStudyList as getStudiesList };
-

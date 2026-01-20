@@ -33,12 +33,7 @@
 }
 
 /* 우측(수정/삭제) */
-.svmSide{
-  position: sticky;
-  top: 0;
-  height: 100%;
-  padding: 22px 16px 0 0;
-}
+
 .svmSideBox{
   width: 132px;
 }
@@ -64,14 +59,20 @@
 
 .svmKebab{
   position: absolute;
-  top: 16px;
-  right: 58px;
+  top: 14px;
+  right: 56px;   
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
   border: 0;
-  background: transparent;
-  font-size: 22px;
+  background: rgba(0,0,0,.06);
+  font-size: 18px;
   cursor: pointer;
-  color: rgba(0,0,0,.65);
+  display: grid;
+  place-items: center;
+  color: rgba(0,0,0,.7);
 }
+
 
 .svmClose{
   position: absolute;
@@ -362,17 +363,6 @@
 }
 
 
-.svmBody{
-  grid-template-columns: 1fr !important; 
-}
-.svmSide{
-  display: none !important;            
-}
-
-
-.svmWrap{
-  width: min(820px, calc(100vw - 48px)) !important;
-}
 
 
 .svmTitle{ font-weight: 700 !important; }
@@ -396,4 +386,125 @@
 
 .svmHeart.active{
   box-shadow: none !important;         
+}
+
+/* === 수정/삭제 메뉴 컨테이너 === */
+.svmSide{
+  position: absolute;
+  top: 64px;         
+  right: 72px;      
+  height: auto;
+  padding: 0;
+  z-index: 20;
+}
+
+.svmSideBox{
+  width: auto;   
+}
+
+
+.svmSideMenu{
+  min-width: 120px;
+  border-radius: 14px;
+  box-shadow: 0 12px 28px rgba(0,0,0,.12);
+}
+
+/* =========================
+   Private Password Modal
+   (StudyViewModal 위에 덮기)
+========================= */
+.pwOverlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10050; /* svmOverlay(9999)보다 높게 */
+}
+
+.pwModal{
+  width: min(720px, calc(100vw - 64px));
+  background: #1f2229;
+  border-radius: 34px;
+  padding: 34px 34px 28px;
+  box-shadow: 0 26px 80px rgba(0,0,0,.35);
+  color: #fff;
+}
+
+.pwHeader{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.pwDot{
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #ff5a6b;
+  display: inline-block;
+}
+
+.pwTitle{
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.pwSub{
+  font-size: 14px;
+  color: rgba(255,255,255,.78);
+  margin-bottom: 18px;
+}
+
+.pwInput{
+  width: 100%;
+  height: 54px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 90, 107, .6);
+  padding: 0 18px;
+  font-size: 16px;
+  color: #111;
+  background: rgb(255, 255, 255);
+  outline: none;
+}
+
+.pwInput:focus{
+  border-color: rgba(255, 90, 107, .85);
+  box-shadow: none;
+}
+
+.pwError{
+  margin-top: 10px;
+  color: #ff5a6b;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.pwBtns{
+  display: flex;
+  gap: 14px;
+  justify-content: flex-end;
+  margin-top: 22px;
+}
+
+.pwCancel, .pwOk{
+  height: 52px;
+  min-width: 120px;
+  border-radius: 999px;
+  border: 0;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.pwCancel{
+  background: rgba(255,255,255,.18);
+  color: rgba(255,255,255,.9);
+}
+
+.pwOk{
+  background: linear-gradient(90deg, #ff8366, #ff3a64);
+  color: #fff;
 }

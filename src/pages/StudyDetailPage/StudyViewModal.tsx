@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "./StudyViewModal.css";
 import ActionaryLoginModal from "./ActionaryLoginModal/ActionaryLoginModal";
 import noImg from "../../assets/study_noimg.png";
-
+import UnionIcon from "../../assets/icons/Union.svg";
 
 import {
   getStudyDetail,
@@ -12,6 +12,7 @@ import {
   getStudyRankings,
   enterPublicStudy,
   enterPrivateStudy,
+  deleteStudy,
 } from "../../api/studies";
 
 type StudyDetail = {
@@ -93,6 +94,9 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
 
   /** 입장 로딩 */
   const [enterLoading, setEnterLoading] = useState(false);
+
+  /** 삭제 로딩 */
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   /** 로그인 여부: 클릭 시점마다 확인 */
   const isLoggedInNow = () => !!localStorage.getItem("accessToken");
@@ -333,8 +337,54 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
   };
 
   const onDelete = async () => {
-    alert("삭제 API 아직입니다..");
+    if (!studyId || deleteLoading) return;
+  
+    const ok = window.confirm("정말 삭제할까요?");
+    if (!ok) return;
+  
+    try {
+      setDeleteLoading(true);
+  
+      await deleteStudy(studyId);
+  
+      alert("스터디가 삭제되었습니다.");
+  
+      // 모달/메뉴 정리
+      setMenuOpen(false);
+      onClose();
+  
+      // (선택) 목록에게 갱신 신호 (목록이 이 이벤트 듣고 있으면 사용)
+      window.dispatchEvent(new CustomEvent("study:deleted", { detail: { studyId } }));
+
+      // 목록으로 이동 (가장 일반적)
+      navigate("/studies");
+    } catch (e: any) {
+      const status = e?.response?.status;
+  
+      if (status === 401) {
+        openActionModal("login_enter");
+        return;
+      }
+      if (status === 403) {
+        alert("삭제 권한이 없어요. (방장만 삭제 가능)");
+        return;
+      }
+      if (status === 409) {
+        alert("참여 중인 유저가 있어 삭제할 수 없어요.");
+        return;
+      }
+      if (status === 404) {
+        alert("이미 삭제되었거나 존재하지 않는 스터디예요.");
+        return;
+      }
+  
+      alert(e?.response?.data?.message ?? "스터디 삭제 실패");
+    } finally {
+      setDeleteLoading(false);
+      setMenuOpen(false);
+    }
   };
+
 
   /** 액셔너리 모달 문구 */
   const modalTitle =
@@ -579,7 +629,7 @@ function PrivatePasswordModal({
     >
       <div className="pwModal">
         <div className="pwHeader">
-          <span className="pwDot" />
+          <img className="pwIcon" src={UnionIcon} alt="" />
           <div className="pwTitle">비공개 스터디 참여</div>
         </div>
 

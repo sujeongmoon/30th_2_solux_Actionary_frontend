@@ -249,7 +249,7 @@ export default function StudyEditPage() {
       description: guide.trim() || summary.trim(),
       memberLimit: limit,
       isPublic: visibility === "public",
-      password: visibility === "private" ? password : null,
+      password: visibility === "private" ? String(password) : null, 
     };
 
     try {
