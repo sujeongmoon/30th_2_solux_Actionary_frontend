@@ -20,13 +20,8 @@ interface ApiResponse<T> {
 
 /* ================== 알림 목록 ================== */
 
-export const getNotifications = async (
-  limit?: number
-): Promise<NotificationResponse[]> => {
-  const res = await api.get<ApiResponse<NotificationResponse[]>>(
-    '/notifications',
-    { params: limit ? { limit } : undefined }
-  );
+export const getNotifications = async (): Promise<NotificationResponse[]> => {
+  const res = await api.get<ApiResponse<NotificationResponse[]>>('/notifications');
 
   if (!res.data.success) {
     throw new Error(res.data.message || '알림 조회 실패');
@@ -34,6 +29,7 @@ export const getNotifications = async (
 
   return res.data.data;
 };
+
 
 /* ================== 읽음 처리 ================== */
 
