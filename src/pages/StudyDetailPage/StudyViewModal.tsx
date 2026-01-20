@@ -173,12 +173,6 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
   useEffect(() => {
     if (!open || studyId == null) return;
 
-    /*if (USE_MOCK) {
-      setRankLoading(false);
-      setRankError(null);
-      setRankRows(MOCK_RANKINGS[studyId] ?? []);
-      return;
-    }*/
 
     let mounted = true;
     (async () => {
@@ -353,10 +347,10 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
       setMenuOpen(false);
       onClose();
   
-      // (선택) 목록에게 갱신 신호 (목록이 이 이벤트 듣고 있으면 사용)
+      
       window.dispatchEvent(new CustomEvent("study:deleted", { detail: { studyId } }));
 
-      // 목록으로 이동 (가장 일반적)
+      
       navigate("/studies");
     } catch (e: any) {
       const status = e?.response?.status;

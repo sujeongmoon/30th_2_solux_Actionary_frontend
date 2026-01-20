@@ -409,10 +409,7 @@
   box-shadow: 0 12px 28px rgba(0,0,0,.12);
 }
 
-/* =========================
-   Private Password Modal
-   (StudyViewModal 위에 덮기)
-========================= */
+
 .pwOverlay{
   position: fixed;
   inset: 0;
@@ -420,7 +417,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10050; /* svmOverlay(9999)보다 높게 */
+  z-index: 10050;
 }
 
 .pwModal{

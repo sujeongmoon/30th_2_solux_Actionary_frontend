@@ -1,373 +1,485 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import "./StudyDetailPage.css";
-import noImg from "../../assets/study_noimg.png";
-import ActionaryLoginModal from "./ActionaryLoginModal/ActionaryLoginModal";
+import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
+import "./StudyViewModal.css"; 
+
+import StudyNoImg from "../../assets/study_noimg.png";
+import { useAuth } from "../../context/AuthContext";
 import {
-  getStudyDetail,
-  toggleStudyLike,
-  enterPublicStudy,
+  deleteStudy,
   enterPrivateStudy,
+  enterPublicStudy,
+  getStudyDetail,
   getStudyRankings,
+  toggleStudyLike,
 } from "../../api/studies";
 
-type DetailView = {
+type Props = {
+  open: boolean;
+  onClose: () => void;
   studyId: number;
-  studyName: string;
-  coverImage?: string | null;
-  categoryLabel?: string;
-  isPublic: boolean;
-  description?: string;
-  guide?: string;
-  memberLimit?: number;
-  memberCount?: number;
-  liked?: boolean;
 };
 
-type RankingItem = {
-  rank: number;
-  nickname: string;
-  daily?: string | null;
-  total?: string | null;
-};
-
-export default function StudyDetailPage() {
+export default function StudyViewModal({ open, onClose, studyId }: Props) {
   const navigate = useNavigate();
-  const { studyId } = useParams();
+  const { isLoggedIn } = useAuth();
 
-  const id = Number(studyId);
-  const isValidId = Number.isFinite(id) && id > 0;
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  // ===== detail =====
-  const [loading, setLoading] = useState(false);
-  const [detail, setDetail] = useState<DetailView | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState<string | null>(null);
+  const [detail, setDetail] = useState<any>(null);
 
-  // ===== login modal =====
-  const [loginOpen, setLoginOpen] = useState(false);
-
-  // ===== rankings preview =====
-  const [rankTab, setRankTab] = useState<"today" | "total">("today");
+  const [rankType, setRankType] = useState<"today" | "total">("today");
   const [rankLoading, setRankLoading] = useState(false);
   const [rankError, setRankError] = useState<string | null>(null);
-  const [rankings, setRankings] = useState<RankingItem[]>([]);
+  const [rankings, setRankings] = useState<any[]>([]);
 
-  const needPassword = useMemo(() => detail && !detail.isPublic, [detail]);
+  const [pwOpen, setPwOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
 
-  // ===== 1) 상세 조회 =====
+  const [actionModalMode, setActionModalMode] = useState<
+    "login_enter" | "login_like" | "capacity" | null
+  >(null);
+
+  // ===== detail fetch =====
   useEffect(() => {
-    if (!isValidId) return;
+    if (!open || !studyId) return;
 
     let mounted = true;
+    setDetailLoading(true);
+    setDetailError(null);
 
     (async () => {
-      setLoading(true);
-      setErrorMsg(null);
-
       try {
-        const data: any = await getStudyDetail(id);
-
+        const data = await getStudyDetail(studyId);
         if (!mounted) return;
-
-        setDetail({
-          studyId: data.studyId ?? id,
-          studyName: data.studyName ?? "",
-          coverImage: data.coverImage ?? null,
-          categoryLabel: data.categoryLabel ?? "기타",
-          isPublic: !!data.isPublic,
-          description: data.description ?? "",
-          guide: data.guide ?? "",
-          memberLimit: data.memberLimit,
-          memberCount: data.memberCount,
-          liked: data.liked,
-        });
+        setDetail(data);
       } catch (e: any) {
         if (!mounted) return;
-
-        const status = e?.response?.status;
-        if (status === 401) {
-          setLoginOpen(true);
-          setErrorMsg("로그인이 필요해요.");
-        } else {
-          setErrorMsg(e?.response?.data?.message ?? "스터디 정보를 불러오지 못했어요.");
-        }
-        setDetail(null);
+        setDetailError(e?.response?.data?.message ?? "스터디 정보를 불러오지 못했어요.");
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) setDetailLoading(false);
       }
     })();
 
     return () => {
       mounted = false;
     };
-  }, [id, isValidId]);
+  }, [open, studyId]);
 
-  // ===== 2) 랭킹 미리보기 조회 (today/total 탭) =====
+  // ===== ranking fetch =====
+useEffect(() => {
+  if (!open || !studyId) return;
+
+  let mounted = true;
+  setRankLoading(true);
+  setRankError(null);
+
+  (async () => {
+    try {
+      const data = await getStudyRankings(studyId, rankType);
+
+      if (!mounted) return;
+
+      // ✅ 어떤 형태로 와도 최종적으로 배열만 뽑아내기
+      const list =
+        Array.isArray(data) ? data :
+        Array.isArray((data as any)?.rankings) ? (data as any).rankings :
+        Array.isArray((data as any)?.data?.rankings) ? (data as any).data.rankings :
+        [];
+
+      setRankings(list);
+    } catch (e: any) {
+      if (!mounted) return;
+      setRankError(e?.response?.data?.message ?? "랭킹을 불러오지 못했어요.");
+      setRankings([]);
+    } finally {
+      if (mounted) setRankLoading(false);
+    }
+  })();
+
+  return () => {
+    mounted = false;
+  };
+}, [open, studyId, rankType]);
+  // ESC 닫기 + body scroll lock
   useEffect(() => {
-    if (!isValidId) return;
+    if (!open) return;
 
-    let mounted = true;
-
-    (async () => {
-      setRankLoading(true);
-      setRankError(null);
-
-      try {
-        const data: any = await getStudyRankings(id, rankTab);
-
-        if (!mounted) return;
-        const rawList =
-          data?.rankings ??
-          data?.items ??
-          data?.content ??
-          data?.data ??
-          [];
-
-        const mapped: RankingItem[] = (rawList ?? []).map((r: any, idx: number) => ({
-          rank: r.rank ?? idx + 1,
-          nickname: r.nickname ?? r.name ?? "익명",
-          daily: r.daily ?? r.today ?? null,
-          total: r.total ?? null,
-        }));
-
-        setRankings(mapped);
-      } catch (e: any) {
-        if (!mounted) return;
-
-        const status = e?.response?.status;
-        if (status === 401) {
-          setLoginOpen(true);
-          setRankError("로그인이 필요해요.");
-        } else {
-          setRankError(e?.response?.data?.message ?? "랭킹을 불러오지 못했어요.");
-        }
-        setRankings([]);
-      } finally {
-        if (mounted) setRankLoading(false);
-      }
-    })();
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
     return () => {
-      mounted = false;
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
     };
-  }, [id, isValidId, rankTab]);
+  }, [open, onClose]);
 
-  // ===== actions =====
+  const isPublic = Boolean(detail?.isPublic ?? detail?.public ?? detail?.visibility === "PUBLIC");
+  const memberNow = Number(detail?.memberNow ?? 0);
+  const memberLimit = Number(detail?.memberLimit ?? 0);
+
+  const isFull = memberLimit > 0 && memberNow >= memberLimit;
+
+  const coverSrc = detail?.coverImage ? detail.coverImage : StudyNoImg;
+
+  const canUseMenu = useMemo(() => {
+    // 서버에서 “내가 방장인지” 내려주는 필드가 다를 수 있어서
+    // 일단 가능한 후보들을 체크해봄
+    return Boolean(detail?.isOwner ?? detail?.owned ?? detail?.isLeader ?? false);
+  }, [detail]);
+
   const onToggleLike = async () => {
-    if (!detail) return;
-
+    if (!isLoggedIn) {
+      setActionModalMode("login_like");
+      return;
+    }
     try {
-      await toggleStudyLike(detail.studyId);
-      setDetail((prev) => (prev ? { ...prev, liked: !prev.liked } : prev));
+      await toggleStudyLike(studyId);
+      // 좋아요 상태를 서버가 detail에 반영 안해줄 수 있으니, 필요하면 detail 다시 fetch
+      // 간단히는 새로고침 or detail 재조회
+      const data = await getStudyDetail(studyId);
+      setDetail(data);
     } catch (e: any) {
-      const status = e?.response?.status;
-      if (status === 401) {
-        setLoginOpen(true);
-        return;
-      }
-      alert(e?.response?.data?.message ?? "즐겨찾기 처리 실패");
+      alert(e?.response?.data?.message ?? "즐겨찾기 처리에 실패했어요.");
     }
   };
 
-  const onEnter = async () => {
-    if (!detail) return;
+  const onEnterClick = async () => {
+    if (!isLoggedIn) {
+      setActionModalMode("login_enter");
+      return;
+    }
+    if (isFull) {
+      setActionModalMode("capacity");
+      return;
+    }
+
+    if (!isPublic) {
+      setPwOpen(true);
+      setPassword("");
+      setPwError(null);
+      return;
+    }
 
     try {
-      if (detail.isPublic) {
-        await enterPublicStudy(detail.studyId);
-        navigate(`/study-room/${detail.studyId}`);
-        return;
-      }
-
-      const pw = window.prompt("비공개 스터디 비밀번호(6자리)를 입력하세요");
-      if (!pw) return;
-
-      await enterPrivateStudy(detail.studyId, pw);
-      navigate(`/study-room/${detail.studyId}`);
+      await enterPublicStudy(studyId);
+      onClose();
+      navigate(`/studies/${studyId}/room`);
     } catch (e: any) {
-      const status = e?.response?.status;
-      if (status === 401) {
-        setLoginOpen(true);
-        return;
-      }
-      alert(e?.response?.data?.message ?? "스터디 입장 실패");
+      alert(e?.response?.data?.message ?? "스터디 참가에 실패했어요.");
     }
   };
 
-  const top5 = useMemo(() => rankings.slice(0, 5), [rankings]);
+  const onSubmitPassword = async () => {
+    setPwLoading(true);
+    setPwError(null);
+    try {
+      await enterPrivateStudy(studyId, password);
+      onClose();
+      navigate(`/studies/${studyId}/room`);
+    } catch (e: any) {
+      const status = e?.response?.status;
+      if (status === 401) {
+        setPwOpen(false);
+        setActionModalMode("login_enter");
+        return;
+      }
+      setPwError(e?.response?.data?.message ?? "비밀번호 확인 실패");
+    } finally {
+      setPwLoading(false);
+    }
+  };
 
-  return (
-    <div className="studyDetailPage">
-      {/* 상단 헤더 */}
-      <header className="detailTop">
-        <button className="backBtn" onClick={() => navigate(-1)}>
-          ←
-        </button>
-        <h1>스터디 상세</h1>
-        <div />
-      </header>
+  /** 수정 */
+  const onEdit = () => {
+    if (!studyId) return;
+    onClose();
+    navigate(`/studies/${studyId}/edit`);
+  };
 
-      {!isValidId && <div className="state error">잘못된 스터디 ID예요.</div>}
+  /** 삭제 (진짜 동작) */
+  const onDelete = async () => {
+    if (!studyId) return;
 
-      {isValidId && loading && (
-        <>
-          {/* 스켈레톤 */}
-          <section className="card headerCard">
-            <div className="cover skeleton" />
-            <div className="headerInfo">
-              <div className="chipRow">
-                <span className="chip skeletonChip" />
-                <span className="chip skeletonChip" />
-              </div>
-              <h2 className="skeletonLine" />
-              <p className="skeletonLine short" />
-              <button className="primaryBtn" disabled>
-                입장하기
+    const ok = window.confirm("정말 이 스터디를 삭제할까요? 삭제하면 복구가 어려워요.");
+    if (!ok) return;
+
+    try {
+      await deleteStudy(studyId);
+      alert("삭제 완료!");
+      onClose();
+
+      // 목록 화면으로 이동 (원하면 다른 경로로 바꿔)
+      navigate("/studies");
+      // 또는 목록 새로고침이 필요하면:
+      // window.location.reload();
+    } catch (e: any) {
+      alert(e?.response?.data?.message ?? "삭제에 실패했어요.");
+    }
+  };
+
+  if (!open) return null;
+
+  return createPortal(
+    <>
+      <div
+        className="svmOverlay"
+        onMouseDown={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+      >
+        <div className="svmWrap">
+          <button className="svmClose" type="button" aria-label="close" onClick={onClose}>
+            ✕
+          </button>
+
+          <div className="svmBody">
+            <div className="svmCard">
+              <button
+                className="svmKebab"
+                type="button"
+                aria-label="menu"
+                onClick={() => setMenuOpen((v) => !v)}
+              >
+                ⋮
               </button>
-            </div>
-          </section>
-        </>
-      )}
 
-      {isValidId && !loading && errorMsg && <div className="state error">{errorMsg}</div>}
-
-      {isValidId && !loading && !errorMsg && detail && (
-        <>
-          {/* 상단 카드 */}
-          <section className="card headerCard">
-            <div
-              className="cover"
-              style={{
-                backgroundImage: `url(${detail.coverImage ?? noImg})`,
-              }}
-            />
-            <div className="headerInfo">
-              <div className="chipRow">
-                <span className="chip">{detail.isPublic ? "공개" : "비공개"}</span>
-                <span className="chip">{detail.categoryLabel ?? "기타"}</span>
-              </div>
-
-              <h2>{detail.studyName}</h2>
-
-              <p className="subText">{detail.description || "설명이 없습니다."}</p>
-
-              <button className="primaryBtn" onClick={onEnter}>
-                입장하기
-              </button>
-            </div>
-          </section>
-
-          {/* 요약 */}
-          <section className="card summary">
-            <div className="summaryItem">
-              <span>인원</span>
-              <div>
-                {typeof detail.memberCount === "number" && typeof detail.memberLimit === "number"
-                  ? `${detail.memberCount}/${detail.memberLimit}`
-                  : detail.memberLimit
-                  ? `최대 ${detail.memberLimit}명`
-                  : "-"}
-              </div>
-            </div>
-            <div className="summaryItem">
-              <span>공개</span>
-              <div>{detail.isPublic ? "공개" : "비공개"}</div>
-            </div>
-            <div className="summaryItem">
-              <span>랭킹</span>
-              <div>{rankTab === "today" ? "오늘" : "전체"}</div>
-            </div>
-          </section>
-
-          {/* 랭킹 미리보기 */}
-          <section className="card">
-            <div className="rankHeaderRow">
-              <h3 style={{ margin: 0 }}>랭킹 미리보기</h3>
-
-              <div className="rankTabs">
-                <button
-                  type="button"
-                  className={`rankTab ${rankTab === "today" ? "on" : ""}`}
-                  onClick={() => setRankTab("today")}
-                >
-                  오늘
-                </button>
-                <button
-                  type="button"
-                  className={`rankTab ${rankTab === "total" ? "on" : ""}`}
-                  onClick={() => setRankTab("total")}
-                >
-                  전체
-                </button>
-              </div>
-            </div>
-
-            {rankLoading && <div className="state">랭킹 불러오는 중…</div>}
-            {!rankLoading && rankError && <div className="state error">{rankError}</div>}
-
-            {!rankLoading && !rankError && top5.length === 0 && (
-              <div className="state empty">아직 랭킹 데이터가 없어요.</div>
-            )}
-
-            {!rankLoading && !rankError && top5.length > 0 && (
-              <div className="rankList">
-                {top5.map((r) => (
-                  <div key={`${rankTab}-${r.rank}-${r.nickname}`} className="rankRow">
-                    <div className="rankLeft">
-                      <span className="rankNo">{r.rank}</span>
-                      <span className="rankName">{r.nickname}</span>
+              {detailLoading ? (
+                <div className="svmLoading">불러오는 중...</div>
+              ) : detailError ? (
+                <div className="svmErrorBox">{detailError}</div>
+              ) : !detail ? (
+                <div className="svmErrorBox">데이터가 없어요.</div>
+              ) : (
+                <>
+                  <div className="svmTop">
+                    <div className="svmCover">
+                      <img src={coverSrc} alt="" />
                     </div>
 
-                    <div className="rankRight">
-                      {rankTab === "today" ? (r.daily ?? "-") : (r.total ?? "-")}
+                    <div className="svmInfo">
+                      <div className="svmChips">
+                        <span className={`svmChip ${isPublic ? "on" : ""}`}>
+                          {isPublic ? "공개" : "비공개"}
+                        </span>
+                        <span className="svmChip ghost">{detail?.categoryLabel ?? "카테고리"}</span>
+                      </div>
+
+                      <div className="svmTitle">{detail?.studyName ?? "스터디"}</div>
+                      <div className="svmDesc">{detail?.description ?? ""}</div>
+
+                      <div className="svmRow">
+                        <span className={`svmPill ${isFull ? "no" : "ok"}`}>
+                          {isFull ? "정원 마감" : "참여 가능"}
+                        </span>
+
+                        <div className="svmCount">
+                          <span className="svmCountLabel">현재 인원</span>
+                          <span className="svmCountValue">
+                            <b>{memberNow}</b> / <b>{memberLimit || "∞"}</b>
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="svmActionsRow">
+                        <button
+                          type="button"
+                          className="svmEnterBtn"
+                          onClick={onEnterClick}
+                          disabled={detailLoading || isFull}
+                        >
+                          스터디 참가하기
+                        </button>
+
+                        <button
+                          type="button"
+                          className={`svmHeart ${detail?.liked ? "active" : ""}`}
+                          onClick={onToggleLike}
+                          aria-label="like"
+                        >
+                          ♥
+                        </button>
+                      </div>
                     </div>
                   </div>
-                ))}
 
+                  <div className="svmRankBox">
+                    <div className="svmRankHeader">
+                      <div className="svmRankTitlePill">랭킹</div>
+
+                      <div className="svmMiniToggle">
+                        <button
+                          type="button"
+                          className={`svmMiniBtn ${rankType === "today" ? "active" : ""}`}
+                          onClick={() => setRankType("today")}
+                        >
+                          오늘
+                        </button>
+                        <button
+                          type="button"
+                          className={`svmMiniBtn ${rankType === "total" ? "active" : ""}`}
+                          onClick={() => setRankType("total")}
+                        >
+                          누적
+                        </button>
+                      </div>
+                    </div>
+
+                    {rankLoading ? (
+                      <div className="svmLoading">랭킹 불러오는 중...</div>
+                    ) : rankError ? (
+                      <div className="svmErrorBox">{rankError}</div>
+                    ) : (
+                      <table className="svmTable">
+                        <thead>
+                          <tr>
+                            <th style={{ width: 90 }}>순위</th>
+                            <th>닉네임</th>
+                            <th style={{ width: 140 }}>시간</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(rankings ?? []).map((r: any, idx: number) => (
+                            <tr key={r?.userId ?? idx}>
+                              <td className="svmRankNum">{idx + 1}</td>
+                              <td>{r?.nickname ?? "-"}</td>
+                              <td>{r?.time ?? r?.totalTime ?? "-"}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* 오른쪽 메뉴(수정/삭제) */}
+            <aside className="svmSide">
+              <div className="svmSideBox">
+                {menuOpen && canUseMenu && (
+                  <div className="svmSideMenu">
+                    <button className="svmSideBtn" type="button" onClick={onEdit}>
+                      수정
+                    </button>
+                    <div className="svmLine" />
+                    <button className="svmSideBtn danger" type="button" onClick={onDelete}>
+                      삭제
+                    </button>
+                  </div>
+                )}
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+
+      {/* 비공개 비번 모달 */}
+      {pwOpen && (
+        <div
+          className="svmOverlay"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setPwOpen(false);
+          }}
+        >
+          <div className="svmWrap" style={{ width: "min(520px, calc(100vw - 48px))" }}>
+            <div className="svmCard">
+              <div className="svmTitle" style={{ fontSize: 20, marginBottom: 12 }}>
+                비밀번호 입력
+              </div>
+              <input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="비밀번호"
+                style={{
+                  width: "100%",
+                  height: 44,
+                  borderRadius: 12,
+                  border: "1px solid rgba(0,0,0,.12)",
+                  padding: "0 12px",
+                }}
+              />
+              {pwError && <div style={{ marginTop: 8, color: "#ff3b5c" }}>{pwError}</div>}
+
+              <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
                 <button
                   type="button"
-                  className="rankMoreBtn"
-                  onClick={() => navigate(`/study-room/${detail.studyId}`)}
+                  className="svmMiniBtn"
+                  onClick={() => setPwOpen(false)}
+                  disabled={pwLoading}
                 >
-                  스터디룸에서 전체 랭킹 보기 →
+                  취소
+                </button>
+                <button
+                  type="button"
+                  className="svmMiniBtn active"
+                  onClick={onSubmitPassword}
+                  disabled={pwLoading || !password}
+                >
+                  확인
                 </button>
               </div>
-            )}
-          </section>
-
-          {/* 소개 */}
-          <section className="card">
-            <h3>소개</h3>
-            <div className="textBlock">{detail.description || "설명이 없습니다."}</div>
-          </section>
-
-          {/* 규칙 */}
-          <section className="card">
-            <h3>안내 / 규칙</h3>
-            <div className="textBlock">{detail.guide || "안내가 없습니다."}</div>
-          </section>
-
-          {/* 하단 버튼 */}
-          <div className="actions">
-            <button className="ghostBtn" onClick={onToggleLike}>
-              {detail.liked ? "즐겨찾기 해제" : "즐겨찾기"}
-            </button>
-            <button className="primaryBtn" onClick={onEnter}>
-              {needPassword ? "비밀번호 입력 후 참여" : "참여하기"}
-            </button>
+            </div>
           </div>
-        </>
+        </div>
       )}
 
-      {/* 로그인 모달 */}
-      <ActionaryLoginModal
-        open={loginOpen}
-        onClose={() => setLoginOpen(false)}
-        onGoLogin={() => navigate("/login")}
-        title="로그인 필요"
-        subtitle="로그인이 필요한 서비스입니다."
-        showGoLogin
-      />
-    </div>
+      {/* 로그인 필요/정원마감 안내 모달 */}
+      {actionModalMode && (
+        <div
+          className="svmOverlay"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setActionModalMode(null);
+          }}
+        >
+          <div className="svmWrap" style={{ width: "min(520px, calc(100vw - 48px))" }}>
+            <div className="svmCard">
+              <div className="svmTitle" style={{ fontSize: 20, marginBottom: 10 }}>
+                {actionModalMode === "capacity"
+                  ? "참여 불가"
+                  : actionModalMode === "login_like"
+                  ? "즐겨찾기 불가"
+                  : "스터디 참가 불가"}
+              </div>
+              <div className="svmDesc" style={{ marginBottom: 14 }}>
+                {actionModalMode === "capacity"
+                  ? "이미 정원이 찼습니다."
+                  : actionModalMode === "login_like"
+                  ? "로그인 후 즐겨찾기를 사용할 수 있어요."
+                  : "로그인 후 스터디에 참여할 수 있어요."}
+              </div>
+
+              <div style={{ display: "flex", gap: 10 }}>
+                <button type="button" className="svmMiniBtn" onClick={() => setActionModalMode(null)}>
+                  닫기
+                </button>
+                {actionModalMode !== "capacity" && (
+                  <button
+                    type="button"
+                    className="svmMiniBtn active"
+                    onClick={() => {
+                      setActionModalMode(null);
+                      onClose();
+                      navigate("/login");
+                    }}
+                  >
+                    로그인 하러가기
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>,
+    document.body
   );
 }

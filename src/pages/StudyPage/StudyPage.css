@@ -518,7 +518,6 @@
 @media (max-width: 820px){
   .studyGrid{ grid-template-columns: repeat(2, 1fr); }
 
-  /* 모바일에서는 카드 1열로 */
   .myStudyCards{ grid-template-columns: 1fr; }
 
   .studyFilterTop{ flex-direction: column; align-items:flex-start; }
@@ -528,4 +527,102 @@
 
 @media (max-width: 520px){
   .studyGrid{ grid-template-columns: 1fr; }
+}
+
+.myStudyTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.createStudyBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+
+  background: linear-gradient(
+    135deg,
+    #FA785B,
+    #FF3761
+  );
+
+  color: rgb(255, 255, 255);
+  font-size: 18px;
+  font-weight: 600;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.createStudyBtn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.myStudyTitle {
+  font-weight: 700;
+  font-size: 24px;
+  color: #111;
+
+  padding: 20px 0;  
+}
+
+.myStudyTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding-left: 10px; 
+}
+
+/* 인원 제한 컨트롤 */
+.limitControl {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.limitBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #f2f2f2;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.limitBtn:hover {
+  background: #e0e0e0;
+}
+
+.limitInput {
+  width: 60px;
+  height: 36px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+
+.limitInput::-webkit-inner-spin-button,
+.limitInput::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.limitUnit {
+  font-size: 16px;
+  font-weight: 500;
 }

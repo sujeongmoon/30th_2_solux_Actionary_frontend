@@ -242,19 +242,19 @@ export default function StudyEditPage() {
     }
 
 
-    const payload: UpdateStudyPayload = {
+    const payload = {
       studyName: title.trim(),
-      coverImage: coverImageToSend,
+      coverImage: existingCover || null,
       category: LABEL_TO_ENUM[category],
       description: guide.trim() || summary.trim(),
       memberLimit: limit,
       isPublic: visibility === "public",
-      password: visibility === "private" ? String(password) : null, 
+      password: visibility === "private" ? password : null,
     };
 
     try {
       setSaving(true);
-      await updateStudy(numericStudyId, payload);
+      await updateStudy(numericStudyId, payload, coverFile);
 
       showToast("success", "성공적으로 스터디가 수정되었습니다.");
       setSuccessModalOpen(true);
@@ -269,7 +269,7 @@ export default function StudyEditPage() {
     }
   };
 
-  const currentCoverSrc = coverPreview || existingCover; // 새 이미지 우선
+  const currentCoverSrc = coverPreview || existingCover; 
 
   if (loading) {
     return (
@@ -392,7 +392,7 @@ export default function StudyEditPage() {
           className="textarea"
           value={guide}
           onChange={(e) => setGuide(clampText(e.target.value, guideMax))}
-          placeholder="설명설명설명설명"
+          placeholder="스터디 설명을 입력해주세요."
         />
         <div className="counter bottom">
           {guide.length}/{guideMax}
@@ -401,13 +401,38 @@ export default function StudyEditPage() {
 
       <div className={`field ${errors.limit ? "hasError" : ""}`}>
         <div className="label">인원 제한</div>
-        <select className="select" value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
-          {[2, 3, 5, 10, 15, 20, 30].map((n) => (
-            <option key={n} value={n}>
-              {n}명
-            </option>
-          ))}
-        </select>
+        <div className="limitControl">
+        <button
+          type="button"
+          className="limitBtn"
+          onClick={() => setLimit((prev) => Math.max(1, prev - 1))}
+        >
+          −
+        </button>
+
+        <input
+          type="number"
+          className="limitInput"
+          value={limit}
+          min={1}
+          max={30}
+          onChange={(e) => {
+            const v = Number(e.target.value);
+            if (Number.isNaN(v)) return;
+            setLimit(Math.min(30, Math.max(1, v)));
+          }}
+        />
+
+        <button
+          type="button"
+          className="limitBtn"
+          onClick={() => setLimit((prev) => Math.min(30, prev + 1))}
+        >
+          +
+        </button>
+
+        <span className="limitUnit">명</span>
+      </div>
         {errors.limit && <div className="errorText">{errors.limit}</div>}
       </div>
 
