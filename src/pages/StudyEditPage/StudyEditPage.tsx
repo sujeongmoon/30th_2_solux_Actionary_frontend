@@ -11,8 +11,6 @@ import { getStudyDetail, updateStudy, type UpdateStudyPayload } from "../../api/
 type Visibility = "public" | "private";
 
 
-
-
 const CATEGORIES = ["수능", "공무원", "임용", "자격증", "어학", "취업", "기타"] as const;
 type CategoryLabel = (typeof CATEGORIES)[number];
 

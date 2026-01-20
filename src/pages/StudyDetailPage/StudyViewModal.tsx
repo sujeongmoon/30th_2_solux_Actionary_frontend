@@ -45,22 +45,12 @@ function toHM(sec: number) {
   const h = Math.floor(sec / 3600);
   const m = Math.floor((sec % 3600) / 60);
 
-  if (h === 0) {
-    return `${m}분`;
-  }
-
-  if (m === 0) {
-    return `${h}시간`;
-  }
-
+  if (h === 0) return `${m}분`;
+  if (m === 0) return `${h}시간`;
   return `${h}시간 ${m}분`;
 }
 
-
-
-
 export default function StudyViewModal({ open, onClose, studyId }: Props) {
-  /*const USE_MOCK = true;*/
   const navigate = useNavigate();
 
   /** UI 상태 */
@@ -69,9 +59,9 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
 
   /** 액셔너리 모달 (로그인 필요 / 정원초과 공통으로) */
   const [actionModalOpen, setActionModalOpen] = useState(false);
-  const [actionModalMode, setActionModalMode] = useState<"login_enter" | "login_like" | "capacity">(
-    "login_enter"
-  );
+  const [actionModalMode, setActionModalMode] = useState<
+    "login_enter" | "login_like" | "capacity"
+  >("login_enter");
 
   /** 상세 데이터 */
   const [detail, setDetail] = useState<StudyDetail | null>(null);
@@ -134,7 +124,7 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
         const mapped: StudyDetail = {
           studyId: Number(data.studyId ?? studyId),
           studyName: String(data.studyName ?? ""),
-          coverImage: (data.coverImage ?? null) as string | null,
+          coverImage: (data.coverImage ?? null) as any,
           categoryLabel: String(data.categoryLabel ?? "기타"),
           description: String(data.description ?? ""),
           memberNow: Number(data.memberNow ?? 0),
@@ -147,8 +137,6 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
         setDetail(mapped);
       } catch (e: any) {
         if (!mounted) return;
-
-
         const status = e?.response?.status;
         if (status === 401) {
           setActionModalMode("login_enter");
@@ -163,7 +151,6 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
       }
     })();
 
-
     return () => {
       mounted = false;
     };
@@ -172,7 +159,6 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
   /** 랭킹 */
   useEffect(() => {
     if (!open || studyId == null) return;
-
 
     let mounted = true;
     (async () => {
@@ -192,24 +178,19 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
         setRankRows(mapped);
       } catch (e: any) {
         if (!mounted) return;
-
         const status = e?.response?.status;
-        if (status === 401) {
-          setRankError("로그인이 필요해요.");
-        } else {
-          setRankError(e?.response?.data?.message ?? "랭킹 데이터를 불러오지 못했습니다.");
-        }
+        if (status === 401) setRankError("로그인이 필요해요.");
+        else setRankError(e?.response?.data?.message ?? "랭킹 데이터를 불러오지 못했습니다.");
         setRankRows([]);
       } finally {
         if (mounted) setRankLoading(false);
       }
     })();
+
     return () => {
       mounted = false;
     };
   }, [open, studyId, rankTab]);
-
-
 
   const isOwner = detail?.isStudyOwner ?? false;
   const isLiked = detail?.isStudyLike ?? false;
@@ -222,7 +203,6 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
 
   if (!open) return null;
 
-  /**액셔너리 모달 열기 */
   const openActionModal = (mode: "login_enter" | "login_like" | "capacity") => {
     setActionModalMode(mode);
     setActionModalOpen(true);
@@ -253,7 +233,6 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
     }
   };
 
-
   /** 입장하기 */
   const onEnterClick = async () => {
     if (!detail || enterLoading) return;
@@ -263,25 +242,35 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
       return;
     }
 
-
     if (!canJoin) {
       openActionModal("capacity");
       return;
     }
 
-
+    // 공개 스터디
     if (detail.isPublic) {
       try {
         setEnterLoading(true);
         await enterPublicStudy(detail.studyId);
+
+        // 여기서 enter 성공했으니 바로 스터디룸 이동
         onClose();
         navigate(`/study-room/${detail.studyId}`);
       } catch (e: any) {
         const status = e?.response?.status;
+
+        // 409 = 이미 참여 중이면 "성공 취급"하고 이동
+        if (status === 409) {
+          onClose();
+          navigate(`/study-room/${detail.studyId}`);
+          return;
+        }
+
         if (status === 401) {
           openActionModal("login_enter");
           return;
         }
+
         alert(e?.response?.data?.message ?? "스터디 입장 실패");
       } finally {
         setEnterLoading(false);
@@ -289,6 +278,7 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
       return;
     }
 
+    // 비공개 스터디면 비번 모달
     setPwError(null);
     setPassword("");
     setPwModalOpen(true);
@@ -303,20 +293,30 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
       return;
     }
 
-
     try {
       setPwLoading(true);
       setPwError(null);
       await enterPrivateStudy(studyId, password);
+
       setPwModalOpen(false);
       onClose();
       navigate(`/study-room/${studyId}`);
     } catch (e: any) {
       const status = e?.response?.status;
+
+      // 409 = 이미 참여 중이면 성공 취급하고 이동
+      if (status === 409) {
+        setPwModalOpen(false);
+        onClose();
+        navigate(`/study-room/${studyId}`);
+        return;
+      }
+
       if (status === 401) {
         openActionModal("login_enter");
         return;
       }
+
       setPwError(e?.response?.data?.message ?? "비밀번호 확인 실패");
     } finally {
       setPwLoading(false);
@@ -332,53 +332,35 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
 
   const onDelete = async () => {
     if (!studyId || deleteLoading) return;
-  
+
     const ok = window.confirm("정말 삭제할까요?");
     if (!ok) return;
-  
+
     try {
       setDeleteLoading(true);
-  
       await deleteStudy(studyId);
-  
+
       alert("스터디가 삭제되었습니다.");
-  
-      // 모달/메뉴 정리
+
       setMenuOpen(false);
       onClose();
-  
-      
-      window.dispatchEvent(new CustomEvent("study:deleted", { detail: { studyId } }));
 
-      
+      window.dispatchEvent(new CustomEvent("study:deleted", { detail: { studyId } }));
       navigate("/studies");
     } catch (e: any) {
       const status = e?.response?.status;
-  
-      if (status === 401) {
-        openActionModal("login_enter");
-        return;
-      }
-      if (status === 403) {
-        alert("삭제 권한이 없어요. (방장만 삭제 가능)");
-        return;
-      }
-      if (status === 409) {
-        alert("참여 중인 유저가 있어 삭제할 수 없어요.");
-        return;
-      }
-      if (status === 404) {
-        alert("이미 삭제되었거나 존재하지 않는 스터디예요.");
-        return;
-      }
-  
+
+      if (status === 401) return openActionModal("login_enter");
+      if (status === 403) return alert("삭제 권한이 없어요. (방장만 삭제 가능)");
+      if (status === 409) return alert("참여 중인 유저가 있어 삭제할 수 없어요.");
+      if (status === 404) return alert("이미 삭제되었거나 존재하지 않는 스터디예요.");
+
       alert(e?.response?.data?.message ?? "스터디 삭제 실패");
     } finally {
       setDeleteLoading(false);
       setMenuOpen(false);
     }
   };
-
 
   /** 액셔너리 모달 문구 */
   const modalTitle =
@@ -427,7 +409,7 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
                 <>
                   <div className="svmTop">
                     <div className="svmCover">
-                    <img src={detail.coverImage || noImg} alt="" />
+                      <img src={detail.coverImage || noImg} alt="" />
                     </div>
 
                     <div className="svmInfo">
@@ -578,7 +560,7 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
         error={pwError}
       />
 
-      {/*로그인/정원초과 공통 모달 */}
+      {/* 로그인/정원초과 공통 모달 */}
       <ActionaryLoginModal
         open={actionModalOpen}
         onClose={() => setActionModalOpen(false)}
@@ -596,7 +578,6 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
   );
 }
 
-/* ===== 기존 비번 모달 유지 ===== */
 function PrivatePasswordModal({
   open,
   password,
@@ -644,7 +625,7 @@ function PrivatePasswordModal({
           <button className="pwCancel" onClick={onClose}>
             취소
           </button>
-          <button className="pwOk" onClick={onConfirm}>
+          <button className="pwOk" onClick={onConfirm} disabled={password.length < 6}>
             확인
           </button>
         </div>
