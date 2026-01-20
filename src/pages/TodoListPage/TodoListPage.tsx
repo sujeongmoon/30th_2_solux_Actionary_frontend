@@ -56,15 +56,15 @@ const TodoListPage: React.FC = () => {
 
   const { categories } = useTodoCategoriesContext();
   const visibleCategories = categories.filter(cat => {
-    const createdUTC = new Date(cat.createdAt);
-    const createdKST = new Date(createdUTC.getTime() + 9 * 60 * 60 * 1000);
-    createdKST.setHours(0,0,0,0);
+  const created = new Date(cat.createdAt);
+  created.setHours(0, 0, 0, 0);
 
-    const selected = new Date(selectedDate);
-    selected.setHours(0,0,0,0);
+  const selected = new Date(selectedDate);
+  selected.setHours(0, 0, 0, 0);
 
-    return selected >= createdKST;
-  });
+  return selected >= created;
+});
+
   const isSameDate = (a: string, b: string) => {
     const da = new Date(a);
     const db = new Date(b);
