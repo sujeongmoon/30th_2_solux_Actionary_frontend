@@ -9,6 +9,7 @@ type UseStompChatParams = {
 };
 
 export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
+  console.log("[useStompChat] wsBaseUrl:", wsBaseUrl, "studyId:", studyId);
   const clientRef = useRef<Client | null>(null);
   const subRef = useRef<any>(null); 
 

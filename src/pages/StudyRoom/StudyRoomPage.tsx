@@ -33,6 +33,16 @@ export default function StudyRoomPage() {
   const { studyId } = useParams();
   const numericStudyId = Number(studyId);
 
+  // .env 파일에 적힌 이름인 VITE_WS_BASE_URL로 변경
+  const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL;
+
+  
+  console.log("studyId param:", studyId);
+  console.log("numericStudyId:", numericStudyId);
+  console.log("WS_BASE_URL:", WS_BASE_URL);
+
+
+
   // 서버 확정 전까지 WebRTC 끔 (콘솔 잡아먹어서)
   const ENABLE_WEBRTC = false;
 
@@ -64,64 +74,79 @@ export default function StudyRoomPage() {
     }
   };
 
-  /* ===================== 입장 + 참가자 조회 (한 번만 실행) ===================== */
-  useEffect(() => {
-    if (!numericStudyId) return;
-    if (initOnceRef.current) return; 
-    initOnceRef.current = true;
+/* ===================== 입장 + 참가자 조회 (한 번만 실행) ===================== */
+useEffect(() => {
+  if (!numericStudyId) return;
+  if (initOnceRef.current) return; 
+  initOnceRef.current = true;
 
-    let mounted = true;
+  let mounted = true;
 
-    (async () => {
+  (async () => {
+    try {
+      setError(null);
+
+      // 1) 공개 입장 시도
       try {
-        setError(null);
-
-        // 1) 공개 입장 시도
-        // -200: 참여 성공
-        // -409: 이미 참여중 -> 정상처럼 처리
-        try {
-          await enterPublicStudy(numericStudyId);
-        } catch (e: any) {
-          const status = e?.response?.status;
-          if (status !== 409) throw e;
-        }
-
-        // 2) 참여자 조회
-        const res = await api.get(`/studies/${numericStudyId}/participating/users`);
-        const data = res.data?.data;
-
-        if (!mounted) return;
-
-        setMe(data?.me ?? null);
-        setParticipants(data?.participants ?? []);
-        setBubbleMap(data?.participantNowStates ?? {});
-
-        joinedRef.current = true; 
+        await enterPublicStudy(numericStudyId);
       } catch (e: any) {
-        if (!mounted) return;
-
         const status = e?.response?.status;
-        const msg = e?.response?.data?.message;
-        if (status === 500) {
-          setError(
-            "서버에서 참여자 정보를 불러오지 못했어요."
-          );
-          return;
+        const msg = e?.response?.data?.message || "";
+        
+        // 409 에러: "이미 참여 중"이면 통과, "정원 초과"면 막기
+        if (status === 409) {
+          if (msg.includes("정원") || msg.includes("초과")) {
+              setError("스터디 정원이 초과되어 입장할 수 없습니다.");
+              return; 
+          }
+           // 이미 참여 중인 경우 -> 로그만 찍고 통과 (정상 진행)
+          console.log("이미 참여 중인 스터디입니다. 입장을 계속 진행합니다.");
+        } else {
+           // 409가 아닌 다른 에러는 밖으로 던져서 처리
+          throw e;
         }
-
-        if (status === 403) {
-          setError(msg ?? "스터디에 먼저 참여한 뒤 입장해주세요.");
-          return;
-        }
-
-        setError(msg ?? "스터디룸 입장 실패");
       }
-    })();
 
-    return () => {
-      mounted = false;
-    };
-  }, [numericStudyId]);
+      // 2) 참여자 조회 (여기서 500 에러 발생 중)
+      console.log("참여자 목록 조회 시작...");
+      const res = await api.get(`/studies/${numericStudyId}/participating/users`);
+      const data = res.data?.data;
+
+      if (!mounted) return;
+
+      setMe(data?.me ?? null);
+      setParticipants(data?.participants ?? []);
+      setBubbleMap(data?.participantNowStates ?? {});
+
+      joinedRef.current = true; 
+
+    } catch (e: any) {
+      if (!mounted) return;
+
+      console.error("최종 에러 발생:", e); // 콘솔에 에러 상세 출력
+
+      const status = e?.response?.status;
+      const msg = e?.response?.data?.message;
+
+      if (status === 500) {
+        // 500 에러가 났을 때 화면에 띄울 메시지
+        setError(`서버 내부 오류(500)가 발생했습니다.\n참여자 목록을 불러올 수 없습니다.`);
+        return;
+      }
+
+      if (status === 403) {
+        setError(msg ?? "스터디에 먼저 참여한 뒤 입장해주세요.");
+        return;
+      }
+
+      setError(msg ?? "스터디룸 입장 실패");
+    }
+  })();
+
+  return () => {
+    mounted = false;
+  };
+}, [numericStudyId]);
 
   /* ===================== 언마운트 시 exit ===================== */
   useEffect(() => {
@@ -132,8 +157,6 @@ export default function StudyRoomPage() {
   }, [numericStudyId]);
 
   /* ===================== STOMP ===================== */
-  const WS_BASE_URL = import.meta.env.VITE_DOMAIN_URL;
-
   const { events, sendChat, sendNowState } = useStompChat({
     studyId: numericStudyId,
     wsBaseUrl: WS_BASE_URL,
