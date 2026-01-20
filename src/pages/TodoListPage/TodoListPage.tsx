@@ -56,22 +56,14 @@ const TodoListPage: React.FC = () => {
 
   const { categories } = useTodoCategoriesContext();
   const visibleCategories = categories.filter(cat => {
-  const created = new Date(cat.createdAt);
-  created.setHours(0, 0, 0, 0);
+    const created = new Date(cat.createdAt);
+    created.setHours(0, 0, 0, 0);
 
-  const selected = new Date(selectedDate);
-  selected.setHours(0, 0, 0, 0);
+    const selected = new Date(selectedDate);
+    selected.setHours(0, 0, 0, 0);
 
-  return selected >= created;
-});
-
-  const isSameDate = (a: string, b: string) => {
-    const da = new Date(a);
-    const db = new Date(b);
-    da.setHours(0,0,0,0);
-    db.setHours(0,0,0,0);
-    return da.getTime() === db.getTime();
-  };
+    return selected >= created;
+  });
 
   const handleAddTodo = async (categoryId: number) => {
     try {
@@ -165,7 +157,8 @@ const TodoListPage: React.FC = () => {
               </div>
 
             {todos
-              .filter(t => t.categoryId === cat.categoryId && isSameDate(t.date, selectedDate))
+              .filter(t => t.categoryId === cat.categoryId
+              )
               .map(todo => (
                 <div key={todo.todoId} className="todo-item">
                   <img src={todoCheck} className="todo-check-icon" alt="체크"/>

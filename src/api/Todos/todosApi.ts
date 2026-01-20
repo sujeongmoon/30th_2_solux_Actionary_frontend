@@ -30,14 +30,11 @@ export const updateTodoStatus = async (
     }
 };
 
-// 투두 타입
 export interface Todo {
-    todoId: number;
-    title: string;
-    date: string;
-    categoryId?: number | null;
-    status: TodoStatus;
-    createdAt: string;
+  todoId: number;
+  title: string;
+  categoryId?: number;
+  status: TodoStatus;
 }
 
 // 투두 생성
