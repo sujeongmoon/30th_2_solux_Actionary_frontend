@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import React from "react";
 import type { ApiEnvelope } from "../api/types";
 import { getTodosByDate, createTodo, updateTodo, updateTodoStatus, deleteTodo } from "../api/Todos/todosApi";
 import type{ Todo as ApiTodo } from "../api/Todos/todosApi";
@@ -13,12 +14,19 @@ export const useTodos = () => {
   const [selectedDate, setSelectedDate] = useState<string>(todayString);
   const [loading, setLoading] = useState(false);
 
+  const normalizeDate = (date: string) => 
+    new Date(date).toISOString().slice(0,10);
+
   useEffect(() => {
     const fetchTodos = async () => {
       setLoading(true);
       try {
         const data = await getTodosByDate(selectedDate);
-        setTodos(data);
+        const normalized = data.map(todo => ({
+          ...todo,
+          date: normalizeDate(todo.date),
+        }));
+        setTodos(normalized);
       } catch (err) {
         console.error("투두 조회 실패", err);
       } finally {
@@ -29,23 +37,49 @@ export const useTodos = () => {
   }, [selectedDate]);
 
   // 투두 추가
-  const addTodoItem = async (categoryId: number): Promise<Todo> => {
-    try {
-      const res = await createTodo({ title: "|", date: selectedDate, categoryId});
-      console.log("새 투두:", res.data);
-      setTodos(prev => [...prev, res.data]);
-      return res.data;
-    } catch (err) {
-      console.error("투두 생성 실패", err);
-      throw err;
-    }
+  const addTodoItem = (categoryId: number): Todo => {
+    const tempTodo: Todo = {
+      todoId: Date.now() * -1,
+      title: '',
+      date: selectedDate,
+      categoryId,
+      status: 'PENDING',
+      createdAt: new Date().toISOString(),
+    };
+    setTodos(prev => [...prev, tempTodo]);
+    return tempTodo;
+  };
+
+  const createTodoOnServer = async (
+    tempTodoId: number,
+    title: string,
+    categoryId?: number | null
+  ) => {
+    const res = await createTodo({
+      title,
+      date: selectedDate,
+      categoryId,
+    });
+    const normalizedTodo = {
+      ...res.data,
+      date: normalizeDate(res.data.date),
+    };
+    setTodos(prev =>
+      prev.map(t => (t.todoId === tempTodoId ? normalizedTodo : t))
+    );
   };
 
   // 투두 수정
   const editTodo = async (todoId: number, data: { title?: string; categoryId?: number}) => {
     try {
       const res = await updateTodo(todoId, data);
-      setTodos(prev => prev.map(t => (t.todoId === todoId ? res.data : t)));
+      const normalizedTodo = {
+        ...res.data,
+        date: normalizeDate(res.data.date),
+      };
+      setTodos(prev => 
+        prev.map(t => (t.todoId === todoId ? normalizedTodo : t))
+      );
     } catch (err) {
       console.error("투두 수정 실패", err);
     }
@@ -76,6 +110,7 @@ export const useTodos = () => {
     setSelectedDate,
     todos,
     addTodoItem,
+    createTodoOnServer,
     removeTodo,
     editTodo,
     changeStatus,
@@ -84,3 +119,4 @@ export const useTodos = () => {
 };
 
 export default useTodos;
+
