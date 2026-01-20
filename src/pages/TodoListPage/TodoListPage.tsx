@@ -172,16 +172,30 @@ const TodoListPage: React.FC = () => {
                       onKeyDown={async e => {
                         if (e.key === 'Enter') {
                           const trimmed = editingTitle.trim();
+
                           if (trimmed === '') {
-                            setTodos(prev => prev.filter(t => t.todoId !== todo.todoId));
+                            // 새 투두면 삭제
+                            if (todo.todoId < 0) {
+                              setTodos(prev => prev.filter(t => t.todoId !== todo.todoId));
+                            }
                             setEditTodoId(null);
                             return;
                           }
-                          await createTodoOnServer(todo.todoId, trimmed, todo.categoryId);
+
+                          // ✅ 새 투두
+                          if (todo.todoId < 0) {
+                            await createTodoOnServer(todo.todoId, trimmed, todo.categoryId);
+                          } 
+                          // ✅ 기존 투두 수정
+                          else {
+                            await editTodo(todo.todoId, { title: trimmed });
+                          }
+
                           setEditingTitle('');
                           setEditTodoId(null);
                         }
                       }}
+
                       autoFocus
                     />
                   ):(
