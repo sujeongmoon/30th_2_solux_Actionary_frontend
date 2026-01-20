@@ -298,13 +298,14 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
       setPwError(null);
       await enterPrivateStudy(studyId, password);
 
+      // 성공 시 (200 OK) -> 입장 처리
       setPwModalOpen(false);
       onClose();
       navigate(`/study-room/${studyId}`);
     } catch (e: any) {
       const status = e?.response?.status;
 
-      // 409 = 이미 참여 중이면 성공 취급하고 이동
+      // 이미 참여 중 (409) -> 성공으로 간주하고 입장
       if (status === 409) {
         setPwModalOpen(false);
         onClose();
@@ -312,11 +313,13 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
         return;
       }
 
+      // 🔥 [수정완료] 비밀번호가 틀려서 401이 뜰 때, 로그인 창을 띄우지 않고 에러 메시지만 표시
       if (status === 401) {
-        openActionModal("login_enter");
+        setPwError("비밀번호가 일치하지 않습니다.");
         return;
       }
 
+      // 그 외 에러 처리
       setPwError(e?.response?.data?.message ?? "비밀번호 확인 실패");
     } finally {
       setPwLoading(false);

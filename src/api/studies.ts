@@ -165,5 +165,14 @@ export async function updateStudy(studyId: number, payload: UpdateStudyPayload) 
   const res = await api.put<ApiEnvelope<UpdateStudyResponse>>(`/studies/${studyId}`, req);
   return res.data.data;
 }
+
+export async function updateNowState(studyId: number, nowState: string) {
+  const res = await api.patch(`/studies/${studyId}/participating/nowState`, {
+    nowState, 
+  });
+  return res.data;
+}
+
+
 export { getStudyList as getStudies };
 export { getStudyList as getStudiesList };
