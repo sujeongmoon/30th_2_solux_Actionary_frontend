@@ -79,6 +79,7 @@ export const useTodos = () => {
     removeTodo,
     editTodo,
     changeStatus,
+    setTodos,
   };
 };
 

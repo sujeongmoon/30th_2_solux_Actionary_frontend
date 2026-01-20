@@ -30,7 +30,6 @@ interface TodoDropdownPosition {
 
 const TodoListPage: React.FC = () => {
   const { todos, selectedDate, setSelectedDate, addTodoItem, editTodo, removeTodo, changeStatus, } = useTodos();
-  const { categories } = useTodoCategoriesContext();
   /* 상태
   const today = new Date();
   const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
@@ -56,21 +55,29 @@ const TodoListPage: React.FC = () => {
     left: 0,
   });
 
-  /*const { categories } = useTodoCategoriesContext();
-const visibleCategories = categories.filter(cat => {
-  const createdUTC = new Date(cat.createdAt);
-  const createdKST = new Date(createdUTC.getTime() + 9 * 60 * 60 * 1000);
-  createdKST.setHours(0,0,0,0);
+  const { categories } = useTodoCategoriesContext();
+  const visibleCategories = categories.filter(cat => {
+    const createdUTC = new Date(cat.createdAt);
+    const createdKST = new Date(createdUTC.getTime() + 9 * 60 * 60 * 1000);
+    createdKST.setHours(0,0,0,0);
 
-  const selected = new Date(selectedDate);
-  selected.setHours(0,0,0,0);
+    const selected = new Date(selectedDate);
+    selected.setHours(0,0,0,0);
 
-  return selected >= createdKST;
-});*/
+    return selected >= createdKST;
+  });
+  const isSameDate = (a: string, b: string) => {
+    const da = new Date(a);
+    const db = new Date(b);
+    da.setHours(0,0,0,0);
+    db.setHours(0,0,0,0);
+    return da.getTime() === db.getTime();
+  };
 
   const handleAddTodo = async (categoryId: number) => {
     try {
       const newTodo = await addTodoItem(categoryId);
+      console.log(newTodo);
       setEditTodoId(newTodo.todoId);
       setEditingTitle('');
     } catch (err) {
@@ -144,7 +151,7 @@ const visibleCategories = categories.filter(cat => {
 
           </div>
 
-          {categories.map(cat => (
+          {visibleCategories.map(cat => (
             <div key={cat.categoryId} className="category-block">
               <div className="category-header">
                 <div
@@ -159,7 +166,7 @@ const visibleCategories = categories.filter(cat => {
               </div>
 
             {todos
-              .filter(t => t.categoryId === cat.categoryId && t.date === selectedDate)
+              .filter(t => t.categoryId === cat.categoryId && isSameDate(t.date, selectedDate))
               .map(todo => (
                 <div key={todo.todoId} className="todo-item">
                   <img src={todoCheck} className="todo-check-icon" alt="체크"/>
@@ -175,11 +182,10 @@ const visibleCategories = categories.filter(cat => {
                           const trimmed = editingTitle.trim();
                           if (trimmed !== '') {
                             await editTodo(todo.todoId, { title: trimmed });
-                            setEditingTitle('');
-                            setIsNewTodo(false);
-                          } else {
-                            e.preventDefault();
                           }
+                          setEditingTitle('');
+                          setIsNewTodo(false);
+                          setEditTodoId(null);
                         }
                       }}
                       autoFocus
