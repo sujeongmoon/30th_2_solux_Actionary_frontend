@@ -1,196 +1,146 @@
-import { useState, useMemo } from "react";
 import StudyNoImg from "../../assets/study_noimg.png";
 import "./StudyPage.css";
+
+export type MyScope = "ALL" | "OWNED" | "JOINED" | "LIKED";
 
 type Study = {
   studyId: number;
   studyName: string;
   coverImage?: string | null;
-  category?: string | null;
 };
 
 type MyStudyCarouselProps = {
   myStudies: Study[];
-  myFilter: string;
-  setMyFilter: (f: string) => void;
+  myFilter: MyScope;
+  setMyFilter: (f: MyScope) => void;
   onOpenStudy: (id: number) => void;
+
+  myPage: number;
+  setMyPage: (p: number | ((prev: number) => number)) => void;
+  myTotalPages: number;
+
+  title?: string;
 };
 
-const CATEGORY_LABEL: Record<string, string> = {
-  CSAT: "수능",
-  CIVIL_SERVICE: "공무원",
-  TEACHER_EXAM: "임용",
-  LICENSE: "자격증",
-  LANGUAGE: "어학",
-  EMPLOYMENT: "취업",
-  OTHER: "기타",
-};
-
-const ORDERED_CATEGORIES = [
-  "CSAT",
-  "CIVIL_SERVICE",
-  "TEACHER_EXAM",
-  "LICENSE",
-  "LANGUAGE",
-  "EMPLOYMENT",
-  "OTHER",
-] as const;
+const FILTERS: Array<{ key: MyScope; label: string }> = [
+  { key: "ALL", label: "전체" },
+  { key: "OWNED", label: "개설한 스터디" },
+  { key: "JOINED", label: "참가한 스터디" },
+  { key: "LIKED", label: "즐겨찾기" },
+];
 
 export default function MyStudyCarousel({
   myStudies,
   myFilter,
   setMyFilter,
   onOpenStudy,
+  myPage,
+  setMyPage,
+  myTotalPages,
+  title = "나만의 스터디",
 }: MyStudyCarouselProps) {
-  const visibleMy = 3;
+  const totalCount = myStudies?.length ?? 0;
 
-  const [indexByCat, setIndexByCat] = useState<Record<string, number>>({});
+  const canPrev = myPage > 1;
+  const canNext = myPage < (myTotalPages ?? 1);
 
-  const setFilterSafe = (f: string) => {
-    setIndexByCat({}); 
+  const setFilterSafe = (f: MyScope) => {
+    // StudyPage에서 myFilter 변경 시 myPage=1로 리셋해줌
     setMyFilter(f);
   };
 
-  const filterLabel = (f: string) => {
-    if (f === "ALL") return "전체";
-    if (f === "OWNED") return "개설한 스터디";
-    if (f === "JOINED") return "참가한 스터디";
-    if (f === "LIKED") return "즐겨찾기";
-    return f;
-  };
-
-  const grouped = useMemo(() => {
-    const g: Record<string, Study[]> = {};
-    (myStudies ?? []).forEach((s) => {
-      const key = (s.category || "OTHER").trim() || "OTHER";
-      if (!g[key]) g[key] = [];
-      g[key].push(s);
-    });
-    return g;
-  }, [myStudies]);
-
-  const totalCount = myStudies?.length ?? 0;
-
-  const canPrev = (cat: string) => (indexByCat[cat] ?? 0) > 0;
-  const canNext = (cat: string, len: number) =>
-    (indexByCat[cat] ?? 0) + visibleMy < len;
-
-  const move = (cat: string, delta: number, len: number) => {
-    setIndexByCat((prev) => {
-      const cur = prev[cat] ?? 0;
-      const maxStart = Math.max(0, len - visibleMy);
-      const next = Math.max(0, Math.min(cur + delta, maxStart));
-      return { ...prev, [cat]: next };
-    });
-  };
-
-  const sliceFor = (cat: string, list: Study[]) => {
-    const start = indexByCat[cat] ?? 0;
-    return list.slice(start, start + visibleMy);
-  };
-
   return (
-    <section className="myStudySection">
-      {/* ===== Header ===== */}
+    <section className="myStudySection likeMock">
+      {/* Header */}
       <div className="myStudyHeader">
-        <div className="myStudyTitle">나만의 스터디</div>
+        <div className="myStudyTitle">{title}</div>
 
         <div className="myStudyMeta">
-          {["ALL", "OWNED", "JOINED", "LIKED"].map((f, idx) => (
-            <span key={f}>
+          {FILTERS.map((f, idx) => (
+            <span key={f.key}>
               <button
                 type="button"
-                className={`metaBtn ${myFilter === f ? "active" : ""}`}
-                onClick={() => setFilterSafe(f)}
+                className={`metaBtn ${myFilter === f.key ? "active" : ""}`}
+                onClick={() => setFilterSafe(f.key)}
               >
-                {myFilter === f && <span className="dotOn">✓</span>}
-                {filterLabel(f)}
+                {myFilter === f.key && <span className="dotOn">✓</span>}
+                {f.label}
               </button>
-              {idx < 3 && <span className="metaSep">·</span>}
+              {idx < FILTERS.length - 1 && <span className="metaSep">·</span>}
             </span>
           ))}
         </div>
       </div>
 
-      {/* ===== Empty State (배경 유지) ===== */}
-      {totalCount === 0 ? (
-        <div className="myStudyCarousel">
-          <div className="myStudyCards">
-            <div className="state empty" style={{ padding: "20px 0" }}>
-              해당 스터디가 없습니다.
-            </div>
-          </div>
-        </div>
-      ) : (
-        /* ===== Category Rows ===== */
-        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          {ORDERED_CATEGORIES.map((cat) => {
-            const list = grouped[cat] ?? [];
-            if (list.length === 0) return null;
+      {/* Carousel */}
+      <div className="myStudyCarousel">
+        {totalCount > 0 ? (
+          <button
+            type="button"
+            className={`arrowBtn ${canPrev ? "" : "disabled"}`}
+            onClick={() => canPrev && setMyPage((p) => Math.max(1, p - 1))}
+            disabled={!canPrev}
+            aria-label="previous"
+          >
+            ‹
+          </button>
+        ) : (
+          <span style={{ width: 40 }} />
+        )}
 
-            const prev = canPrev(cat);
-            const next = canNext(cat, list.length);
-            const sliced = sliceFor(cat, list);
-
-            return (
-              <div key={cat}>
-                {/* 카테고리 타이틀 */}
-                <div
-                  className="myStudyTitle"
-                  style={{ fontSize: 16, marginBottom: 10 }}
-                >
-                  {CATEGORY_LABEL[cat] ?? cat}
-                </div>
-
-                {/* 카테고리별 캐러셀 */}
-                <div className="myStudyCarousel">
-                  <button
-                    type="button"
-                    className={`arrowBtn ${prev ? "" : "disabled"}`}
-                    onClick={() => prev && move(cat, -1, list.length)}
-                  >
-                    ‹
-                  </button>
-
-                  <div className="myStudyCards">
-                    {sliced.map((s) => (
-                      <div
-                        key={s.studyId}
-                        className="myStudyCard"
-                        onClick={() => onOpenStudy(s.studyId)}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") onOpenStudy(s.studyId);
-                        }}
-                      >
-                        <div className="myStudyThumb">
-                          <img
-                            src={s.coverImage || StudyNoImg}
-                            alt=""
-                            className={!s.coverImage ? "noImage" : ""}
-                          />
-                          <div className="titlePill">
-                            <div className="titlePillText">
-                              {s.studyName || "제목"}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+        <div className="myStudyCards">
+          {totalCount === 0 ? (
+            <div className="myStudyEmptyText">조건에 맞는 나만의 스터디가 없어요.</div>
+          ) : (
+            myStudies.map((s) => (
+              <div
+                key={s.studyId}
+                className="myStudyCard"
+                onClick={() => onOpenStudy(s.studyId)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") onOpenStudy(s.studyId);
+                }}
+              >
+                <div className="myStudyThumb">
+                <img
+                  src={s.coverImage ? s.coverImage : StudyNoImg}
+                  alt=""
+                  onError={(e) => {
+                    const img = e.currentTarget;
+                    if (img.src.endsWith("study_noimg.png")) return; 
+                    img.src = StudyNoImg;
+                  }}
+                />
+                  <div className="titlePill">
+                    <div className="titlePillText">{s.studyName || "제목"}</div>
                   </div>
-
-                  <button
-                    type="button"
-                    className={`arrowBtn ${next ? "" : "disabled"}`}
-                    onClick={() => next && move(cat, +1, list.length)}
-                  >
-                    ›
-                  </button>
                 </div>
               </div>
-            );
-          })}
+            ))
+          )}
+        </div>
+
+        {totalCount > 0 ? (
+          <button
+            type="button"
+            className={`arrowBtn ${canNext ? "" : "disabled"}`}
+            onClick={() => canNext && setMyPage((p) => p + 1)}
+            disabled={!canNext}
+            aria-label="next"
+          >
+            ›
+          </button>
+        ) : (
+          <span style={{ width: 40 }} />
+        )}
+      </div>
+
+      {/* ✅ (선택) 페이지 표시: 필요 없으면 삭제 가능 */}
+      {totalCount > 0 && myTotalPages > 1 && (
+        <div style={{ textAlign: "center", fontSize: 12, color: "#999", marginTop: 6 }}>
+          {myPage} / {myTotalPages}
         </div>
       )}
     </section>

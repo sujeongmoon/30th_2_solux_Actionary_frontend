@@ -1,19 +1,19 @@
 import "./StudyPage.css";
-import '../HomePage/HomePage.css';
 import StudyNoImg from "../../assets/study_noimg.png";
 import MyStudyCarousel from "./MyStudyCarousel";
-import CTABox from "../../components/HomePage/CTAbox";
 
 type Props = any;
 
 export default function StudyLoggedInView(props: Props) {
-
   const {
-    navigate,
-
     myStudies,
     myFilter,
     setMyFilter,
+
+
+    myPage,
+    setMyPage,
+    myTotalPages,
 
     visibility,
     categoryLabel,
@@ -37,28 +37,27 @@ export default function StudyLoggedInView(props: Props) {
   return (
     <>
       {/* 상단바 */}
-      <nav className="sub-navigation">
-        <a href="/studies" className="nav-link-home-link">스터디</a>
-        <span className="nav-divider">|</span>
-        <a href="/" className="nav-link">홈</a>
-        <span className="nav-divider">|</span>
-        <a href="/posts" className="nav-link">게시판</a>
-      </nav>
-      <div className="sub-nav-divider"></div>
+      <div className="pageShell">
+        <nav className="sub-navigation">
+          <a href="/studies" className="nav-link-home-link">스터디</a>
+          <span className="nav-divider">|</span>
+          <a href="/" className="nav-link">홈</a>
+          <span className="nav-divider">|</span>
+          <a href="/board" className="nav-link">게시판</a>
+        </nav>
+        <div className="divider" />
+      </div>
 
-      {myStudies.length > 0 ? (
-        <MyStudyCarousel
-          myStudies={myStudies}
-          myFilter={myFilter}
-          setMyFilter={setMyFilter}
-          onOpenStudy={onOpenStudy}
-        />
-      ) : (
-        <CTABox
-          isLoggedIn={true}
-          nickname={props.nickname}
-        />
-      )}
+      {/* 나만의 스터디 */}
+      <MyStudyCarousel
+        myStudies={myStudies}
+        myFilter={myFilter}
+        setMyFilter={setMyFilter}
+        onOpenStudy={onOpenStudy}
+        myPage={myPage}
+        setMyPage={setMyPage}
+        myTotalPages={myTotalPages}
+      />
 
       {/* ===== 전체 스터디 ===== */}
       <section className="listWrap">
@@ -81,7 +80,6 @@ export default function StudyLoggedInView(props: Props) {
             </button>
           </div>
 
-          {/* ✅ 게스트랑 동일 구조 */}
           <div className="rightInfo">
             <div className="totalText">총 {totalElements}개 스터디</div>
             <div className="catTextRow">
