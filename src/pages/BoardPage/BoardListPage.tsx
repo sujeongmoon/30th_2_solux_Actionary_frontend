@@ -15,7 +15,7 @@ const BoardListPage: React.FC = () => {
    * 상태
    ====================== */
   const [currentPage, setCurrentPage] = useState(1); // UI 기준 1부터
-  const [selectedSort, setSelectedSort] = useState<'popular' | 'latest'>('popular');
+  const [selectedSort, setSelectedSort] = useState<'popular' | 'latest'>('latest');
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('말머리');
