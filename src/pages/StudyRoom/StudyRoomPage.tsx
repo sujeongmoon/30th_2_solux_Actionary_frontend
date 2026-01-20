@@ -9,13 +9,11 @@ import micIcon from "../../assets/icons/stash_mic-solid.svg";
 import micOffIcon from "../../assets/icons/Frame 106.svg";
 
 import { api } from "../../api/client";
-import { exitStudy } from "../../api/studies";
-import { useAuth } from "../../context/AuthContext";
+import { enterPublicStudy, exitStudy } from "../../api/studies";
 import { useStompChat } from "./useStompChat";
 import { useWebRTCRoom } from "./useWebRTCRoom";
 
 /* ===================== 타입 ===================== */
-
 type Participant = {
   userId: number;
   studyParticipantId: number;
@@ -35,18 +33,27 @@ export default function StudyRoomPage() {
   const { studyId } = useParams();
   const numericStudyId = Number(studyId);
 
-  const { token } = useAuth();
+  // 서버 확정 전까지 WebRTC 끔 (콘솔 잡아먹어서)
+  const ENABLE_WEBRTC = false;
+
+  // StrictMode(개발환경)에서 useEffect 2번 도는 거 방지
+  const initOnceRef = useRef(false);
+
+  // "참여 성공" 플래그 (참여 성공했을 때만 exit 가능)
+  const joinedRef = useRef(false);
+
+  // 퇴장 중복 방지
+  const exitCalledRef = useRef(false);
 
   const [me, setMe] = useState<Participant | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [bubbleMap, setBubbleMap] = useState<Record<number, string>>({});
   const [error, setError] = useState<string | null>(null);
 
-  /* ===================== 퇴장(중복 방지 + pagehide) ===================== */
-  const exitCalledRef = useRef(false);
-
+  /* ===================== 퇴장 (참여 성공시에만) ===================== */
   const exitOnce = async () => {
     if (!numericStudyId) return;
+    if (!joinedRef.current) return; // 참여 성공 전에는 exit 호출 X
     if (exitCalledRef.current) return;
     exitCalledRef.current = true;
 
@@ -57,51 +64,71 @@ export default function StudyRoomPage() {
     }
   };
 
+  /* ===================== 입장 + 참가자 조회 (한 번만 실행) ===================== */
   useEffect(() => {
     if (!numericStudyId) return;
+    if (initOnceRef.current) return; 
+    initOnceRef.current = true;
 
-    const onPageHide = () => {
-      if (exitCalledRef.current) return;
-      exitCalledRef.current = true;
+    let mounted = true;
 
-      fetch(`/studies/${numericStudyId}/participating`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ type: "STUDY" }),
-        keepalive: true,
-      }).catch(() => {});
+    (async () => {
+      try {
+        setError(null);
+
+        // 1) 공개 입장 시도
+        // -200: 참여 성공
+        // -409: 이미 참여중 -> 정상처럼 처리
+        try {
+          await enterPublicStudy(numericStudyId);
+        } catch (e: any) {
+          const status = e?.response?.status;
+          if (status !== 409) throw e;
+        }
+
+        // 2) 참여자 조회
+        const res = await api.get(`/studies/${numericStudyId}/participating/users`);
+        const data = res.data?.data;
+
+        if (!mounted) return;
+
+        setMe(data?.me ?? null);
+        setParticipants(data?.participants ?? []);
+        setBubbleMap(data?.participantNowStates ?? {});
+
+        joinedRef.current = true; 
+      } catch (e: any) {
+        if (!mounted) return;
+
+        const status = e?.response?.status;
+        const msg = e?.response?.data?.message;
+        if (status === 500) {
+          setError(
+            "서버에서 참여자 정보를 불러오지 못했어요."
+          );
+          return;
+        }
+
+        if (status === 403) {
+          setError(msg ?? "스터디에 먼저 참여한 뒤 입장해주세요.");
+          return;
+        }
+
+        setError(msg ?? "스터디룸 입장 실패");
+      }
+    })();
+
+    return () => {
+      mounted = false;
     };
+  }, [numericStudyId]);
 
-    window.addEventListener("pagehide", onPageHide);
-    return () => window.removeEventListener("pagehide", onPageHide);
-  }, [numericStudyId, token]);
-
+  /* ===================== 언마운트 시 exit ===================== */
   useEffect(() => {
     return () => {
       void exitOnce();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [numericStudyId]);
-
-  /* ===================== 참가자 목록 초기 조회 ===================== */
-  useEffect(() => {
-    if (!numericStudyId) return;
-
-    (async () => {
-      try {
-        const res = await api.get(`/studies/${numericStudyId}/participating/users`);
-        const data = res.data.data;
-
-        setMe(data.me);
-        setParticipants(data.participants ?? []);
-        setBubbleMap(data.participantNowStates ?? {});
-      } catch {
-        setError("스터디룸 입장 실패");
-      }
-    })();
   }, [numericStudyId]);
 
   /* ===================== STOMP ===================== */
@@ -204,6 +231,7 @@ export default function StudyRoomPage() {
     setCamOn,
     setMicOn,
   } = useWebRTCRoom({
+    enabled: ENABLE_WEBRTC,
     roomId: String(studyId),
     signalingUrl: import.meta.env.VITE_SIGNALING_URL,
     displayName: me?.userNickname ?? "나",
@@ -238,7 +266,14 @@ export default function StudyRoomPage() {
   };
 
   /* ===================== 렌더 ===================== */
-  if (error) return <div className="srError">{error}</div>;
+  if (error) {
+    return (
+      <div className="srError" style={{ whiteSpace: "pre-line" }}>
+        {error}
+      </div>
+    );
+  }
+
   if (!me) return <div className="srLoading">입장 중...</div>;
 
   return (
@@ -259,9 +294,12 @@ export default function StudyRoomPage() {
             {[me, ...participants].map((p, idx) => {
               const isMe = p.studyParticipantId === me.studyParticipantId;
 
-              const stream = isMe
-                ? (localStream as MediaStream | null)
-                : (getRemoteStreamForParticipant(p.userNickname, idx - 1) as MediaStream | null);
+              const stream =
+                !ENABLE_WEBRTC
+                  ? null
+                  : isMe
+                  ? (localStream as MediaStream | null)
+                  : (getRemoteStreamForParticipant(p.userNickname, idx - 1) as MediaStream | null);
 
               return (
                 <div key={p.studyParticipantId} className="srTile">
@@ -360,10 +398,20 @@ export default function StudyRoomPage() {
       <div className="srDock">
         <div className="srDockInner">
           <div className="srDockCenter">
-            <button className="srCtlIcon" onClick={() => setCamOn((v: boolean) => !v)}>
+            <button
+              className="srCtlIcon"
+              onClick={() => ENABLE_WEBRTC && setCamOn((v: boolean) => !v)}
+              disabled={!ENABLE_WEBRTC}
+              style={!ENABLE_WEBRTC ? { opacity: 0.5, cursor: "not-allowed" } : undefined}
+            >
               <img src={camOn ? cameraIcon : cameraOffIcon} alt="camera" />
             </button>
-            <button className="srCtlIcon" onClick={() => setMicOn((v: boolean) => !v)}>
+            <button
+              className="srCtlIcon"
+              onClick={() => ENABLE_WEBRTC && setMicOn((v: boolean) => !v)}
+              disabled={!ENABLE_WEBRTC}
+              style={!ENABLE_WEBRTC ? { opacity: 0.5, cursor: "not-allowed" } : undefined}
+            >
               <img src={micOn ? micIcon : micOffIcon} alt="mic" />
             </button>
           </div>

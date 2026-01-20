@@ -5,7 +5,7 @@ const TodoCategoriesContext = createContext<
   ReturnType<typeof useTodoCategories> | null
 >(null);
 
-/** ✅ Provider */
+/* Provider */
 export const TodoCategoriesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const categoriesState = useTodoCategories();
 
@@ -16,7 +16,7 @@ export const TodoCategoriesProvider: React.FC<{ children: React.ReactNode }> = (
   );
 };
 
-/** ✅ Context Hook */
+/* Context Hook */
 export const useTodoCategoriesContext = () => {
   const context = useContext(TodoCategoriesContext);
   if (!context) {

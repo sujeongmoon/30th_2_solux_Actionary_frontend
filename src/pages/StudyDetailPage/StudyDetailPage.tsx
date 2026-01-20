@@ -84,7 +84,7 @@ useEffect(() => {
 
       if (!mounted) return;
 
-      // ✅ 어떤 형태로 와도 최종적으로 배열만 뽑아내기
+
       const list =
         Array.isArray(data) ? data :
         Array.isArray((data as any)?.rankings) ? (data as any).rankings :
