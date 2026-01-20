@@ -1,5 +1,6 @@
 import StudyNoImg from "../../assets/study_noimg.png";
 import "./StudyPage.css";
+import { useNavigate } from "react-router-dom";
 
 export type MyScope = "ALL" | "OWNED" | "JOINED" | "LIKED";
 
@@ -43,9 +44,9 @@ export default function MyStudyCarousel({
 
   const canPrev = myPage > 1;
   const canNext = myPage < (myTotalPages ?? 1);
-
+  const navigate = useNavigate();
   const setFilterSafe = (f: MyScope) => {
-    // StudyPage에서 myFilter 변경 시 myPage=1로 리셋해줌
+
     setMyFilter(f);
   };
 
@@ -53,7 +54,17 @@ export default function MyStudyCarousel({
     <section className="myStudySection likeMock">
       {/* Header */}
       <div className="myStudyHeader">
+          <div className="myStudyTitleRow">
         <div className="myStudyTitle">{title}</div>
+
+        <button
+          className="createStudyBtn"
+          onClick={() => navigate("/studies/new")}
+          aria-label="스터디 생성"
+        >
+          +
+        </button>
+      </div>
 
         <div className="myStudyMeta">
           {FILTERS.map((f, idx) => (
@@ -137,7 +148,6 @@ export default function MyStudyCarousel({
         )}
       </div>
 
-      {/* ✅ (선택) 페이지 표시: 필요 없으면 삭제 가능 */}
       {totalCount > 0 && myTotalPages > 1 && (
         <div style={{ textAlign: "center", fontSize: 12, color: "#999", marginTop: 6 }}>
           {myPage} / {myTotalPages}

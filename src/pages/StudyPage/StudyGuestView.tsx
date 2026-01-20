@@ -1,11 +1,7 @@
 import "./StudyPage.css";
-// ✅ 가능하면 이거 삭제 추천 (필터/버튼 스타일 덮임 원인)
-import "../../pages/HomePage/HomePage.css";
 
 import StudyNoImg from "../../assets/study_noimg.png";
-import CTABox from "../../components/HomePage/CTAbox";
-import { useState } from "react";
-import LoginAlertModal from "../../components/AlertModal/LoginAlertModal";
+import MainPageLogo from "../../assets/homepage/MainPageLogo.svg";
 
 type Props = any;
 
@@ -32,31 +28,38 @@ export default function StudyGuestView(props: Props) {
     onOpenStudy,
   } = props;
 
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const handleOpenStudy = (studyId: number) => {
-  // 로그인 안 됨 → 모달 띄움
-  setShowLoginModal(true);
-};
-
-
-
   return (
     <>
       {/* 상단바 */}
-      <nav className="sub-navigation">
-        <a href="/studies" className="nav-link-home-link">스터디</a>
-        <span className="nav-divider">|</span>
-        <a href="/" className="nav-link">홈</a>
-        <span className="nav-divider">|</span>
-        <a href="/posts" className="nav-link">게시판</a>
-      </nav>
-      <div className="sub-nav-divider"></div>
+      <div className="pageShell">
+        <nav className="sub-navigation">
+          <a href="/studies" className="nav-link-home-link">스터디</a>
+          <span className="nav-divider">|</span>
+          <a href="/" className="nav-link">홈</a>
+          <span className="nav-divider">|</span>
+          <a href="/board" className="nav-link">게시판</a>
+        </nav>
+        <div className="divider" />
+      </div>
 
       {/* CTA */}
-      
-      <CTABox isLoggedIn={false} />
+      <section className="studyCta">
+        <div
+          className="studyCtaBox"
+          role="button"
+          tabIndex={0}
+          onClick={() => navigate("/login")}
+          onKeyDown={(e: any) => e.key === "Enter" && navigate("/login")}
+        >
+          <div className="studyCtaPlus">+</div>
 
-      {/* ✅ 필터바 (로그인뷰랑 동일 구조로 통일) */}
+          <p className="studyCtaText">
+            <img src={MainPageLogo} alt="Actionary" className="studyCtaLogo" />
+            지금 로그인 하고, 나만의 스터디를 만들어보세요 !
+          </p>
+        </div>
+      </section>
+
       <section className="studyFilterBar">
         <div className="studyFilterTop">
           <div className="visTabs">
@@ -117,7 +120,7 @@ export default function StudyGuestView(props: Props) {
               <article
                 key={s.studyId}
                 className="studyCard"
-                onClick={() => handleOpenStudy(s.studyId)}
+                onClick={() => onOpenStudy(s.studyId)}
                 role="button"
                 tabIndex={0}
               >
@@ -170,13 +173,6 @@ export default function StudyGuestView(props: Props) {
         >
           ›
         </button>
-
-        <LoginAlertModal
-          isOpen={showLoginModal}
-          onClose={() => setShowLoginModal(false)}
-          onLogin={() => navigate("/login")} // 로그인 버튼 누르면 로그인 페이지로 이동
-        />
-
       </div>
     </>
   );
