@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import './TodoCalendar.css';
+import type { Todo } from '../../api/Todos/todosApi';
 
 interface TodoCalendarProps {
   selectedDate: string;
   onChangeDate: (date: string) => void;
-  todoMap: Record<string, { status: 'PENDING' | 'DONE' | 'FAILED' }[]>;
+  //todoMap: Record<string, { status: 'PENDING' | 'DONE' | 'FAILED' }[]>;
+  calendarMap: Record<string, Todo[]>;
 }
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -19,7 +21,7 @@ const parseDate = (dateStr: string) => {
 const TodoCalendar: React.FC<TodoCalendarProps> = ({
   selectedDate,
   onChangeDate,
-  todoMap = {},
+  calendarMap,
 }) => {
   const [activeMonth, setActiveMonth] = useState(parseDate(selectedDate));
   const [view, setView] =
@@ -107,7 +109,7 @@ const TodoCalendar: React.FC<TodoCalendarProps> = ({
             date.getMonth() + 1
           )}-${pad(date.getDate())}`;
 
-          const dayTodos = todoMap[dateStr] ?? [];
+          const dayTodos = calendarMap[dateStr] ?? [];
 
           if (dayTodos.length === 0) return null;
 

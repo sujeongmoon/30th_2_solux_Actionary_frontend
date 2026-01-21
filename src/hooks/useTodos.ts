@@ -25,7 +25,10 @@ export const useTodos = () => {
       setLoading(true);
       try {
         const data = await getTodosByDate(selectedDate);
-        setTodos(data);
+        setTodos(prev => {
+          const filtered = prev.filter(t => t.date !== selectedDate);
+          return [...filtered, ...data];
+        });
       } catch (err) {
         console.error("투두 조회 실패", err);
       } finally {
@@ -38,8 +41,17 @@ export const useTodos = () => {
 
   // ---------------- 캘린더용 맵 ----------------
 const calendarMap = todos.reduce<Record<string, Todo[]>>((acc, todo) => {
-  const date = selectedDate; // 서버에서 날짜별 조회하므로 전부 이 날짜
-  acc[date] = acc[date] ? [...acc[date], todo] : [todo];
+  if (!todo.date) return acc;
+
+  if (!acc[todo.date]) {
+    acc[todo.date] = [];
+  }
+  acc[todo.date].push(todo);
+  /*acc[todo.date] = acc[todo.date]
+    ? [...acc[todo.date], todo]
+    : [todo];*/
+  /*const date = selectedDate; // 서버에서 날짜별 조회하므로 전부 이 날짜
+  acc[date] = acc[date] ? [...acc[date], todo] : [todo]; */
   return acc;
 }, {});
 
@@ -51,8 +63,10 @@ const calendarMap = todos.reduce<Record<string, Todo[]>>((acc, todo) => {
     const tempTodo: Todo = {
       todoId: Date.now() * -1, // 임시 음수 ID
       title: "",
+      date: selectedDate,
       categoryId,
       status: "PENDING",
+      createdAt: new Date().toISOString(),
     };
 
     setTodos(prev => [...prev, tempTodo]);
@@ -77,6 +91,8 @@ const calendarMap = todos.reduce<Record<string, Todo[]>>((acc, todo) => {
       title: res.data.title,
       categoryId: res.data.categoryId,
       status: res.data.status,
+      date: selectedDate,
+      createdAt: res.data.createdAt,
     };
 
       setTodos(prev =>
@@ -101,6 +117,8 @@ const calendarMap = todos.reduce<Record<string, Todo[]>>((acc, todo) => {
         title: res.data.title,
         categoryId: res.data.categoryId,
         status: res.data.status,
+        date: res.data.date ?? selectedDate,
+        createdAt: res.data.createdAt,
       };
 
 

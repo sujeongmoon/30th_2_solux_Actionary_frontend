@@ -6,6 +6,7 @@ import ddd from "../../assets/TodoList/ddd.svg";
 import todoCheck from "../../assets/TodoList/todoCheck.svg";
 import { useTodoCategoriesContext } from '../../context/TodoCategoriesContext';
 import { useTodos } from '../../hooks/useTodos';
+import type { Todo } from '../../api/Todos/todosApi';
 
 // 모달 컴포넌트
 import CategoryCreateModal from '../../components/TodoList/CategoryCreateModal';
@@ -28,7 +29,7 @@ interface TodoDropdownPosition {
 }
 
 const TodoListPage: React.FC = () => {
-  const { todos, selectedDate, setSelectedDate, addTodoItem, editTodo, setTodos, removeTodo, changeStatus, createTodoOnServer} = useTodos();
+  const { todos, selectedDate, setSelectedDate, addTodoItem, editTodo, setTodos, removeTodo, changeStatus, createTodoOnServer, calendarMap} = useTodos();
 
   const isCreatingRef = useRef(false);
   /* 상태
@@ -111,6 +112,7 @@ const TodoListPage: React.FC = () => {
     const days = ["일요일","월요일","화요일","수요일","목요일","금요일","토요일"];
     return `${date.getFullYear()} / ${date.getMonth() + 1} / ${date.getDate()} / ${days[date.getDay()]}`;
   };
+  const todoOfSelectedDate = calendarMap[selectedDate] ?? [];
 
 
   return (
@@ -120,7 +122,7 @@ const TodoListPage: React.FC = () => {
         <TodoCalendar
           selectedDate={selectedDate}
           onChangeDate={setSelectedDate}
-          todos={todos}
+          calendarMap={calendarMap}
         />
 
         {/* 투두리스트 */}
@@ -158,9 +160,8 @@ const TodoListPage: React.FC = () => {
               
               </div>
 
-            {todos
-              .filter(t => t.categoryId === cat.categoryId
-              )
+            {todoOfSelectedDate
+              .filter(t => t.categoryId === cat.categoryId)
               .map(todo => (
                 <div key={todo.todoId} className="todo-item">
                   <img src={todoCheck} className="todo-check-icon" alt="체크"/>
