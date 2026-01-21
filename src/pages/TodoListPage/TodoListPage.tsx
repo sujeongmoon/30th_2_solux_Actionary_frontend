@@ -29,6 +29,8 @@ interface TodoDropdownPosition {
 
 const TodoListPage: React.FC = () => {
   const { todos, selectedDate, setSelectedDate, addTodoItem, editTodo, setTodos, removeTodo, changeStatus, createTodoOnServer} = useTodos();
+
+  const isCreatingRef = useRef(false);
   /* 상태
   const today = new Date();
   const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
@@ -46,8 +48,6 @@ const TodoListPage: React.FC = () => {
   const [todoDropdownOpenId, setTodoDropdownOpenId] = useState<number | null>(null);
   const [todoDropdownPosition, setTodoDropdownPosition] = useState<TodoDropdownPosition>({ top: 0, left: 0 });
   const dropdownButtonRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
-
-  const [adding, setAdding] = useState(false);
 
   // 카테고리 드롭다운 위치 계산
   const categoryButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -68,8 +68,6 @@ const TodoListPage: React.FC = () => {
   });
 
   const handleAddTodo = async (categoryId: number) => {
-    if (adding) return; // 중복 클릭 방지
-    setAdding(true);
     try {
       const tempTodo = addTodoItem(categoryId);
       console.log(tempTodo);
@@ -77,8 +75,6 @@ const TodoListPage: React.FC = () => {
       setEditingTitle('');
     } catch (err) {
       console.error("새 투두 추가 실패", err);
-    } finally {
-      setAdding(false);
     }
   };
 
@@ -176,9 +172,12 @@ const TodoListPage: React.FC = () => {
                       placeholder="| 새 할 일 + Enter"
                       onChange={e => setEditingTitle(e.target.value)}
                       onKeyDown={async e => {
-                        if (e.key === 'Enter') {
-                          const trimmed = editingTitle.trim();
+                        if (e.key !== 'Enter') return;
+                        if (isCreatingRef.current) return; //중복 생성 방지
+                        isCreatingRef.current = true;
 
+                        try {
+                          const trimmed = editingTitle.trim();
                           if (trimmed === '') {
                             // 새 투두면 삭제
                             if (todo.todoId < 0) {
@@ -191,14 +190,14 @@ const TodoListPage: React.FC = () => {
                           // 새 투두
                           if (todo.todoId < 0) {
                             await createTodoOnServer(todo.todoId, trimmed, todo.categoryId);
-                          } 
-                          // 기존 투두 수정
-                          else {
+                          } else {
                             await editTodo(todo.todoId, { title: trimmed });
                           }
 
                           setEditingTitle('');
                           setEditTodoId(null);
+                        } finally {
+                          isCreatingRef.current = false;
                         }
                       }}
 
