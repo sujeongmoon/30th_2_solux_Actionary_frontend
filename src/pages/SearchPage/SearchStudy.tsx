@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import "../../components/Search/StudySearchSection.css";
 import noImg from "../../assets/study_noimg.png";
 import { searchStudies } from "../../api/studies";
+import StudyViewModal from "../StudyDetailPage/StudyViewModal";
 
 type StudyItem = {
   studyId: number;
@@ -10,8 +11,8 @@ type StudyItem = {
   coverImage?: string | null;
   isPublic?: boolean;
   categoryLabel?: string;
-  createdAt?: string; 
-  memberCount?: number; 
+  createdAt?: string;
+  memberCount?: number;
 };
 
 function useQuery() {
@@ -29,17 +30,18 @@ const toApiSort = (k: SortKey) => (k === "popular" ? "POPULAR" : "RECENT");
 
 export default function StudySearch() {
   const q = useQuery();
-  const navigate = useNavigate();
   const keyword = (q.get("keyword") ?? "").trim();
 
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<StudyItem[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  const [selectedStudyId, setSelectedStudyId] = useState<number | null>(null);
+
   // 정렬 상태
   const [sortKey, setSortKey] = useState<SortKey>("popular");
   const [page, setPage] = useState(1);
-  const size = 10; 
+  const size = 10;
 
   // 커스텀 드롭다운 열림/닫힘
   const [sortOpen, setSortOpen] = useState(false);
@@ -64,154 +66,158 @@ export default function StudySearch() {
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
-// keyword / sort / page 바뀔 때마다 검색
-useEffect(() => {
-  let mounted = true;
+  // keyword / sort / page 바뀔 때마다 검색
+  useEffect(() => {
+    let mounted = true;
 
-  (async () => {
-    setErrorMsg(null);
-    setLoading(true);
+    (async () => {
+      setErrorMsg(null);
+      setLoading(true);
 
-    try {
-      const data = await searchStudies({
-        q: keyword || "", 
-        sort: toApiSort(sortKey),
-        page, 
-        size,
-      });
+      try {
+        const data = await searchStudies({
+          q: keyword || "",
+          sort: toApiSort(sortKey),
+          page,
+          size,
+        });
 
-      if (!mounted) return;
+        if (!mounted) return;
 
-      // Paginated<SearchStudyItem> -> StudyItem 매핑
-      const mapped: StudyItem[] = (data.content ?? []).map((s: any) => ({
-        studyId: s.studyId,
-        studyName: s.studyName,
-        coverImage: s.coverImage ?? null,
-        isPublic: s.isPublic,
-        categoryLabel: s.categoryLabel ?? "기타",
-        createdAt: s.createdAt,
-        memberCount: s.memberCount,
-      }));
+        const mapped: StudyItem[] = (data.content ?? []).map((s: any) => ({
+          studyId: s.studyId,
+          studyName: s.studyName,
+          coverImage: s.coverImage ?? null,
+          isPublic: s.isPublic,
+          categoryLabel: s.categoryLabel ?? "기타",
+          createdAt: s.createdAt,
+          memberCount: s.memberCount,
+        }));
 
-      setItems(mapped);
-    } catch (e: any) {
-      if (!mounted) return;
-      setItems([]);
-      setErrorMsg(e?.response?.data?.message ?? "검색 결과를 불러오지 못했어요.");
-    } finally {
-      if (mounted) setLoading(false);
-    }
-  })();
+        // 페이지네이션 방식이 "더보기"면 누적, 아니면 교체
+        if (page === 1) setItems(mapped);
+        else setItems((prev) => [...prev, ...mapped]);
+      } catch (e: any) {
+        if (!mounted) return;
+        if (page === 1) setItems([]);
+        setErrorMsg(e?.response?.data?.message ?? "검색 결과를 불러오지 못했어요.");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
 
-  return () => {
-    mounted = false;
-  };
-}, [keyword, sortKey, page]);
+    return () => {
+      mounted = false;
+    };
+  }, [keyword, sortKey, page]);
 
-  // 정렬 (백에서 정렬해주면 제거 가능)
   const sortedItems = useMemo(() => items, [items]);
 
   const chooseSort = (k: SortKey) => {
     setSortKey(k);
     setSortOpen(false);
-    setPage(1); 
+    setPage(1);
   };
 
   return (
-    <section className="searchSection">
-      {/* 헤더: 왼쪽 제목/키워드 + 오른쪽 정렬 필터 */}
-      <div className="searchSectionHeader">
-        <div className="searchHeaderLeft">
-          <h2 className="searchSectionTitle">스터디 검색</h2>
-          {keyword ? (
-            <div className="searchSectionMeta">키워드: “{keyword}”</div>
-          ) : (
-            <div className="searchSectionMeta">전체 스터디</div>
-          )}
-        </div>
-
-        {/* 커스텀 드롭다운 (전체/게시글/스터디 스타일) */}
-        <div className="searchHeaderRight">
-          <div className="dd" ref={sortRef}>
-            <button
-              type="button"
-              className={`ddBtn ${sortOpen ? "open" : ""}`}
-              onClick={() => setSortOpen((v) => !v)}
-              aria-haspopup="listbox"
-              aria-expanded={sortOpen}
-            >
-              <span className="ddBtnLabel">{sortLabel[sortKey]}</span>
-              <span className="ddArrow" aria-hidden="true">
-                ▾
-              </span>
-            </button>
-
-            {sortOpen && (
-              <div className="ddMenu" role="listbox" aria-label="스터디 정렬">
-                <button
-                  type="button"
-                  className={`ddItem ${sortKey === "popular" ? "active" : ""}`}
-                  onClick={() => chooseSort("popular")}
-                  role="option"
-                  aria-selected={sortKey === "popular"}
-                >
-                  <span className="ddItemText">인기순</span>
-                </button>
-
-                <button
-                  type="button"
-                  className={`ddItem ${sortKey === "latest" ? "active" : ""}`}
-                  onClick={() => chooseSort("latest")}
-                  role="option"
-                  aria-selected={sortKey === "latest"}
-                >
-                  <span className="ddItemText">최신순</span>
-                </button>
-              </div>
+    <>
+      <section className="searchSection">
+        {/* 헤더 */}
+        <div className="searchSectionHeader">
+          <div className="searchHeaderLeft">
+            <h2 className="searchSectionTitle">스터디 검색</h2>
+            {keyword ? (
+              <div className="searchSectionMeta">키워드: “{keyword}”</div>
+            ) : (
+              <div className="searchSectionMeta">전체 스터디</div>
             )}
           </div>
-        </div>
-      </div>
 
-      {loading && <div className="searchState">불러오는 중…</div>}
-      {!loading && errorMsg && <div className="searchState error">{errorMsg}</div>}
-      {!loading && !errorMsg && sortedItems.length === 0 && (
-        <div className="searchState empty">검색 결과가 없어요.</div>
-      )}
-
-      {!loading && !errorMsg && sortedItems.length > 0 && (
-        <div className="searchStudyWrap">
-          {sortedItems.map((s) => (
-            <article
-              key={s.studyId}
-              className="searchStudyCard"
-              role="button"
-              tabIndex={0}
-              onClick={() => navigate(`/studies/${s.studyId}`)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") navigate(`/studies/${s.studyId}`);
-              }}
-            >
-              <div
-                className="searchStudyThumb"
-                style={{ backgroundImage: `url(${s.coverImage ?? noImg})` }}
+          {/* 정렬 드롭다운 */}
+          <div className="searchHeaderRight">
+            <div className="dd" ref={sortRef}>
+              <button
+                type="button"
+                className={`ddBtn ${sortOpen ? "open" : ""}`}
+                onClick={() => setSortOpen((v) => !v)}
+                aria-haspopup="listbox"
+                aria-expanded={sortOpen}
               >
-                <div className="searchStudyChips">
-                  <span className={`searchStudyChip ${s.isPublic ? "pub" : "pri"}`}>
-                    {s.isPublic ? "공개" : "비공개"}
-                  </span>
-                  <span className="searchStudyChip ghost">{s.categoryLabel ?? "기타"}</span>
-                </div>
+                <span className="ddBtnLabel">{sortLabel[sortKey]}</span>
+                <span className="ddArrow" aria-hidden="true">
+                  ▾
+                </span>
+              </button>
 
-                <div className="searchStudyTitleBar">
-                  <div className="searchStudyName">{s.studyName}</div>
+              {sortOpen && (
+                <div className="ddMenu" role="listbox" aria-label="스터디 정렬">
+                  <button
+                    type="button"
+                    className={`ddItem ${sortKey === "popular" ? "active" : ""}`}
+                    onClick={() => chooseSort("popular")}
+                    role="option"
+                    aria-selected={sortKey === "popular"}
+                  >
+                    <span className="ddItemText">인기순</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`ddItem ${sortKey === "latest" ? "active" : ""}`}
+                    onClick={() => chooseSort("latest")}
+                    role="option"
+                    aria-selected={sortKey === "latest"}
+                  >
+                    <span className="ddItemText">최신순</span>
+                  </button>
                 </div>
-              </div>
-            </article>
-          ))}
+              )}
+            </div>
+          </div>
         </div>
+
+        {loading && <div className="searchState">불러오는 중…</div>}
+        {!loading && errorMsg && <div className="searchState error">{errorMsg}</div>}
+        {!loading && !errorMsg && sortedItems.length === 0 && (
+          <div className="searchState empty">검색 결과가 없어요.</div>
+        )}
+
+        {!loading && !errorMsg && sortedItems.length > 0 && (
+          <div className="searchStudyWrap">
+            {sortedItems.map((s) => (
+              <article
+                key={s.studyId}
+                className="searchStudyCard"
+                role="button"
+                tabIndex={0}
+                onClick={() => setSelectedStudyId(s.studyId)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") setSelectedStudyId(s.studyId);
+                }}
+              >
+                <div
+                  className="searchStudyThumb"
+                  style={{ backgroundImage: `url(${s.coverImage || noImg})` }}
+                >
+                  <div className="searchStudyTitleBar">
+                    <div className="searchStudyName">{s.studyName}</div>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+
+        <button onClick={() => setPage((p) => p + 1)}>다음</button>
+      </section>
+
+      {selectedStudyId !== null && (
+        <StudyViewModal
+          open={true}
+          studyId={selectedStudyId}
+          onClose={() => setSelectedStudyId(null)}
+        />
       )}
-      <button onClick={() => setPage(p => p+1)}>다음</button>
-    </section>
+    </>
   );
 }

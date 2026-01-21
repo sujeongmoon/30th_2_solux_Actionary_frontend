@@ -16,6 +16,12 @@ import StudyViewModal from "../StudyDetailPage/StudyViewModal";
 import { type PopularPostsResponse, type PopularPost } from '../../types/MainPagePostType';
 import LoginAlertModal from "../../components/AlertModal/LoginAlertModal";
 
+const SCOPE_MAP: Record<string, string> = {
+  ALL: "ALL",
+  OWNED: "OWNED",   
+  JOINED: "JOINED",
+  LIKED: "LIKED",
+};
 
 const HomePage: React.FC = () => {
 
@@ -44,8 +50,6 @@ const HomePage: React.FC = () => {
   const [boardList, setBoardList] = useState<PopularPost[]>([]);
   const [boardLoading, setBoardLoading] = useState(true);
 
-
-
 const handleStudyClick = (studyId: number) => {
   if (!isLoggedIn) {
     setShowLoginModal(true); // 로그인 모달 띄우기
@@ -53,6 +57,25 @@ const handleStudyClick = (studyId: number) => {
   }
   setSelectedStudyId(studyId); // 로그인 되어 있으면 선택 처리
 };
+    //나만의스터디 캐러셀 불러오기용
+    const [myPage, setMyPage] = useState(1);         
+    const [myTotalPages, setMyTotalPages] = useState(1);   
+
+    const [skipNextFetch, setSkipNextFetch] = useState(false);
+    
+
+    const handleDeleteStudy = async (studyId: number) => {
+      try {
+        await api.delete(`/studies/${studyId}`);
+        setMyStudies(prev =>
+          prev.filter(study => study.studyId !== studyId)
+        );
+  
+      } catch (error) {
+        console.error("스터디 삭제 실패", error);
+        alert("스터디 삭제에 실패했어요.");
+      }
+    };
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -71,31 +94,43 @@ const handleStudyClick = (studyId: number) => {
     fetchMemberInfo();
   }, [isLoggedIn]);
 
+
   useEffect(() => {
     if (!isLoggedIn) return;
-
+    if (skipNextFetch) {
+      setSkipNextFetch(false); 
+      return;
+    }
+  
     const fetchMyStudies = async () => {
       try {
+        const scope = SCOPE_MAP[myFilter] ?? "ALL";
+  
         const response = await api.get("/studies/my", {
           params: {
-            scope: 'ALL',
-            page: 0,
+            scope,
+            page: Math.max(0, myPage - 1),
+            size: 3,
           },
-        }); // 나만의 스터디 API
+        });
+  
         if (response.data.success) {
-          setMyStudies(response.data.data.content);
+          const data = response.data.data;
+          setMyStudies(Array.isArray(data?.content) ? data.content : []);
+          setMyTotalPages(Number(data?.totalPages ?? 1));
         } else {
           setMyStudies([]);
+          setMyTotalPages(1);
         }
       } catch (error) {
         console.error("나만의 스터디 조회 실패", error);
-        setMyStudies([])
+        setMyStudies([]);
+        setMyTotalPages(1);
       }
     };
-
+  
     fetchMyStudies();
-  }, [isLoggedIn]);
-
+  }, [isLoggedIn, myFilter, myPage, skipNextFetch]);
   
 useEffect(() => {
   const fetchPopularStudy = async () => {
@@ -179,12 +214,16 @@ useEffect(() => {
 
       {/* ===== 2. 메인 콘텐츠 ===== */}
       <div className="home-main-content">
-       {myStudies.length > 0 && isLoggedIn ? (
+      {myStudies.length > 0 && isLoggedIn ? (
         <MyStudyCarousel
           myStudies={myStudies}
-          myFilter={myFilter}
-          setMyFilter={setMyFilter}
-          onOpenStudy={(id: number) => setSelectedStudyId(id)}
+          myFilter={myFilter as any}
+          setMyFilter={setMyFilter as any}
+          myPage={myPage}
+          setMyPage={setMyPage}
+          myTotalPages={myTotalPages}
+          onOpenStudy={handleStudyClick}
+          onDeleteStudy={handleDeleteStudy}
         />
       ) : (
         <CTAbox isLoggedIn={isLoggedIn} nickname={nickname} />
@@ -195,6 +234,11 @@ useEffect(() => {
           open={true}
           studyId={selectedStudyId}
           onClose={() => setSelectedStudyId(null)} // 모달 닫기
+          onDeleted={(deletedId) => {
+            setMyStudies((prev) => prev.filter((s) => s.studyId !== deletedId));
+            setSelectedStudyId(null); // 모달 닫기 확실히
+            setSkipNextFetch(true);   // 
+          }}
         />
       )}
 

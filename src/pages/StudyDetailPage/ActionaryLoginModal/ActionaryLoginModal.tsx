@@ -2,12 +2,12 @@ import { createPortal } from "react-dom";
 import "./ActionaryLoginModal.css";
 
 type Props = {
-  open: boolean;              
+  open: boolean;
   onClose: () => void;
   onGoLogin?: () => void;
   title?: string;
   subtitle?: string;
-  showGoLogin?: boolean;      
+  showGoLogin?: boolean;
 };
 
 export default function ActionaryLoginModal({
@@ -30,14 +30,14 @@ export default function ActionaryLoginModal({
       aria-modal="true"
     >
       <div className="amModal" onMouseDown={(e) => e.stopPropagation()}>
-        <div className="amBrand">ACTIONARY</div>
+        {/* 상단 로고 삭제됨 */}
 
         <div className="amTitle">{title}</div>
         <div className="amSub">{subtitle}</div>
 
         <div className={`amBtns ${showGoLogin ? "two" : "one"}`}>
           <button className="amBtn amBtnGhost" type="button" onClick={onClose}>
-            확인
+            {showGoLogin ? "취소" : "확인"}
           </button>
 
           {showGoLogin && (

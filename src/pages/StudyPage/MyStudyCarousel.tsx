@@ -19,6 +19,7 @@ type MyStudyCarouselProps = {
   myPage: number;
   setMyPage: (p: number | ((prev: number) => number)) => void;
   myTotalPages: number;
+  onDeleteStudy: (id: number) => void; 
 
   title?: string;
 };

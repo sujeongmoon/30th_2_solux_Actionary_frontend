@@ -506,88 +506,96 @@
   color: #fff;
 }
 
+/* StudyViewModal.css 맨 아래에 붙여넣기 (기존 actionary 관련 코드는 삭제) */
+
 /* 배경 오버레이 */
 .actionary-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.6); /* 배경을 조금 더 어둡게 */
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
 }
 
-/* 모달 카드 */
+/* 모달 카드 (다크 테마) */
 .actionary-modal {
-  width: 420px;
-  padding: 36px 32px 32px;
-  border-radius: 24px;
-  background: linear-gradient(
-    180deg,
-    #2a2a2a 0%,
-    #1f1f1f 100%
-  );
-  box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  width: 400px;
+  padding: 32px 24px;
+  border-radius: 20px; /* 둥근 모서리 */
+  background: #1f1f1f; /* 진한 회색 배경 */
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
   text-align: center;
-  animation: modalPop 0.25s ease-out;
+  animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255, 255, 255, 0.05); /* 아주 희미한 테두리 */
 }
 
 /* 타이틀 */
 .actionary-title {
-  font-size: 26px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 800;
   color: #ffffff;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
 }
 
-/* 설명 */
+/* 설명 텍스트 */
 .actionary-desc {
   font-size: 15px;
-  color: #cfcfcf;
+  color: rgba(255, 255, 255, 0.65); /* 연한 회색 */
   line-height: 1.5;
   margin-bottom: 28px;
+  font-weight: 500;
 }
 
-/* 버튼 */
-.actionary-btn {
+/* 버튼 컨테이너 (가로 배치) */
+.actionary-btns {
+  display: flex;
+  gap: 12px;
   width: 100%;
-  height: 52px;
-  border-radius: 999px;
-  border: none;
-  font-size: 16px;
-  font-weight: 600;
-  color: white;
-  cursor: pointer;
-
-  background: linear-gradient(
-    90deg,
-    #ff7a5c 0%,
-    #ff4d7d 100%
-  );
-
-  box-shadow:
-    0 8px 20px rgba(255, 77, 125, 0.35);
-
-  transition: all 0.2s ease;
 }
 
-.actionary-btn:hover {
-  transform: translateY(-1px);
-  box-shadow:
-    0 12px 28px rgba(255, 77, 125, 0.45);
+/* 공통 버튼 스타일 */
+.actionary-btn {
+  flex: 1;
+  height: 48px;
+  border-radius: 12px;
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.1s ease, filter 0.2s ease;
 }
 
 .actionary-btn:active {
-  transform: translateY(0);
+  transform: scale(0.98);
+}
+
+/* 닫기/확인 버튼 (어두운 회색) */
+.actionary-btn.secondary {
+  background: #333333;
+  color: #e0e0e0;
+}
+.actionary-btn.secondary:hover {
+  background: #3d3d3d;
+}
+
+/* 로그인하러 가기 버튼 (그라데이션) */
+.actionary-btn.primary {
+  background: linear-gradient(90deg, #ff8366 0%, #ff3a64 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 58, 100, 0.3);
+}
+.actionary-btn.primary:hover {
+  filter: brightness(1.1);
 }
 
 /* 애니메이션 */
 @keyframes modalPop {
   from {
-    transform: scale(0.95);
+    transform: scale(0.92);
     opacity: 0;
   }
   to {

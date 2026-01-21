@@ -39,6 +39,7 @@ type Props = {
   open: boolean;
   onClose: () => void;
   studyId: number | null;
+  onDeleted?: (studyId: number) => void;
 };
 
 function toHM(sec: number) {
@@ -50,7 +51,7 @@ function toHM(sec: number) {
   return `${h}시간 ${m}분`;
 }
 
-export default function StudyViewModal({ open, onClose, studyId }: Props) {
+export default function StudyViewModal({ open, onClose, studyId, onDeleted }: Props) {
   const navigate = useNavigate();
 
   /** UI 상태 */
@@ -335,29 +336,32 @@ export default function StudyViewModal({ open, onClose, studyId }: Props) {
 
   const onDelete = async () => {
     if (!studyId || deleteLoading) return;
-
+  
     const ok = window.confirm("정말 삭제할까요?");
     if (!ok) return;
-
+  
     try {
       setDeleteLoading(true);
+  
       await deleteStudy(studyId);
-
-      alert("스터디가 삭제되었습니다.");
-
+  
+      // ✅ 1) 먼저 UI부터 즉시 닫기 (체감 속도 개선 핵심)
       setMenuOpen(false);
       onClose();
-
-      window.dispatchEvent(new CustomEvent("study:deleted", { detail: { studyId } }));
-      navigate("/studies");
+  
+      // ✅ 2) 부모(HomePage / StudyPage)에게 삭제됐다고 알리기 (1번만!)
+      onDeleted?.(studyId);
+  
+      // ❌ alert는 브라우저 멈춰서 느려짐 → 토스트/모달로 바꾸는 게 best
+      // alert("스터디가 삭제되었습니다.");
     } catch (e: any) {
       const status = e?.response?.status;
-
+  
       if (status === 401) return openActionModal("login_enter");
       if (status === 403) return alert("삭제 권한이 없어요. (방장만 삭제 가능)");
       if (status === 409) return alert("참여 중인 유저가 있어 삭제할 수 없어요.");
       if (status === 404) return alert("이미 삭제되었거나 존재하지 않는 스터디예요.");
-
+  
       alert(e?.response?.data?.message ?? "스터디 삭제 실패");
     } finally {
       setDeleteLoading(false);

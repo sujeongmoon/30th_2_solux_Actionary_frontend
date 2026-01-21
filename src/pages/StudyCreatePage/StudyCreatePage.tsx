@@ -156,7 +156,7 @@ export default function StudyCreatePage() {
                 navigate("/studies"); 
               }}
             >
-              메인으로
+              스터디 목록으로
             </button>
           </div>
         </div>

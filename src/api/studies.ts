@@ -121,9 +121,10 @@ export async function exitStudy(studyId: number, type: "STUDY" | "BREAK") {
   return res.data.data;
 }
 
+// studies.ts
 
-type UpdateStudyPayload = {
-  studyName: string; 
+export type UpdateStudyPayload = {
+  studyName: string;
   coverImage: string | null;
   category:
     | "CSAT"
@@ -133,10 +134,10 @@ type UpdateStudyPayload = {
     | "LANGUAGE"
     | "EMPLOYMENT"
     | "OTHER";
-  description: string; 
-  memberLimit: number;
-  isPublic: boolean;
-  password: number | null; 
+  description: string;      
+  memberLimit: number;    
+  isPublic: boolean;       
+  password?: number;  
 };
 
 export type UpdateStudyResponse = {
@@ -147,20 +148,23 @@ export type UpdateStudyResponse = {
   category?: UpdateStudyPayload["category"];
   categoryLabel?: string;
   description?: string;
-  memberLimit?: number;
-  isPublic?: boolean;
+  memberLimit?: string;
+  isPublic?: string;
 };
 
 export async function updateStudy(studyId: number, payload: UpdateStudyPayload) {
   const req = {
     studyName: payload.studyName,
-    coverImage: payload.coverImage ?? null,          
+    coverImage: "https://example.com/default.png", 
+
     category: payload.category,
     description: payload.description,
-    memberLimit: String(payload.memberLimit),       
-    isPublic: String(payload.isPublic),             
-    password: payload.password == null ? null : String(payload.password), 
+    memberLimit: String(payload.memberLimit), 
+    isPublic: String(payload.isPublic),      
+    password: payload.isPublic ? "000000" : String(payload.password), 
   };
+
+  console.log("[updateStudy payload]", req);
 
   const res = await api.put<ApiEnvelope<UpdateStudyResponse>>(`/studies/${studyId}`, req);
   return res.data.data;
