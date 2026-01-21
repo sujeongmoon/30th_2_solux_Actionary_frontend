@@ -78,7 +78,6 @@ const Login: React.FC = () => {
             로그인
           </button>
 
-          {isLoading && <p className="loading-message">로그인 진행 중입니다</p>}
           {errorMessage && <p className="error-message">{errorMessage}</p>}
 
           
