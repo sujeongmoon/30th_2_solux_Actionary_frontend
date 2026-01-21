@@ -247,12 +247,15 @@ export default function StudyPage() {
   return (
     <div className="studyPage">
       {isLoggedIn ? <StudyLoggedInView {...commonProps} /> : <StudyGuestView {...commonProps} />}
-
+  
       {selectedStudyId !== null && (
         <StudyViewModal
-          open={selectedStudyId !== null}
-          onClose={() => setSelectedStudyId(null)}
+          open={true}
           studyId={selectedStudyId}
+          onClose={() => setSelectedStudyId(null)}
+          onDeleted={(deletedId) => {
+            navigate(0);
+          }}
         />
       )}
     </div>

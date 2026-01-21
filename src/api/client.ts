@@ -1,56 +1,82 @@
 import axios from "axios";
 
-// [수정] 프록시("/api") 대신 환경변수에 있는 진짜 주소(http://13.209...)를 사용합니다.
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
 export const api = axios.create({
-  baseURL: BASE_URL, 
+  baseURL: BASE_URL,
   withCredentials: true,
 });
 
-{/* 리퀘스트 인터셉터 영역입니다 */}
+/* ===================== Request Interceptor ===================== */
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-{/* 리스폰스 인터셉터 영역입니다 */}
+/* ===================== Response Interceptor ===================== */
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const status = error?.response?.status;
+    const url: string = originalRequest?.url ?? "";
 
-    // accessToken 만료 (401) + 재시도 안 한 요청
+    /**
+     * ✅ [핵심] "비공개 스터디 비번 확인/입장" 요청에서 401은
+     * 토큰 만료가 아니라 "비번 틀림"일 수 있음.
+     * -> 절대 refresh/redirect 하지 말고 그대로 컴포넌트로 넘김
+     */
+    const isStudyJoinPasswordFlow =
+      url.includes("/studies/") &&
+      (url.includes("/enter") ||
+        url.includes("/join") ||
+        url.includes("/participate") ||
+        url.includes("/participating") ||
+        url.includes("/private") ||
+        url.includes("/password") ||
+        url.includes("/access") ||
+        url.includes("/verify"));
+
+    if (status === 401 && isStudyJoinPasswordFlow) {
+      return Promise.reject(error);
+    }
+
+    // ✅ 토큰 만료(401) 처리: refresh 시도
     if (
-      error.response?.status === 401 && 
-      !originalRequest._retry && 
-      !originalRequest.url?.includes("/auth/refresh")
+      status === 401 &&
+      !originalRequest._retry &&
+      !url.includes("/auth/refresh")
     ) {
       originalRequest._retry = true;
 
       const refreshToken = localStorage.getItem("refreshToken");
+
+      /**
+       * ❗ 기존엔 여기서 refreshToken 없으면 무조건 /login으로 보냈지?
+       * -> 그게 비번 틀림 같은 401도 로그인으로 튕기게 만드는 원흉.
+       * ✅ 이제는 그냥 reject해서 화면이 알아서 처리하게 둠.
+       */
       if (!refreshToken) {
-        // [참고] window.location 사용 시 무한 리다이렉트 주의 필요
-        window.location.href = "/login";
         return Promise.reject(error);
       }
 
       try {
         const refreshResponse = await axios.post(
-          // [수정] 리프레시 요청도 BASE_URL을 사용해 확실하게 보냅니다.
           `${BASE_URL}/auth/refresh`,
           { refresh: refreshToken },
           { withCredentials: true }
         );
 
-        const newAccessToken = refreshResponse.data.data.accessToken;
+        const newAccessToken = refreshResponse.data?.data?.accessToken;
+        if (!newAccessToken) {
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+          return Promise.reject(error);
+        }
 
         localStorage.setItem("accessToken", newAccessToken);
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
@@ -59,11 +85,11 @@ api.interceptors.response.use(
       } catch (refreshError) {
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
-        window.location.href = "/login";
         return Promise.reject(refreshError);
-      }      
+      }
     }
-    return Promise.reject(error); 
+
+    return Promise.reject(error);
   }
 );
 

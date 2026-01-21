@@ -186,12 +186,19 @@ useEffect(() => {
       onClose();
       navigate(`/studies/${studyId}/room`);
     } catch (e: any) {
+      console.log(
+        "❗ 비공개 입장 실패",
+        "url:", e?.config?.url,
+        "status:", e?.response?.status
+      );
+
       const status = e?.response?.status;
+
       if (status === 401) {
-        setPwOpen(false);
-        setActionModalMode("login_enter");
+        setPwError("비밀번호가 일치하지 않습니다.");
         return;
       }
+  
       setPwError(e?.response?.data?.message ?? "비밀번호 확인 실패");
     } finally {
       setPwLoading(false);

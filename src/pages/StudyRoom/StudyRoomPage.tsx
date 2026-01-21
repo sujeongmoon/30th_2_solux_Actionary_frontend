@@ -174,11 +174,11 @@ export default function StudyRoomPage() {
           const status = e?.response?.status;
           const msg = e?.response?.data?.message || "";
           if (status === 409) {
-             if (msg.includes("정원") || msg.includes("초과")) {
+            if (msg.includes("정원") || msg.includes("초과")) {
                 setError("정원 초과"); return;
-             }
+            }
           } else {
-             console.error("입장 에러:", e);
+            console.error("입장 에러:", e);
           }
         }
 
@@ -420,16 +420,13 @@ export default function StudyRoomPage() {
                     )}
 
                     <div className="srNamePill">
-                       {/* 🌟 [수정됨] 뱃지만 표시 & 크기 확대 */}
                        {p.badgeImageUrl && (
                          <img 
                            src={p.badgeImageUrl} 
                            alt="badge" 
-                           // 크기 16->28, 마진 6->8 로 변경
                            style={{ width: 28, height: 28, marginRight: 8, objectFit: 'contain' }} 
                          />
                        )}
-                      {/* "ME"/"U" 배지 삭제됨 */}
                       <span className="srNameNick">{p.nickname}</span>
                     </div>
                   </div>
