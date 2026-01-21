@@ -121,7 +121,6 @@ export async function exitStudy(studyId: number, type: "STUDY" | "BREAK") {
   return res.data.data;
 }
 
-// studies.ts
 
 export type UpdateStudyPayload = {
   studyName: string;
@@ -148,21 +147,23 @@ export type UpdateStudyResponse = {
   category?: UpdateStudyPayload["category"];
   categoryLabel?: string;
   description?: string;
-  memberLimit?: string;
-  isPublic?: string;
+  memberLimit?: number;
+  isPublic?: boolean;
 };
 
 export async function updateStudy(studyId: number, payload: UpdateStudyPayload) {
-  const req = {
+  const req: any = {
     studyName: payload.studyName,
-    coverImage: "https://example.com/default.png", 
-
+    coverImage: payload.coverImage ?? null,
     category: payload.category,
     description: payload.description,
-    memberLimit: String(payload.memberLimit), 
-    isPublic: String(payload.isPublic),      
-    password: payload.isPublic ? "000000" : String(payload.password), 
+    memberLimit: payload.memberLimit, 
+    isPublic: payload.isPublic,       
   };
+
+  if (!payload.isPublic) {
+    req.password = payload.password; 
+  }
 
   console.log("[updateStudy payload]", req);
 
