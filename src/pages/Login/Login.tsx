@@ -14,7 +14,7 @@ const Login: React.FC = () => {
 
   const { login, isLoading, errorMessage } = useLogin();
   const navigate = useNavigate();
-  const { setToken } = useAuth();
+  const { setToken, setUser } = useAuth();
 
   const handleLogin = async () => {
     console.log("로그인 버튼 클릭됨");
@@ -30,11 +30,14 @@ const Login: React.FC = () => {
       console.log("로그인 성공:", data);
 
       const token = data.data.accessToken;
+      const profileImageUrl = data.data.profileImageUrl ?? null;
 
       if (!token) {
         console.log("토큰이 응답에 없습니다:", data);
         return;
       }
+
+      setUser({ profileImageUrl });
 
       setToken(token);
       navigate("/");
