@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Navbar.css";
 import Searchbar from "./Searchbar";
@@ -6,11 +6,13 @@ import LoginAlertModal from "../AlertModal/LoginAlertModal";
 import Nlogo from '../../assets/Navbar/Nlogo.svg';
 import ProfilePerson from "../../assets/Navbar/ProfilePerson.svg";
 import { useAuth } from "../../context/AuthContext";
+import { getMyInfo } from "../../api/sidebar";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { isLoggedIn, logout } = useAuth();
-  const profileImageUrl: string | null = null;
+  const { isLoggedIn, user, logout } = useAuth();
+  //const profileImageUrl = user?.profileImageUrl ?? null;
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
 
   const [loginModalOpen, setLoginModalOpen] = useState(false);
 
@@ -29,6 +31,21 @@ const Navbar = () => {
       setLoginModalOpen(true);
     }
   };
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    const fetchUser = async () => {
+      try {
+        const userInfo = await getMyInfo();
+        setProfileImageUrl(userInfo.profileImageUrl || null);
+      } catch (e) {
+        console.log("유저 정보 불러오기 실패", e);
+      }
+    };
+
+    fetchUser();
+  }, [isLoggedIn]);
 
   return (
     <>
@@ -65,10 +82,14 @@ const Navbar = () => {
           )}
 
           {/* 프로필 */}
-          <div
+          {/*<div
             className={`nav-profile-circle ${
               profileImageUrl ? "has-image" : ""
             }`}
+            onClick={handleProfileClick}
+          >*/}
+          <div 
+            className="nav-profile-circle"
             onClick={handleProfileClick}
           >
             {profileImageUrl ? (
@@ -105,4 +126,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
