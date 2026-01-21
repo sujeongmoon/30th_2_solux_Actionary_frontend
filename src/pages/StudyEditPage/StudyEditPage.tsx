@@ -202,8 +202,6 @@ export default function StudyEditPage() {
   
     try {
       setSaving(true);
-  
-      // ✅ coverFile 같이 전달 (없으면 null이라 알아서 안 붙음)
       await updateStudy(numericStudyId, finalPayload, coverFile);
   
       showToast("success", "성공적으로 스터디가 수정되었습니다.");

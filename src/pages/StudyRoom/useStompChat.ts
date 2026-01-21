@@ -47,7 +47,7 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
       },
 
       onConnect: () => {
-        console.log("✅ STOMP Connected!");
+        console.log("STOMP Connected!");
         setConnected(true);
         setError(null);
 

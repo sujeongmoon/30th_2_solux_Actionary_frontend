@@ -158,13 +158,11 @@ export async function updateStudy(
 ) {
   const form = new FormData();
 
-  // ✅ studyInfo를 JSON blob으로
   form.append(
     "studyInfo",
     new Blob([JSON.stringify(payload)], { type: "application/json" })
   );
 
-  // ✅ coverImage는 파일로 (선택)
   if (coverFile) form.append("coverImage", coverFile);
 
   const res = await api.put(`/studies/${studyId}`, form, {
