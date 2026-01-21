@@ -6,7 +6,7 @@ import type {
   StudyEnterResponse,
   StudyListResponse,
   StudyVisibility,
-  MyStudyListResponse,
+  MyStudyListResvlfponse,
   RankingsResponse,
   Paginated,
   SearchStudyItem,
@@ -124,7 +124,6 @@ export async function exitStudy(studyId: number, type: "STUDY" | "BREAK") {
 
 export type UpdateStudyPayload = {
   studyName: string;
-  coverImage: string | null;
   category:
     | "CSAT"
     | "CIVIL_SERVICE"
@@ -133,11 +132,12 @@ export type UpdateStudyPayload = {
     | "LANGUAGE"
     | "EMPLOYMENT"
     | "OTHER";
-  description: string;      
-  memberLimit: number;    
-  isPublic: boolean;       
-  password?: number;  
+  description: string;    // 20자 제한
+  memberLimit: number;    // int
+  isPublic: boolean;      // boolean
+  password?: number;      // 비공개일 때만
 };
+
 
 export type UpdateStudyResponse = {
   studyId: number;
@@ -151,23 +151,26 @@ export type UpdateStudyResponse = {
   isPublic?: boolean;
 };
 
-export async function updateStudy(studyId: number, payload: UpdateStudyPayload) {
-  const req: any = {
-    studyName: payload.studyName,
-    coverImage: payload.coverImage ?? null,
-    category: payload.category,
-    description: payload.description,
-    memberLimit: payload.memberLimit, 
-    isPublic: payload.isPublic,       
-  };
+export async function updateStudy(
+  studyId: number,
+  payload: UpdateStudyPayload,
+  coverFile?: File | null
+) {
+  const form = new FormData();
 
-  if (!payload.isPublic) {
-    req.password = payload.password; 
-  }
+  // ✅ studyInfo를 JSON blob으로
+  form.append(
+    "studyInfo",
+    new Blob([JSON.stringify(payload)], { type: "application/json" })
+  );
 
-  console.log("[updateStudy payload]", req);
+  // ✅ coverImage는 파일로 (선택)
+  if (coverFile) form.append("coverImage", coverFile);
 
-  const res = await api.put<ApiEnvelope<UpdateStudyResponse>>(`/studies/${studyId}`, req);
+  const res = await api.put(`/studies/${studyId}`, form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
   return res.data.data;
 }
 

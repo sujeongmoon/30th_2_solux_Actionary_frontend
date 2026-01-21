@@ -159,6 +159,7 @@
   flex-direction:column;
   align-items:center;
   justify-content:flex-start;
+  z-index: 2; 
 }
 
 .successLogo{
@@ -201,6 +202,7 @@
 .successBackdropBtn{
   position: fixed;
   inset: 0;
+  z-index: 1;   /* ✅ 모달보다 아래로 */
   background: transparent;
   border: none;
   cursor: default;
