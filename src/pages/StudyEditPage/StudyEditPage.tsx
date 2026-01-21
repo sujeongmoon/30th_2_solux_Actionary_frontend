@@ -175,39 +175,37 @@ export default function StudyEditPage() {
   const onSubmit = async () => {
     const nextErrors = validate();
     setErrors(nextErrors);
-
+  
     if (Object.keys(nextErrors).length > 0) {
       showToast("error", "필수 항목들을 입력해주세요");
       return;
     }
-
+  
     if (numericStudyId == null) {
       showToast("error", "잘못된 스터디 ID 입니다.");
       return;
     }
     if (saving) return;
-
-    if (coverFile) {
-      showToast("error", "커버 이미지 업로드 API 연동이 아직 필요해요. (임시로 기존 이미지 유지)");
-    }
+  
     const basePayload: UpdateStudyPayload = {
       studyName: title.trim(),
-      coverImage: existingCover || null,
       category: LABEL_TO_ENUM[category],
       description: clampText(summary.trim(), 20),
       memberLimit: Number(limit),
       isPublic: visibility === "public",
     };
-
+  
     const finalPayload: UpdateStudyPayload =
       visibility === "private"
-        ? { ...basePayload, password: Number(password) } 
-        : basePayload; 
-
+        ? { ...basePayload, password: Number(password) }
+        : basePayload;
+  
     try {
       setSaving(true);
-      await updateStudy(numericStudyId, finalPayload);
-
+  
+      // ✅ coverFile 같이 전달 (없으면 null이라 알아서 안 붙음)
+      await updateStudy(numericStudyId, finalPayload, coverFile);
+  
       showToast("success", "성공적으로 스터디가 수정되었습니다.");
       setSuccessModalOpen(true);
     } catch (e: any) {
@@ -335,7 +333,7 @@ export default function StudyEditPage() {
           className="textarea"
           value={guide}
           onChange={(e) => setGuide(clampText(e.target.value, guideMax))}
-          placeholder="(UI용) 길게 써도 서버에는 저장 안됨"
+          placeholder=""
         />
         <div className="counter bottom">
           {guide.length}/{guideMax}
