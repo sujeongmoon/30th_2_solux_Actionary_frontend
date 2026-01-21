@@ -1,4 +1,3 @@
-// useStompChat.ts
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client/dist/sockjs";
@@ -29,12 +28,26 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
       return;
     }
 
+    // 🔥 [추가] 로컬 스토리지에서 토큰 꺼내기
+    const rawToken = localStorage.getItem("accessToken") || "";
+    const bearerToken = rawToken.startsWith("Bearer ") ? rawToken : `Bearer ${rawToken}`;
+
     const client = new Client({
       webSocketFactory: () => new SockJS(`${wsBaseUrl}/ws`),
+      
+      // 🔥 [핵심 수정] 연결할 때 '신분증(토큰)'을 같이 제출해야 합니다!
+      connectHeaders: {
+        Authorization: bearerToken,
+        token: bearerToken, 
+      },
+
       reconnectDelay: 2000,
-      debug: () => {}, 
+      debug: (str) => {
+        console.log('STOMP Debug:', str); // 디버깅용 로그
+      },
 
       onConnect: () => {
+        console.log("✅ STOMP Connected!");
         setConnected(true);
         setError(null);
 
@@ -42,6 +55,7 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
         subRef.current = client.subscribe(topic, (msg) => {
           try {
             const payload = JSON.parse(msg.body);
+            console.log("📩 Msg Received:", payload); // 수신 로그 확인
             if (!payload?.type) return;
             setEvents((prev) => [...prev, payload as ChatEvent]);
           } catch (e) {
@@ -51,10 +65,14 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
       },
 
       onStompError: (frame) => {
+        console.error("❌ STOMP Error:", frame.headers["message"]);
         setError(frame.headers["message"] ?? "STOMP error");
       },
 
-      onWebSocketClose: () => setConnected(false),
+      onWebSocketClose: () => {
+        console.log("🔌 STOMP Disconnected");
+        setConnected(false);
+      },
     });
 
     client.activate();
@@ -71,10 +89,19 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
 
 
   const sendChat = (senderId: number, chat: string) => {
-    if (!sendPath || !clientRef.current?.connected) return;
+    if (!sendPath || !clientRef.current?.connected) {
+        console.warn("⚠️ 소켓이 연결되지 않아 채팅을 보낼 수 없습니다.");
+        return;
+    }
+
+    console.log(`📤 Sending Chat: ${chat}`);
 
     clientRef.current.publish({
       destination: sendPath,
+      // 혹시 모르니 전송 시에도 헤더 추가
+      headers: {
+        Authorization: localStorage.getItem("accessToken") || "",
+      },
       body: JSON.stringify({
         senderId: senderId, 
         chat: chat          
