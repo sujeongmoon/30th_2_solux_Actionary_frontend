@@ -6,12 +6,13 @@ type RemoteStreamMap = Record<PeerId, MediaStream>;
 type PeerNameMap = Record<PeerId, string>;
 
 type UseWebRTCRoomOpts = {
-  enabled?: boolean; // false면 WebRTC/시그널링 완전 비활성화
+  enabled?: boolean;
   roomId: string;
   signalingUrl: string;
   displayName?: string;
   enableVideo?: boolean;
   enableAudio?: boolean;
+  userId?: number; 
 };
 
 const RTC_CONFIG: RTCConfiguration = {
@@ -26,6 +27,7 @@ export function useWebRTCRoom(opts: UseWebRTCRoomOpts) {
     displayName = "익명",
     enableVideo = true,
     enableAudio = true,
+    userId, // 🔥 ID 받기
   } = opts;
 
   const socketRef = useRef<Socket | null>(null);
@@ -39,9 +41,13 @@ export function useWebRTCRoom(opts: UseWebRTCRoomOpts) {
 
   const [camOn, setCamOn] = useState(enableVideo);
   const [micOn, setMicOn] = useState(enableAudio);
+  
+  // 권한 에러 상태 (UI에 표시하기 위함)
+  const [permissionError, setPermissionError] = useState<boolean>(false);
 
   const remoteIds = useMemo(() => Object.keys(remoteStreams), [remoteStreams]);
 
+  // --- WebRTC 연결 로직 (PC 생성) ---
   const ensurePC = (peerId: PeerId) => {
     const existing = peersRef.current.get(peerId);
     if (existing) return existing;
@@ -95,7 +101,7 @@ export function useWebRTCRoom(opts: UseWebRTCRoomOpts) {
     });
   };
 
-  // 1) getUserMedia (enabled=false면 요청 자체 X)
+  // 1) getUserMedia (카메라/마이크 요청)
   useEffect(() => {
     let mounted = true;
 
@@ -106,16 +112,14 @@ export function useWebRTCRoom(opts: UseWebRTCRoomOpts) {
       return;
     }
 
-    if (
-      typeof window === "undefined" ||
-      !navigator?.mediaDevices?.getUserMedia
-    ) {
+    if (typeof window === "undefined" || !navigator?.mediaDevices?.getUserMedia) {
       console.warn("WebRTC not supported or insecure context");
       return;
     }
 
     (async () => {
       try {
+        setPermissionError(false);
         const stream = await navigator.mediaDevices.getUserMedia({
           video: enableVideo,
           audio: enableAudio,
@@ -133,6 +137,7 @@ export function useWebRTCRoom(opts: UseWebRTCRoomOpts) {
         setLocalStream(stream);
       } catch (e) {
         console.error("getUserMedia failed:", e);
+        setPermissionError(true);
         localStreamRef.current = null;
         setLocalStream(null);
       }
@@ -144,8 +149,7 @@ export function useWebRTCRoom(opts: UseWebRTCRoomOpts) {
       localStreamRef.current = null;
       setLocalStream(null);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, enableVideo, enableAudio]);
+  }, [enabled]);
 
   useEffect(() => {
     const ls = localStreamRef.current;
@@ -159,29 +163,57 @@ export function useWebRTCRoom(opts: UseWebRTCRoomOpts) {
     ls.getAudioTracks().forEach((t) => (t.enabled = micOn));
   }, [micOn]);
 
-  // 2) socket.io signaling (enabled=false면 연결 X)
+  // 2) socket.io signaling (소켓 연결)
   useEffect(() => {
     if (!enabled) return;
-    if (!localStream) return;
+    if (!userId) return;
+
+    // 토큰 준비
+    const rawToken = localStorage.getItem("accessToken") || "";
+    const cleanToken = rawToken.replace("Bearer ", ""); 
+    const bearerToken = `Bearer ${cleanToken}`;
+
+    console.log(`🚀 Socket Connecting... UserID: ${userId}`);
 
     const socket = io(signalingUrl, {
-      transports: ["polling", "websocket"],
+      transports: ["websocket"], 
       withCredentials: true,
+
+      query: {
+        token: cleanToken,      
+        authorization: cleanToken,
+        senderId: String(userId), 
+        userId: String(userId),
+        displayName: displayName
+      },
+
+      auth: {
+        token: bearerToken,
+        authorization: bearerToken
+      },
+
+      extraHeaders: {
+        Authorization: bearerToken,
+      },
     });
 
     socketRef.current = socket;
 
-    const registerMyName = (id: string) => {
-      setPeerNames((prev) => ({ ...prev, [id]: displayName }));
-      socket.emit("set-name", { displayName });
-      socket.emit("register-name", { displayName });
-    };
+    // --- 소켓 이벤트 핸들러 ---
 
     socket.on("connect", () => {
+      console.log("✅ Socket Connected! ID:", socket.id);
       const myId = socket.id ?? "";
       setMyPeerId(myId);
-      registerMyName(myId);
-      socket.emit("join-room", { roomId, displayName });
+      
+      // 이름 등록 및 방 입장
+      socket.emit("set-name", { displayName });
+      socket.emit("register-name", { displayName });
+      socket.emit("join-room", { roomId, displayName, userId });
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("Socket Connection Error:", err.message);
     });
 
     socket.on("peer-names", (payload: any) => {
@@ -278,15 +310,13 @@ export function useWebRTCRoom(opts: UseWebRTCRoomOpts) {
     return () => {
       socket.disconnect();
       socketRef.current = null;
-
       peersRef.current.forEach((pc) => pc.close());
       peersRef.current.clear();
-
       setRemoteStreams({});
       setPeerNames({});
       setMyPeerId("");
     };
-  }, [enabled, localStream, roomId, signalingUrl, displayName]);
+  }, [enabled, roomId, signalingUrl, displayName, userId]); // userId 변경 시 재연결
 
   return {
     myPeerId,
@@ -298,5 +328,6 @@ export function useWebRTCRoom(opts: UseWebRTCRoomOpts) {
     micOn,
     setCamOn,
     setMicOn,
+    permissionError, // 권한 에러 상태 내보내기
   };
 }

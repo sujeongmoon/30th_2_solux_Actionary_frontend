@@ -4,8 +4,6 @@ import { useWebRTCRoom } from "./useWebRTCRoom";
 import { useStompChat } from "./useStompChat";
 import { enterPublicStudy, exitStudy, updateNowState } from "../../api/studies";
 import "./StudyRoomPage.css";
-
-// 아이콘
 import lampIcon from "../../assets/icons/hugeicons_study-lamp.svg";
 import cameraIcon from "../../assets/icons/majesticons_camera-line.svg";
 import cameraOffIcon from "../../assets/icons/majesticons_camera-line_no.svg";
@@ -127,12 +125,28 @@ export default function StudyRoomPage() {
   const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL ?? import.meta.env.VITE_DOMAIN_URL;
   const ENABLE_WEBRTC = true;
 
-  // WebRTC
+  const [me, setMe] = useState<Participant | null>(null);
+  const [others, setOthers] = useState<Participant[]>([]);
+  const [panelOpen, setPanelOpen] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // 기능 상태
+  const [bubbleMap, setBubbleMap] = useState<Record<string, string>>({});
+  const [chatInput, setChatInput] = useState("");
+  const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
+  
+  // Refs
+  const lastEventRef = useRef(0);
+  const joinedRef = useRef(false);
+  const exitCalledRef = useRef(false);
+
+  //useWebRTCRoom에 userId 전달 (500 에러 방지)
   const { localStream, remoteStreams, camOn, micOn, setCamOn, setMicOn } = useWebRTCRoom({
-    enabled: ENABLE_WEBRTC,
+    enabled: ENABLE_WEBRTC && !!me, 
     roomId: String(studyId),
     signalingUrl: import.meta.env.VITE_SIGNALING_URL,
-    displayName: "나",
+    displayName: me?.nickname || "나",
+    userId: me?.userId, 
   }) as any;
 
   // STOMP
@@ -141,23 +155,7 @@ export default function StudyRoomPage() {
     wsBaseUrl: WS_BASE_URL,
   }) as any;
 
-  // UI 상태
-  const [panelOpen, setPanelOpen] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // 데이터 상태
-  const [me, setMe] = useState<Participant | null>(null);
-  const [others, setOthers] = useState<Participant[]>([]);
-  
-  // 기능 상태
-  const [bubbleMap, setBubbleMap] = useState<Record<string, string>>({});
-  const [chatInput, setChatInput] = useState("");
-  const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
-  const lastEventRef = useRef(0);
-  const joinedRef = useRef(false);
-  const exitCalledRef = useRef(false);
-
-  /* ===================== 1. 입장 및 데이터 조회 ===================== */
+  /* ===================== 1. 입장 및 데이터 조회 (로직 개선) ===================== */
   useEffect(() => {
     if (!numericStudyId) return;
     
@@ -166,34 +164,46 @@ export default function StudyRoomPage() {
     (async () => {
       try {
         setError(null);
-
-        // 1-1. 입장 시도
-        try {
-          await enterPublicStudy(numericStudyId);
-        } catch (e: any) {
-          const status = e?.response?.status;
-          const msg = e?.response?.data?.message || "";
-          if (status === 409) {
-            if (msg.includes("정원") || msg.includes("초과")) {
-                setError("정원 초과"); return;
-            }
-          } else {
-            console.error("입장 에러:", e);
-          }
-        }
-
-        // 1-2. 데이터 조회
-        const token = localStorage.getItem("accessToken");
+        
+        const token = localStorage.getItem("accessToken") || "";
+        const authHeader = token.startsWith("Bearer ") ? token : `Bearer ${token}`;
+        
         const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://13.209.205.33:8080/api";
         const baseUrl = API_BASE.endsWith('/') ? API_BASE.slice(0, -1) : API_BASE;
-        
-        const response = await fetch(`${baseUrl}/studies/${numericStudyId}/participating/users`, {
+        const usersUrl = `${baseUrl}/studies/${numericStudyId}/participating/users`;
+
+        // "선 조회, 후 입장 로직 적용 
+        let response = await fetch(usersUrl, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
+            "Authorization": authHeader,
           },
         });
+
+
+        if (response.status === 403 || response.status === 401) {
+            console.log("⚠️ 참여자가 아닙니다. 입장 API 호출 시도...");
+            try {
+                await enterPublicStudy(numericStudyId);
+                
+                // 입장 성공 후 다시 조회
+                response = await fetch(usersUrl, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": authHeader,
+                    },
+                });
+            } catch (joinErr: any) {
+                console.error("입장 실패:", joinErr);
+                // 여기서 실패하면 진짜 못 들어가는 상황
+                const msg = joinErr?.response?.data?.message || "";
+                if (msg.includes("정원")) setError("정원 초과");
+                else setError("입장에 실패했습니다.");
+                return;
+            }
+        }
 
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const res = await response.json();
@@ -201,8 +211,7 @@ export default function StudyRoomPage() {
 
         if (!mounted || !data) return;
 
-        // 1-3. 내 정보 설정
-        let myIdStr = "me";
+        // 3. 내 정보 설정
         if (data.me) {
           const m = data.me;
           setMe({
@@ -215,30 +224,28 @@ export default function StudyRoomPage() {
             badgeImageUrl: m.badgeImageUrl ?? null,
             isMe: true,
           });
-          myIdStr = String(m.studyParticipantId);
         } else {
-           setError("내 정보를 불러오지 못했습니다.");
-           return;
+            setError("내 정보를 불러오지 못했습니다.");
+            return;
         }
 
-        // 1-4. 다른 참여자 설정
+        // 4. 다른 참여자 설정
         const rawList = data.participatingUsers ?? [];
         const mappedList: Participant[] = rawList
-          .filter((p: any) => String(p.studyParticipantId) !== myIdStr)
+          .filter((p: any) => p.userId !== data.me.userId) // 중복 제거
           .map((p: any) => ({
-             id: String(p.studyParticipantId),
-             userId: p.userId,
-             studyParticipantId: p.studyParticipantId,
-             nickname: p.userNickname,
-             profileImageUrl: p.profileImageUrl,
-             badgeId: p.badgeId ?? 0,
-             badgeImageUrl: p.badgeImageUrl ?? null,
-             isMe: false,
+              id: String(p.studyParticipantId),
+              userId: p.userId,
+              studyParticipantId: p.studyParticipantId,
+              nickname: p.userNickname,
+              profileImageUrl: p.profileImageUrl,
+              badgeId: p.badgeId ?? 0,
+              badgeImageUrl: p.badgeImageUrl ?? null,
+              isMe: false,
           }));
 
         setOthers(mappedList);
 
-        // 말풍선 초기값
         if (data.participantNowStates) {
             const initialBubbles: Record<string, string> = {};
             Object.keys(data.participantNowStates).forEach(key => {
@@ -251,7 +258,7 @@ export default function StudyRoomPage() {
 
       } catch (e: any) {
         if (!mounted) return;
-        console.error("데이터 조회 실패", e);
+        console.error("로딩 에러", e);
         setError("데이터를 불러오는데 실패했습니다.");
       }
     })();
@@ -420,13 +427,13 @@ export default function StudyRoomPage() {
                     )}
 
                     <div className="srNamePill">
-                       {p.badgeImageUrl && (
-                         <img 
-                           src={p.badgeImageUrl} 
-                           alt="badge" 
-                           style={{ width: 28, height: 28, marginRight: 8, objectFit: 'contain' }} 
-                         />
-                       )}
+                        {p.badgeImageUrl && (
+                          <img 
+                            src={p.badgeImageUrl} 
+                            alt="badge" 
+                            style={{ width: 28, height: 28, marginRight: 8, objectFit: 'contain' }} 
+                          />
+                        )}
                       <span className="srNameNick">{p.nickname}</span>
                     </div>
                   </div>
