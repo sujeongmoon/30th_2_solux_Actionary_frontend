@@ -33,7 +33,10 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    if (!isLoggedIn) return;
+    if (!isLoggedIn) {
+      setProfileImageUrl(null);
+      return;
+    }
 
     const fetchUser = async () => {
       try {
