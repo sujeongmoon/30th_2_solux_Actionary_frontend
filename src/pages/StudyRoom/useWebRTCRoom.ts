@@ -10,7 +10,6 @@ type UseWebRTCRoomProps = {
   userId?: number;
   events: ChatEvent[];            
   sendSignaling: (data: any) => void; 
-
   initialParticipants?: { userId: number; studyParticipantId: number }[];
 };
 
@@ -20,20 +19,16 @@ export function useWebRTCRoom({ enabled, userId, events, sendSignaling, initialP
   
   const peersRef = useRef<Map<number, RTCPeerConnection>>(new Map());
   const localStreamRef = useRef<MediaStream | null>(null);
-  
-  // [핵심] 스터디 참여 ID -> 유저 ID 변환용 맵 (퇴장 처리 위해 필수)
   const idMapRef = useRef<Map<number, number>>(new Map());
-
   const processedSignalIds = useRef<Set<string>>(new Set());
+
   const [camOn, setCamOn] = useState(true);
   const [micOn, setMicOn] = useState(true);
 
-  // 0. 초기 참여자 ID 매핑 등록
+  // 0. 초기 참여자 매핑
   useEffect(() => {
     if (initialParticipants) {
-        initialParticipants.forEach(p => {
-            idMapRef.current.set(p.studyParticipantId, p.userId);
-        });
+        initialParticipants.forEach(p => idMapRef.current.set(p.studyParticipantId, p.userId));
     }
   }, [initialParticipants]);
 
@@ -44,15 +39,12 @@ export function useWebRTCRoom({ enabled, userId, events, sendSignaling, initialP
     
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then((stream) => {
-        if (!mounted) {
-            stream.getTracks().forEach(t => t.stop());
-            return;
-        }
-        console.log("Local Stream Ready!");
+        if (!mounted) { stream.getTracks().forEach(t => t.stop()); return; }
+        console.log(" Local Stream Ready!");
         localStreamRef.current = stream;
         setLocalStream(stream);
       })
-      .catch((err) => console.error("Media Error:", err));
+      .catch((err) => console.error("❌ Media Error:", err));
 
     return () => {
       mounted = false;
@@ -62,15 +54,10 @@ export function useWebRTCRoom({ enabled, userId, events, sendSignaling, initialP
     };
   }, [enabled]);
 
-  useEffect(() => {
-    localStreamRef.current?.getVideoTracks().forEach(t => t.enabled = camOn);
-  }, [camOn]);
+  useEffect(() => { localStreamRef.current?.getVideoTracks().forEach(t => t.enabled = camOn); }, [camOn]);
+  useEffect(() => { localStreamRef.current?.getAudioTracks().forEach(t => t.enabled = micOn); }, [micOn]);
 
-  useEffect(() => {
-    localStreamRef.current?.getAudioTracks().forEach(t => t.enabled = micOn);
-  }, [micOn]);
-
-  // 2. 피어 생성 함수
+  // 2. 피어 생성
   const createPC = (targetId: number) => {
     const existingPC = peersRef.current.get(targetId);
     if (existingPC) return existingPC;
@@ -78,9 +65,7 @@ export function useWebRTCRoom({ enabled, userId, events, sendSignaling, initialP
     const pc = new RTCPeerConnection(RTC_CONFIG);
 
     if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => {
-        pc.addTrack(track, localStreamRef.current!);
-      });
+      localStreamRef.current.getTracks().forEach(track => pc.addTrack(track, localStreamRef.current!));
     }
 
     pc.ontrack = (e) => {
@@ -89,12 +74,7 @@ export function useWebRTCRoom({ enabled, userId, events, sendSignaling, initialP
 
     pc.onicecandidate = (e) => {
       if (e.candidate && userId) {
-        sendSignaling({
-          type: "ICE",
-          senderId: userId,
-          targetId: targetId,
-          candidate: e.candidate
-        } as WebRTCSignalData);
+        sendSignaling({ type: "ICE", senderId: userId, targetId, candidate: e.candidate });
       }
     };
 
@@ -102,9 +82,8 @@ export function useWebRTCRoom({ enabled, userId, events, sendSignaling, initialP
     return pc;
   };
 
-  // 3. 연결 종료 함수 (퇴장 시 호출)
+  // 3. 종료 처리
   const closePeer = (targetUserId: number) => {
-      console.log(`Closing connection for user ${targetUserId}`);
       const pc = peersRef.current.get(targetUserId);
       if (pc) {
           pc.close();
@@ -128,32 +107,47 @@ export function useWebRTCRoom({ enabled, userId, events, sendSignaling, initialP
         processedSignalIds.current.add(eventId);
 
         try {
-            // (A) 입장: ID 매핑 등록 + Offer 전송
+            // (A) 입장 처리 (OFFER 전송)
             if (event.type === "PARTICIPANT_JOINED") {
                 const p = event.data;
-                // 매핑 저장
                 idMapRef.current.set(p.studyParticipantId, p.userId);
-
                 if (p.userId === userId) return;
 
                 console.log(`👋 User ${p.userId} joined. Sending Offer.`);
                 const pc = createPC(p.userId);
                 const offer = await pc.createOffer();
                 await pc.setLocalDescription(offer);
-                
                 sendSignaling({ type: "OFFER", senderId: userId, targetId: p.userId, sdp: offer });
             }
 
-            // (B) 화상 신호
-            if (event.type === "WEBRTC_SIGNAL") {
-                const { senderId, targetId, type, sdp, candidate } = event.data;
+            // (B) 퇴장 처리
+            if (event.type === "PARTICIPANT_LEFT") {
+                 const leftUserId = idMapRef.current.get(event.data.studyParticipantId);
+                 if (leftUserId) {
+                     closePeer(leftUserId);
+                     idMapRef.current.delete(event.data.studyParticipantId);
+                 }
+            }
+
+            // (C)CHAT_MESSAGE 안에서 화상 신호 낚아채기
+            if (event.type === "CHAT_MESSAGE") {
+                const { senderId, chat } = event.data;
                 
+                // 1. "SIGNAL:" 로 시작하지 않으면 일반 채팅임 -> 무시
+                if (!chat.startsWith("SIGNAL:")) return;
+
+                // 2. 신호 데이터 파싱
+                const signalData = JSON.parse(chat.substring(7)); // "SIGNAL:"(7글자) 제거
+                const { targetId, type, sdp, candidate } = signalData;
+
+                // 나에게 온 신호인지 확인
                 if (targetId && Number(targetId) !== userId) return; 
-                if (Number(senderId) === userId) return; 
+                if (Number(senderId) === userId) return;
 
                 let pc = peersRef.current.get(senderId);
 
                 if (type === "OFFER") {
+                    console.log("Received OFFER (via Chat)");
                     if (!pc) pc = createPC(senderId);
                     await pc.setRemoteDescription(new RTCSessionDescription(sdp));
                     const answer = await pc.createAnswer();
@@ -161,25 +155,12 @@ export function useWebRTCRoom({ enabled, userId, events, sendSignaling, initialP
                     sendSignaling({ type: "ANSWER", senderId: userId, targetId: senderId, sdp: answer });
                 } 
                 else if (type === "ANSWER" && pc) {
+                    console.log("Received ANSWER (via Chat)");
                     await pc.setRemoteDescription(new RTCSessionDescription(sdp));
                 } 
                 else if (type === "ICE" && pc) {
                     await pc.addIceCandidate(new RTCIceCandidate(candidate));
                 }
-            }
-            
-            // (C) 퇴장: ID 매핑을 통해 유저 찾아서 종료
-            if (event.type === "PARTICIPANT_LEFT") {
-                  const { studyParticipantId } = event.data;
-                  // 맵에서 userId 찾기
-                  const leftUserId = idMapRef.current.get(studyParticipantId);
-                  
-                  if (leftUserId) {
-                      closePeer(leftUserId);
-                      idMapRef.current.delete(studyParticipantId); // 매핑 삭제
-                  } else {
-                      console.warn(`⚠️ Cannot find userId for participant ${studyParticipantId}`);
-                  }
             }
 
         } catch (err) {
