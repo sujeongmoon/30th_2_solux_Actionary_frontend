@@ -44,7 +44,7 @@ export function useWebRTCRoom({ enabled, userId, events, sendSignaling, initialP
         localStreamRef.current = stream;
         setLocalStream(stream);
       })
-      .catch((err) => console.error("❌ Media Error:", err));
+      .catch((err) => console.error("Media Error:", err));
 
     return () => {
       mounted = false;
@@ -98,76 +98,69 @@ export function useWebRTCRoom({ enabled, userId, events, sendSignaling, initialP
 
   // 4. 이벤트 처리
   useEffect(() => {
-    if (!enabled || !userId || !localStream) return;
-    if (events.length === 0) return;
-    
-    events.forEach(async (event) => {
-        const eventId = JSON.stringify(event);
-        if (processedSignalIds.current.has(eventId)) return;
-        processedSignalIds.current.add(eventId);
+    const handleEvents = async () => {
+        if (!enabled || !userId || !localStream) return;
+        if (events.length === 0) return;
+        
+        for (const event of events) {
+            const eventId = JSON.stringify(event);
+            if (processedSignalIds.current.has(eventId)) continue;
+            processedSignalIds.current.add(eventId);
 
-        try {
-            // (A) 입장 처리 (OFFER 전송)
-            if (event.type === "PARTICIPANT_JOINED") {
-                const p = event.data;
-                idMapRef.current.set(p.studyParticipantId, p.userId);
-                if (p.userId === userId) return;
-
-                console.log(`👋 User ${p.userId} joined. Sending Offer.`);
-                const pc = createPC(p.userId);
-                const offer = await pc.createOffer();
-                await pc.setLocalDescription(offer);
-                sendSignaling({ type: "OFFER", senderId: userId, targetId: p.userId, sdp: offer });
-            }
-
-            // (B) 퇴장 처리
-            if (event.type === "PARTICIPANT_LEFT") {
-                 const leftUserId = idMapRef.current.get(event.data.studyParticipantId);
-                 if (leftUserId) {
-                     closePeer(leftUserId);
-                     idMapRef.current.delete(event.data.studyParticipantId);
-                 }
-            }
-
-            // (C)CHAT_MESSAGE 안에서 화상 신호 낚아채기
-            if (event.type === "CHAT_MESSAGE") {
-                const { senderId, chat } = event.data;
-                
-                // 1. "SIGNAL:" 로 시작하지 않으면 일반 채팅임 -> 무시
-                if (!chat.startsWith("SIGNAL:")) return;
-
-                // 2. 신호 데이터 파싱
-                const signalData = JSON.parse(chat.substring(7)); // "SIGNAL:"(7글자) 제거
-                const { targetId, type, sdp, candidate } = signalData;
-
-                // 나에게 온 신호인지 확인
-                if (targetId && Number(targetId) !== userId) return; 
-                if (Number(senderId) === userId) return;
-
-                let pc = peersRef.current.get(senderId);
-
-                if (type === "OFFER") {
-                    console.log("Received OFFER (via Chat)");
-                    if (!pc) pc = createPC(senderId);
-                    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-                    const answer = await pc.createAnswer();
-                    await pc.setLocalDescription(answer);
-                    sendSignaling({ type: "ANSWER", senderId: userId, targetId: senderId, sdp: answer });
-                } 
-                else if (type === "ANSWER" && pc) {
-                    console.log("Received ANSWER (via Chat)");
-                    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-                } 
-                else if (type === "ICE" && pc) {
-                    await pc.addIceCandidate(new RTCIceCandidate(candidate));
+            try {
+                if (event.type === "PARTICIPANT_JOINED") {
+                    const p = event.data;
+                    idMapRef.current.set(p.studyParticipantId, p.userId);
+                    if (p.userId === userId) continue;
+                    const pc = createPC(p.userId);
+                    const offer = await pc.createOffer();
+                    await pc.setLocalDescription(offer);
+                    sendSignaling({ type: "OFFER", senderId: userId, targetId: p.userId, sdp: offer });
                 }
+
+                if (event.type === "PARTICIPANT_LEFT") {
+                    const leftUserId = idMapRef.current.get(event.data.studyParticipantId);
+                    if (leftUserId) {
+                        closePeer(leftUserId);
+                        idMapRef.current.delete(event.data.studyParticipantId);
+                    }
+                }
+
+                if (event.type === "CHAT_MESSAGE") {
+                    const { senderId, chat } = event.data;
+                    if (!chat.startsWith("SIGNAL:")) continue;
+
+                    const signalData = JSON.parse(chat.substring(7));
+                    const { targetId, type, sdp, candidate } = signalData;
+
+                    if (targetId && Number(targetId) !== userId) continue; 
+                    if (Number(senderId) === userId) continue;
+
+                    let pc = peersRef.current.get(senderId);
+
+                    if (type === "OFFER") {
+                        if (!pc) pc = createPC(senderId);
+                        await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+                        const answer = await pc.createAnswer();
+                        await pc.setLocalDescription(answer);
+                        sendSignaling({ type: "ANSWER", senderId: userId, targetId: senderId, sdp: answer });
+                    } 
+                    else if (type === "ANSWER" && pc) {
+                        await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+                    } 
+                    else if (type === "ICE" && pc) {
+                        if (pc.remoteDescription) {
+                            await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Signaling Error:", err);
             }
-
-        } catch (err) {
-            console.error("Signaling Error:", err);
         }
-    });
+    };
 
+    handleEvents();
   }, [events, userId, enabled, localStream]);
 
   return { localStream, remoteStreams, camOn, micOn, setCamOn, setMicOn };
