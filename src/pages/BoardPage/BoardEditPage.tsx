@@ -55,18 +55,43 @@ const BoardEditPage = () => {
   });
 
   useEffect(() => {
-    if (!data || !editor) return;
-    const { post } = data;
+  if (!data || !editor) return;
+  
+  // 이미 에디터에 내용이 있고, 수정 중인 상태라면 setContent를 건너뜁니다.
+  // (이 로직이 없으면 수정 중에 data가 refetch될 때 글이 초기화될 수 있습니다.)
+  if (!editor.isEmpty) return; 
 
-    setTitle(post.title);
-    setSelectedCategory(post.type);
+  const { post, postImageUrls } = data;
 
-    const content: JSONContent[] = [];
-    if (post.textContent) {
-      content.push({ type: 'paragraph', content: [{ type: 'text', text: post.textContent }] });
-    }
-    editor.commands.setContent({ type: 'doc', content });
-  }, [data, editor]);
+  setTitle(post.title);
+  setSelectedCategory(post.type);
+
+  const content: JSONContent[] = [];
+
+  // 1. 이미지 삽입
+  postImageUrls.forEach((url) => {
+    content.push({ type: 'image', attrs: { src: url } });
+  });
+
+  // 2. 텍스트 처리 (trim으로 앞뒤 공백 완벽 제거)
+  const cleanText = post.textContent?.trim() || "";
+
+  if (cleanText) {
+    content.push({
+      type: 'paragraph',
+      content: [{ type: 'text', text: cleanText }],
+    });
+  }
+
+  // 3. TipTap은 항상 마지막에 빈 paragraph가 있어야 사용자가 바로 타이핑하기 좋습니다.
+  // 이미지가 있든 없든, 마지막 노드가 paragraph가 아니면 하나 추가해줍니다.
+  if (content.length === 0 || content[content.length - 1].type !== 'paragraph') {
+    content.push({ type: 'paragraph' });
+  }
+
+  // 데이터 세팅
+  editor.commands.setContent({ type: 'doc', content });
+}, [data, editor]);
 
   /* ---------------- 게시글 수정 ---------------- */
   const { mutate: updatePost, isPending } = useMutation({
@@ -124,11 +149,10 @@ const BoardEditPage = () => {
 
   const formData = new FormData();
 
-  // ---------------- 이미지 파일 추가 ----------------
-  console.log('[DEBUG] uploadedFiles:', uploadedFiles);
-  uploadedFiles.forEach(file => formData.append('images', file));
+  // ---------------- 이미지 처리 ----------------
+  const existingNodes = editor.getJSON().content || [];
 
-  // ---------------- TipTap에서 기존 이미지 URL만 추출 ----------------
+  // TipTap에서 기존 이미지 URL만 추출
   const extractImageUrls = (nodes: any[]): string[] => {
     let urls: string[] = [];
     nodes.forEach(node => {
@@ -140,51 +164,66 @@ const BoardEditPage = () => {
     return urls;
   };
 
-  const existingImageUrls = extractImageUrls(editor.getJSON().content || []);
-  console.log('[DEBUG] 기존 이미지 URLs:', existingImageUrls);
+  const currentImageUrls = extractImageUrls(existingNodes);
+  const originalImageUrls = data.postImageUrls;
 
-  // 기존 이미지도 fetch → Blob → File로 FormData에 추가
-  for (let i = 0; i < existingImageUrls.length; i++) {
-    const src = existingImageUrls[i];
-    try {
-      const response = await fetch(src);
-      const blob = await response.blob();
-      const file = new File([blob], `existing_${i}.jpg`, { type: blob.type });
-      formData.append('images', file);
-    } catch (err) {
-      console.error('이미지 fetch 실패:', src, err);
-    }
+  // 삭제된 이미지 URL 계산
+  const delImages = originalImageUrls.filter(url => !currentImageUrls.includes(url));
+  if (delImages.length > 0) formData.append('delImages', JSON.stringify(delImages));
+
+  // 새로 업로드한 이미지 추가
+  if (uploadedFiles.length > 0) {
+    uploadedFiles.forEach(file => formData.append('addImages', file));
   }
 
   // ---------------- post 필드 처리 ----------------
-  const postPayload: Record<string, any> = {};
-  const currentText = editor.getText().trim();
+  // ---------------- post 필드 처리 ----------------
+const postPayload: Record<string, any> = {};
 
-  if (title !== data.post.title) postPayload.title = title;
-  if (selectedCategory !== data.post.type) postPayload.type = selectedCategory;
-  if (currentText !== data.post.textContent) postPayload.text = currentText;
+// TipTap JSON에서 줄바꿈 살린 텍스트 추출
+const extractTextWithLineBreaks = (nodes: any[]): string => {
+  let text = "";
+  nodes.forEach(node => {
+    if (node.type === "paragraph") {
+      if (node.content) {
+        node.content.forEach((n: any) => {
+          if (n.type === "text") text += n.text;
+        });
+      }
+      text += "\n"; // paragraph마다 줄바꿈 추가
+    } else if (node.type === "image") {
+      text += "\n"; // 이미지 뒤에도 줄바꿈
+    } else if (node.content) {
+      text += extractTextWithLineBreaks(node.content);
+    }
+  });
+  return text;
+};
 
-  console.log('[DEBUG] postPayload:', postPayload);
+// TipTap에서 현재 텍스트 가져오기 (줄바꿈 유지)
+const currentText = extractTextWithLineBreaks(editor.getJSON().content || []).trim();
 
-  if (Object.keys(postPayload).length > 0) {
-    formData.append(
-      'post',
-      new Blob([JSON.stringify(postPayload)], { type: 'application/json' })
-    );
-  }
+if (title !== data.post.title) postPayload.title = title;
+if (selectedCategory !== data.post.type) postPayload.type = selectedCategory;
+if (currentText !== data.post.textContent) postPayload.text = currentText;
+
+if (Object.keys(postPayload).length > 0) {
+  formData.append(
+    'post',
+    new Blob([JSON.stringify(postPayload)], { type: 'application/json' })
+  );
+}
+
 
   // ---------------- 변경 사항 체크 ----------------
-  const hasChanges = uploadedFiles.length > 0 || Object.keys(postPayload).length > 0 || existingImageUrls.length > 0;
+  const hasChanges = uploadedFiles.length > 0 || Object.keys(postPayload).length > 0 || delImages.length > 0;
   if (!hasChanges) return alert('수정할 내용이 없습니다.');
-
-  console.log('[DEBUG] FormData entries:');
-  for (const pair of formData.entries()) {
-    console.log(pair[0], pair[1]);
-  }
 
   // ---------------- 전송 ----------------
   updatePost(formData);
 };
+
+
 
   /* ---------------- 렌더 ---------------- */
   if (isLoading) return <div className="loading">로딩중...</div>;
