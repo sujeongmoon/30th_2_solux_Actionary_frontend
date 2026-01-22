@@ -7,11 +7,16 @@ export const api = axios.create({
   withCredentials: true,
 });
 
+const refreshApi = axios.create({
+  baseURL: BASE_URL,
+  withCredentials: true,
+});
+
 /* ===================== Request Interceptor ===================== */
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+    if (token) {config.headers.Authorization = `Bearer ${token}`;}
     return config;
   },
   (error) => Promise.reject(error)
@@ -57,30 +62,47 @@ api.interceptors.response.use(
 
 
       if (!refreshToken) {
+        localStorage.clear();
         return Promise.reject(error);
       }
 
       try {
-        const refreshResponse = await axios.post(
-          `${BASE_URL}/auth/refresh`,
+        const refreshResponse = await refreshApi.post("/auth/refresh", {
+          refresh: refreshToken,
+        
+          /*`${BASE_URL}/auth/refresh`,
           { refresh: refreshToken },
-          { withCredentials: true }
-        );
+          { withCredentials: true }*/
+        });
 
-        const newAccessToken = refreshResponse.data?.data?.accessToken;
+        //const newAccessToken = refreshResponse.data?.data?.accessToken;
+        const {
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken,
+        } = refreshResponse.data?.data || {};
+
         if (!newAccessToken) {
-          localStorage.removeItem("accessToken");
+          /*localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
-          return Promise.reject(error);
+          return Promise.reject(error);*/
+          throw new Error("No access token");
         }
 
         localStorage.setItem("accessToken", newAccessToken);
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 
+        if (newRefreshToken) {
+          localStorage.setItem("refreshToken", newRefreshToken);
+        }
+        window.dispatchEvent(new Event("token-refreshed"));
+
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
+
       } catch (refreshError) {
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
+
+        window.dispatchEvent(new Event("force-logout"));
         return Promise.reject(refreshError);
       }
     }
