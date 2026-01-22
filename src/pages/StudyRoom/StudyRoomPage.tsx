@@ -1,15 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-
-// 훅 가져오기 (파일명이 맞는지 확인해주세요)
 import { useWebRTCRoom } from "./useWebRTCRoom";
 import { useStompChat } from "./useStompChat";
-
-// API (기존에 쓰시던 것)
 import { enterPublicStudy, exitStudy, updateNowState } from "../../api/studies";
 import "./StudyRoomPage.css";
 
-// 아이콘 (경로 확인 필요)
 import lampIcon from "../../assets/icons/hugeicons_study-lamp.svg";
 import cameraIcon from "../../assets/icons/majesticons_camera-line.svg";
 import cameraOffIcon from "../../assets/icons/majesticons_camera-line_no.svg";
@@ -127,7 +122,6 @@ export default function StudyRoomPage() {
   const { studyId } = useParams();
   const numericStudyId = Number(studyId);
 
-  // 환경변수 (없을 경우 하드코딩된 값 사용)
   const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL ?? "http://13.209.205.33:8080";
 
   // 상태 관리
@@ -158,7 +152,7 @@ export default function StudyRoomPage() {
     wsBaseUrl: WS_BASE_URL,
   });
 
-  // 2. WebRTC 연결 (STOMP 기능 사용)
+  // 2. WebRTC 연결
   const { 
     localStream, 
     remoteStreams, 
@@ -167,10 +161,17 @@ export default function StudyRoomPage() {
     setCamOn, 
     setMicOn 
   } = useWebRTCRoom({
-    enabled: !!me && connected, // 내 정보가 있고 소켓이 연결되면 시작
+    enabled: !!me && connected, 
     userId: me?.userId,
     events: events,             // 소켓으로 받은 메시지를 넘겨줌
-    sendSignaling: sendSignaling // 소켓으로 보내는 함수를 넘겨줌
+    sendSignaling: sendSignaling, // 소켓으로 보내는 함수를 넘겨줌
+  
+    // 👇 [필수] 이 줄이 없으면 "원래 있던 사람들"이 나갈 때 에러가 납니다!
+    initialParticipants: others.map(p => ({ 
+        userId: p.userId, 
+        studyParticipantId: p.studyParticipantId 
+    })),
+    
   }) as any;
 
 
@@ -191,7 +192,7 @@ export default function StudyRoomPage() {
         const baseUrl = API_BASE.endsWith('/') ? API_BASE.slice(0, -1) : API_BASE;
         const usersUrl = `${baseUrl}/studies/${numericStudyId}/participating/users`;
 
-        // 3-1. 선 조회 -> 실패 시 입장 -> 재조회 (403 방지)
+        // 3-1. 선 조회 -> 실패 시 입장 -> 재조회 
         let response = await fetch(usersUrl, {
           method: "GET",
           headers: { "Content-Type": "application/json", "Authorization": authHeader },
@@ -235,8 +236,8 @@ export default function StudyRoomPage() {
             isMe: true,
           });
         } else {
-           setError("내 정보를 불러오지 못했습니다.");
-           return;
+          setError("내 정보를 불러오지 못했습니다.");
+          return;
         }
 
         // 3-3. 다른 참여자 설정
@@ -244,14 +245,14 @@ export default function StudyRoomPage() {
         const mappedList: Participant[] = rawList
           .filter((p: any) => p.userId !== data.me.userId)
           .map((p: any) => ({
-             id: String(p.studyParticipantId),
-             userId: p.userId,
-             studyParticipantId: p.studyParticipantId,
-             nickname: p.userNickname,
-             profileImageUrl: p.profileImageUrl,
-             badgeId: p.badgeId ?? 0,
-             badgeImageUrl: p.badgeImageUrl ?? null,
-             isMe: false,
+              id: String(p.studyParticipantId),
+              userId: p.userId,
+              studyParticipantId: p.studyParticipantId,
+              nickname: p.userNickname,
+              profileImageUrl: p.profileImageUrl,
+              badgeId: p.badgeId ?? 0,
+              badgeImageUrl: p.badgeImageUrl ?? null,
+              isMe: false,
           }));
 
         setOthers(mappedList);
@@ -302,19 +303,15 @@ export default function StudyRoomPage() {
   }, [allParticipants, gridPage, gridSize]);
 
   /* ===================== 5. STOMP 이벤트 처리 (채팅 & 말풍선) ===================== */
-  // * 화상 신호 처리는 useWebRTCRoom 내부에서 하므로 여기선 채팅만 필터링해서 보여줍니다.
   useEffect(() => {
     if (!me || !events) return;
-    
-    // 이미 처리한 이벤트 인덱스 이후부터 확인 (간단한 로직)
-    // 실제로는 이벤트 ID 등으로 중복 방지하면 더 좋습니다.
     const newEvents = events.slice(lastEventRef.current);
     if (newEvents.length === 0) return;
 
     lastEventRef.current = events.length;
 
     newEvents.forEach((evt: any) => {
-        // (A) 채팅 메시지
+        //  채팅 메시지
         if (evt.type === "CHAT_MESSAGE") {
             const d = evt.data;
             setChatMessages((prev) => [
@@ -327,7 +324,7 @@ export default function StudyRoomPage() {
               },
             ]);
         } 
-        // (B) 말풍선(상태) 변경
+        // 말풍선(상태) 변경
         else if (evt.type === "NOW_STATE_CHANGED") {
             const d = evt.data;
             const spId = String(d.studyParticipantId);
@@ -370,7 +367,7 @@ export default function StudyRoomPage() {
             await updateNowState(numericStudyId, bubbleDraft);
             // 내 화면엔 즉시 반영
             setBubbleMap((prev) => ({ ...prev, [editingBubbleId]: bubbleDraft }));
-            // 소켓 전송 (옵션, API가 알아서 쏘면 생략 가능)
+            // 소켓 전송
             sendNowState({ studyParticipantId: me.studyParticipantId, nowState: bubbleDraft });
         } catch (e) {
             console.error("말풍선 변경 실패:", e);
@@ -438,7 +435,6 @@ export default function StudyRoomPage() {
 
           <div className="srGrid" style={{ ["--cols" as any]: gridCols }}>
             {gridSlice.map((p) => {
-              // WebRTC 스트림 매칭
               const stream = p.isMe ? localStream : (remoteStreams[p.userId] ?? null);
               const cameraOn = p.isMe ? camOn : !!stream; 
               
