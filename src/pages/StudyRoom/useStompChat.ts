@@ -90,7 +90,7 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
 
   const sendSignaling = (payload: any) => {
     if (!chatSendPath || !clientRef.current?.connected) {
-        console.warn("⚠️ 소켓 미연결: 신호 전송 실패");
+        console.warn("소켓 미연결: 신호 전송 실패");
         return;
     }
     

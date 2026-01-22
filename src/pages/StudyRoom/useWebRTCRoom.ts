@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import "webrtc-adapter"; 
-import * as JanusModule from "janus-gateway"; 
-
 const JANUS_URL = "/janus";
 const PLUGIN = "janus.plugin.videoroom";
-
-const Janus = (JanusModule as any).default || JanusModule;
 
 export function useWebRTCRoom({ enabled, studyId, userId }: { enabled: boolean; studyId: number; userId?: number }) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
@@ -21,8 +16,10 @@ export function useWebRTCRoom({ enabled, studyId, userId }: { enabled: boolean; 
 
   useEffect(() => {
     if (!enabled || !studyId) return;
+    const Janus = (window as any).Janus;
+
     if (!Janus || typeof Janus.init !== "function") {
-        console.error("Janus 라이브러리 로딩 실패 (init 함수 없음)");
+        console.error("Janus 라이브러리가 아직 로드되지 않았습니다. (index.html 확인 필요)");
         return;
     }
 
