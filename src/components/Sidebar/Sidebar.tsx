@@ -43,7 +43,10 @@ const RightSidebar = () => {
 
   const accessToken = localStorage.getItem('accessToken');
   const isLoggedIn = Boolean(accessToken);
-  const today = new Date().toISOString().split('T')[0];
+  
+  const now = new Date();
+  const koreaNow = new Date(now.getTime() + 9 * 60 * 60 * 1000); // UTC → KST
+  const todayString = koreaNow.toISOString().slice(0, 10); // YYYY-MM-DD
 
   /* ===================== 유저 정보 & 포인트 & 공부 시간 ===================== */
   const { data: userInfo } = useQuery<UserInfo>({
@@ -57,8 +60,8 @@ const RightSidebar = () => {
   });
 
   const { data: studyTime } = useQuery<{ durationSeconds: number } | undefined>({
-    queryKey: ['studyTime', today],
-    queryFn: () => getStudyTimeByDate(today),
+    queryKey: ['studyTime', todayString],
+    queryFn: () => getStudyTimeByDate(todayString),
   });
 
   const todayStudyTime = studyTime
@@ -67,8 +70,8 @@ const RightSidebar = () => {
 
   /* ===================== 투두 리스트 ===================== */
   const { data: todoData } = useQuery<{ todos: Todo[] }>({
-    queryKey: ['todos', today], // ✅ MyPageOwner와 동일 key
-    queryFn: () => getTodoListByDate(today),
+    queryKey: ['todos', todayString], // ✅ MyPageOwner와 동일 key
+    queryFn: () => getTodoListByDate(todayString),
   });
 
   const todoList: SideTodoItem[] = todoData?.todos.map(t => ({
@@ -90,11 +93,11 @@ const RightSidebar = () => {
     mutationFn: ({ todoId, status }: { todoId: number; status: 'DONE' | 'FAILED' }) =>
       updateTodoStatus(todoId, status),
     onMutate: async ({ todoId, status }) => {
-      await queryClient.cancelQueries({ queryKey: ['todos', today] });
+      await queryClient.cancelQueries({ queryKey: ['todos', todayString] });
 
-      const previous = queryClient.getQueryData<{ todos: Todo[] }>(['todos', today]);
+      const previous = queryClient.getQueryData<{ todos: Todo[] }>(['todos', todayString]);
 
-      queryClient.setQueryData<{ todos: Todo[] }>(['todos', today], old => {
+      queryClient.setQueryData<{ todos: Todo[] }>(['todos', todayString], old => {
         if (!old) return old;
         return {
           todos: old.todos.map(t => (t.todoId === todoId ? { ...t, status } : t)),
@@ -105,11 +108,11 @@ const RightSidebar = () => {
     },
     onError: (_err, _vars, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(['todos', today], context.previous);
+        queryClient.setQueryData(['todos', todayString], context.previous);
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['todos', today] });
+      queryClient.invalidateQueries({ queryKey: ['todos', todayString] });
     },
   });
 
