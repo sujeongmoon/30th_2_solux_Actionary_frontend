@@ -377,6 +377,13 @@ const comments = commentResponse?.data.comments ?? [];
               placeholder="댓글 작성 칸 |"
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.nativeEvent.isComposing) return;
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleCommentSubmit();
+                }
+              }}
             />
             <div
               className={`lock-icon-wrapper ${isSecret ? 'active' : ''}`}
