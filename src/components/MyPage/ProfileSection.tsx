@@ -72,21 +72,35 @@ const ProfileSection: React.FC = () => {
   };
 
   // 프로필 수정
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    const file = e.target.files[0];
-    const formData = new FormData();
-    formData.append('profileImage', file); 
+ const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  if (!e.target.files || e.target.files.length === 0) return;
+  const file = e.target.files[0];
 
-    try {
-      const res = await api.patch("/members/me/profile", formData);
-      // UI 업데이트
-      setUserInfo((prev) => prev ? { ...prev, profileImageUrl: res.data.data.profileImageUrl } : prev);
-    } catch (err) {
-        console.error('프로필 업로드 실패', err);
-        alert("프로필 이미지 수정에 실패했습니다.");
-    } 
+  // 1️⃣ 미리보기 URL 생성
+  const previewUrl = URL.createObjectURL(file);
+  setUserInfo(prev => prev ? { ...prev, profileImageUrl: previewUrl } : prev);
+
+  // 2️⃣ 서버에 업로드
+  const formData = new FormData();
+  formData.append('profileImage', file);
+
+  try {
+    const res = await api.patch("/members/me/profile", formData);
+
+    // 서버에서 받은 URL 안전하게 처리 + 캐시 방지
+    if (res.data?.data?.profileImageUrl) {
+      setUserInfo(prev => prev ? {
+        ...prev,
+        profileImageUrl: res.data.data.profileImageUrl + `?t=${Date.now()}`
+      } : prev);
+    }
+
+  } catch (err) {
+    console.error('프로필 업로드 실패', err);
+    alert("프로필 이미지 수정에 실패했습니다.");
+  }
 };
+
 
 
 
