@@ -14,22 +14,21 @@ const Login: React.FC = () => {
 
   const { login, isLoading, errorMessage } = useLogin();
   const navigate = useNavigate();
-  const { setToken, setUser } = useAuth();
+  //const { setToken, setUser } = useAuth();
 
   const handleLogin = async () => {
-    console.log("로그인 버튼 클릭됨");
+    //console.log("로그인 버튼 클릭됨");
 
-    if (!loginId || !password) {
+    if (!loginId || !password) return;/*{
     console.log("아이디/비밀번호 비어있음");
     return;
-    }
+    }*/
 
     // 2) 실제 로그인 (백엔드 붙었을 때)
     try {
-      const data = await login({ loginId, password });
-      console.log("로그인 성공:", data);
+      await login({ loginId, password });
 
-      const token = data.data.accessToken;
+      /*const token = data.data.accessToken;
       const profileImageUrl = data.data.profileImageUrl ?? null;
 
       if (!token) {
@@ -40,7 +39,7 @@ const Login: React.FC = () => {
       setUser({ profileImageUrl });
 
       setToken(token);
-      navigate("/");
+      navigate("/");*/
     } catch (err) {
       console.log("로그인 실패", err);
     }
