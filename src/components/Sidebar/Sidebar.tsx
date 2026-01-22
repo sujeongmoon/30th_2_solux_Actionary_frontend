@@ -94,7 +94,7 @@ const RightSidebar = () => {
   // 2️⃣ 알림
   const fetchNotifications = async () => {
     try {
-      const data: NotificationResponse[] = await getNotifications(20);
+      const data: NotificationResponse[] = await getNotifications();
       const mapped: NotificationItem[] = data.map(n => ({
         notificationId: n.notificationId,
         type: n.type,
@@ -128,6 +128,8 @@ const RightSidebar = () => {
       setTodoList(prevList);
     }
   };
+
+  
 
   // 4️⃣ 카테고리별 그룹핑
   const groupedTodos = todoList.reduce<Record<string, SideTodoItem[]>>((acc, todo) => {
