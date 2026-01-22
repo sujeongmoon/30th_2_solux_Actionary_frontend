@@ -210,7 +210,8 @@
   display: inline-block;
   padding: 5px 25px;
   border-radius: 20px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
+  margin-top: 10px;
 
   /* 배경은 흰색 + 테두리 그라데이션 */
   border: 2px solid transparent;
@@ -233,11 +234,11 @@
 }
 
 
-.todo-item {
+.sidebar-todo-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 15px;
+  gap: 7px;
+  margin-bottom: 8px;
 }
 
 .todo-check { color: #e58e72; }
