@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import './MyPageOwner.css';
 import BookmarkSection from '../../components/Bookmark/BookmarkSection';
 import OwnerCheck from '../../assets/MyPage/OwnerCheck.svg';
@@ -14,15 +14,13 @@ import {
   getStudyTime,
 } from '../../api/MyPage/MyPage';
 import type { TabKey, TodoItem, TodoCategory } from '../../types/MyPageTypes';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const MyPageOwner: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [categories, setCategories] = useState<TodoCategory[]>([]);
-  const [todoList, setTodoList] = useState<TodoItem[]>([]);
   const [activeTab, setActiveTab] = useState<TabKey>('DAY');
 
   const today = new Date().toISOString().slice(0, 10);
@@ -34,7 +32,7 @@ const MyPageOwner: React.FC = () => {
     { key: 'YEAR', label: '연간' },
   ];
 
-  /* ===================== 공부시간 조회 (React Query) ===================== */
+  /* ===================== 공부시간 조회 ===================== */
   const { data: studyTime } = useQuery({
     queryKey: ['studyTime', activeTab, today],
     queryFn: () => getStudyTime(activeTab, today),
@@ -47,56 +45,55 @@ const MyPageOwner: React.FC = () => {
     return `${hours}H ${minutes}M`;
   };
 
-  /* ===================== 투두 상태 변경 ===================== */
-  const handleStatusChange = async (
-    todoId: number,
-    status: 'DONE' | 'FAILED'
-  ) => {
-    try {
-      await updateTodoStatus(todoId, status);
-      setTodoList(prev =>
-        prev.map(todo =>
-          todo.todoId === todoId ? { ...todo, status } : todo
-        )
-      );
-    } catch (e) {
-      console.error('상태 변경 실패', e);
-    }
-  };
+  /* ===================== 투두 리스트 조회 ===================== */
+  const { data: todoData } = useQuery<{ todos: TodoItem[] }>({
+    queryKey: ['todos', today],
+    queryFn: () => getTodoListByDate(today),
+  });
 
-  /* ===================== 투두 조회 ===================== */
-  useEffect(() => {
-    const fetchTodos = async () => {
-      try {
-        const data = await getTodoListByDate(today);
-        setTodoList(data.todos);
-      } catch (error) {
-        console.error('투두 조회 실패', error);
-        setTodoList([]);
-      }
-    };
-    fetchTodos();
-  }, [today]);
+  const todoList = todoData?.todos ?? [];
 
   /* ===================== 카테고리 조회 ===================== */
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const data = await getTodoCategories();
-        setCategories(data);
-      } catch (e) {
-        console.error('카테고리 조회 실패', e);
+  const { data: categories } = useQuery<TodoCategory[]>({
+    queryKey: ['todoCategories'],
+    queryFn: getTodoCategories,
+  });
+
+  /* ===================== 투두 상태 변경 (Optimistic UI) ===================== */
+  const toggleMutation = useMutation({
+    mutationFn: ({ todoId, status }: { todoId: number; status: 'DONE' | 'FAILED' }) =>
+      updateTodoStatus(todoId, status),
+    onMutate: async ({ todoId, status }) => {
+      await queryClient.cancelQueries({ queryKey: ['todos', today] });
+      const previous = queryClient.getQueryData<{ todos: TodoItem[] }>(['todos', today]);
+
+      queryClient.setQueryData<{ todos: TodoItem[] }>(['todos', today], old => {
+        if (!old) return old;
+        return {
+          todos: old.todos.map(t => (t.todoId === todoId ? { ...t, status } : t)),
+        };
+      });
+
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['todos', today], context.previous);
       }
-    };
-    fetchCategories();
-  }, []);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos', today] });
+    },
+  });
+
+  const handleStatusChange = (todoId: number, status: 'DONE' | 'FAILED') => {
+    toggleMutation.mutate({ todoId, status });
+  };
 
   /* ===================== 모달 닫을 때 공부시간 갱신 ===================== */
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    queryClient.invalidateQueries({
-      queryKey: ['studyTime'],
-    });
+    queryClient.invalidateQueries({ queryKey: ['studyTime'] });
   };
 
   return (
@@ -119,63 +116,42 @@ const MyPageOwner: React.FC = () => {
         <div className="owner-card-todo">
           <div className="owner-study-header">
             <span className="owner-todo-title">오늘의 TO DO LIST</span>
-            <button
-              onClick={() => navigate('/todolistpage')}
-              className="owner-more-btn"
-            >
+            <button onClick={() => navigate('/todolistpage')} className="owner-more-btn">
               더보기
             </button>
           </div>
 
           <div className="owner-todo-body">
             {todoList.map((todo, index) => {
-              const category = categories.find(
-                cat => cat.categoryId === todo.categoryId
-              );
+              const category = categories?.find(cat => cat.categoryId === todo.categoryId);
               const prevTodo = todoList[index - 1];
-              const showCategory =
-                !prevTodo || prevTodo.categoryId !== todo.categoryId;
+              const showCategory = !prevTodo || prevTodo.categoryId !== todo.categoryId;
 
               return (
                 <div className="owner-todo-item-wrapper" key={todo.todoId}>
                   {showCategory && category && (
                     <span
                       className="owner-todo-tag"
-                      style={{
-                        color: category.color,
-                        border: `1px solid ${category.color}`,
-                      }}
+                      style={{ color: category.color, border: `1px solid ${category.color}` }}
                     >
                       {category.name}
                     </span>
                   )}
 
                   <div className="owner-todo-item">
-                    <img
-                      src={OwnerCheck}
-                      alt="체크 아이콘"
-                      className="owner-todo-check"
-                    />
+                    <img src={OwnerCheck} alt="체크 아이콘" className="owner-todo-check" />
                     <span className="owner-todo-text">{todo.title}</span>
 
                     <div className="owner-todo-status">
                       <button
-                        className={`owner-status-btn ${
-                          todo.status === 'DONE' ? 'active' : ''
-                        }`}
-                        onClick={() =>
-                          handleStatusChange(todo.todoId, 'DONE')
-                        }
+                        className={`owner-status-btn ${todo.status === 'DONE' ? 'active' : ''}`}
+                        onClick={() => handleStatusChange(todo.todoId, 'DONE')}
                       >
                         달성
                       </button>
                       <button
-                        className={`owner-status-btn ${
-                          todo.status === 'FAILED' ? 'fail' : ''
-                        }`}
-                        onClick={() =>
-                          handleStatusChange(todo.todoId, 'FAILED')
-                        }
+                        className={`owner-status-btn ${todo.status === 'FAILED' ? 'fail' : ''}`}
+                        onClick={() => handleStatusChange(todo.todoId, 'FAILED')}
                       >
                         실패
                       </button>
@@ -191,10 +167,7 @@ const MyPageOwner: React.FC = () => {
         <div className="owner-card-study">
           <div className="owner-studytime-header">
             <div className="owner-study-title">공부량</div>
-            <button
-              className="owner-study-more-btn"
-              onClick={() => navigate('/studyTime')}
-            >
+            <button className="owner-study-more-btn" onClick={() => navigate('/studyTime')}>
               더보기
             </button>
           </div>
@@ -210,11 +183,7 @@ const MyPageOwner: React.FC = () => {
                     onClick={() => setActiveTab(tab.key)}
                   >
                     <span className="owner-tab-icon">
-                      {isActive ? (
-                        <img src={StudyTimeCheckIcon} alt="체크" />
-                      ) : (
-                        <span className="owner-tab-dot" />
-                      )}
+                      {isActive ? <img src={StudyTimeCheckIcon} alt="체크" /> : <span className="owner-tab-dot" />}
                     </span>
                     <span className="owner-tab-text">{tab.label}</span>
                   </span>
@@ -222,22 +191,14 @@ const MyPageOwner: React.FC = () => {
               })}
             </div>
 
-            <div className="owner-study-time-box">
-              {formatDuration(studyTime?.durationSeconds)}
-            </div>
+            <div className="owner-study-time-box">{formatDuration(studyTime?.durationSeconds)}</div>
 
-            <button
-              className="owner-manual-add-btn"
-              onClick={() => setIsModalOpen(true)}
-            >
+            <button className="owner-manual-add-btn" onClick={() => setIsModalOpen(true)}>
               수동으로 추가하기 <span className="owner-plus-circle">+</span>
             </button>
           </div>
 
-          <StudyTimeModal
-            isOpen={isModalOpen}
-            onClose={handleCloseModal}
-          />
+          <StudyTimeModal isOpen={isModalOpen} onClose={handleCloseModal} />
         </div>
       </div>
     </div>
