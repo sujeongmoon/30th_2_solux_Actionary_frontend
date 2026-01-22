@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import Pencil from '../../assets/MyPage/Pencil.svg';
 import Profile from '../../assets/MyPage/Profile.svg';
 import './ProfileSection.css';
@@ -6,168 +6,166 @@ import NickNameModal from './NickNameModal';
 import WithdrawModal from './WithdrawModal';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api/client';
-
-interface UserInfo {
-  memberId: number;
-  profileImageUrl: string;
-  nickname: string;
-  phoneNumber: string;
-  birthday: string;
-}
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getMyInfo } from '../../api/sidebar';
 
 const ProfileSection: React.FC = () => {
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Modal 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        const res = await api.get('/members/me/info');
-        setUserInfo(res.data.data); 
-      } catch (err) {
-        console.error(err);
-        setError('회원 정보를 불러오지 못했습니다.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUserInfo();
-  }, []);
-  
+  /* =======================
+     1️⃣ 유저 정보 조회
+  ======================= */
+  const {
+    data: userInfo,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['myInfo'],
+    queryFn: getMyInfo,
+  });
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  /* =======================
+     2️⃣ 닉네임 수정
+  ======================= */
+  const nicknameMutation = useMutation({
+    mutationFn: (nickname: string) =>
+      api.patch('/members/me/nickname', { nickname }),
 
-  const handleNicknameSave = async (newNickname: string) => {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myInfo'] });
+      setIsModalOpen(false);
+    },
+  });
+
+  const handleNicknameSave = (newNickname: string) => {
     if (!newNickname.trim()) return;
-    
-    try {
-      const res = await api.patch('/members/me/nickname', { nickname: newNickname });
-      setUserInfo(prev => prev ? { ...prev, nickname: res.data.data.nickname } : prev);
-      closeModal();
-    } catch (err) {
-      console.error(err);
-      alert('닉네임 수정 실패');
-    }
-  }
-
-  // 탈퇴 로직
-  const handleWithdraw = async () => {
-    try {
-        await api.delete('/auth/withdraw');
-        localStorage.clear();
-        setIsWithdrawOpen(false);
-        navigate('/');
-    } catch (err) {
-        console.error(err);
-        alert('회원 탈퇴에 실패했습니다.');
-    }
+    nicknameMutation.mutate(newNickname);
   };
 
-  // 프로필 수정
- const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  if (!e.target.files || e.target.files.length === 0) return;
-  const file = e.target.files[0];
+  /* =======================
+     3️⃣ 프로필 이미지 업로드
+  ======================= */
+  const profileImageMutation = useMutation({
+    mutationFn: (file: File) => {
+      const formData = new FormData();
+      formData.append('profileImage', file);
+      return api.patch('/members/me/profile', formData);
+    },
 
-  // 1️⃣ 미리보기 URL 생성
-  const previewUrl = URL.createObjectURL(file);
-  setUserInfo(prev => prev ? { ...prev, profileImageUrl: previewUrl } : prev);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myInfo'] });
+    },
+  });
 
-  // 2️⃣ 서버에 업로드
-  const formData = new FormData();
-  formData.append('profileImage', file);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0]) return;
+    profileImageMutation.mutate(e.target.files[0]);
+  };
 
-  try {
-    const res = await api.patch("/members/me/profile", formData);
+  /* =======================
+     4️⃣ 회원 탈퇴
+  ======================= */
+  const withdrawMutation = useMutation({
+    mutationFn: () => api.delete('/auth/withdraw'),
 
-    // 서버에서 받은 URL 안전하게 처리 + 캐시 방지
-    if (res.data?.data?.profileImageUrl) {
-      setUserInfo(prev => prev ? {
-        ...prev,
-        profileImageUrl: res.data.data.profileImageUrl + `?t=${Date.now()}`
-      } : prev);
-    }
+    onSuccess: () => {
+      localStorage.clear();
+      navigate('/');
+    },
+  });
 
-  } catch (err) {
-    console.error('프로필 업로드 실패', err);
-    alert("프로필 이미지 수정에 실패했습니다.");
-  }
-};
-
-
-
-
-  if (loading) return <div>로딩중...</div>;
-  if (error) return <div>오류: {error}</div>;
+  /* =======================
+     렌더링 분기
+  ======================= */
+  if (isLoading) return <div>로딩중...</div>;
+  if (isError || !userInfo)
+    return <div>회원 정보를 불러오지 못했습니다.</div>;
 
   return (
     <div className="owner-profile-container">
+      {/* 프로필 이미지 */}
       <div className="owner-avatar-container">
         <div className="owner-avatar-white-circle">
           <img
-            src={userInfo?.profileImageUrl || Profile}
+            src={userInfo.profileImageUrl || Profile}
             alt="profile"
-            className={userInfo?.profileImageUrl ? 'owner-avatar-img-full' : 'owner-profile-img'}
+            className={
+              userInfo.profileImageUrl
+                ? 'owner-avatar-img-full'
+                : 'owner-profile-img'
+            }
           />
         </div>
-        <div className="owner-avatar-plus" onClick={() => fileInputRef.current?.click()}></div>
+
+        <div
+          className="owner-avatar-plus"
+          onClick={() => fileInputRef.current?.click()}
+        />
+
         <input
-            type="file"
-            ref={fileInputRef}
-            className='hidden-input'
-            accept="image/*"
-            onChange={handleFileChange}
-            aria-label='프로필 이미지 업로드'
+          title="사진 첨부"
+          type="file"
+          ref={fileInputRef}
+          className="hidden-input"
+          accept="image/*"
+          onChange={handleFileChange}
         />
       </div>
 
+      {/* 유저 정보 */}
       <div className="owner-info-container">
         <div className="owner-nickname-group">
           <div className="owner-nickname-wrapper">
-            <span className="owner-nickname">{userInfo?.nickname}</span>
-            <div className="owner-nickname-underline"></div>
+            <span className="owner-nickname">{userInfo.nickname}</span>
+            <div className="owner-nickname-underline" />
           </div>
+
           <img
             src={Pencil}
             alt="편집 아이콘"
             className="owner-edit-icon"
-            onClick={openModal}
+            onClick={() => setIsModalOpen(true)}
           />
         </div>
 
         <div className="owner-details-group">
-          <span className="owner-detail-item">생일: {userInfo?.birthday}</span>
-          <span className="owner-detail-item">번호: {userInfo?.phoneNumber}</span>
+          <span className="owner-detail-item">
+            생일: {userInfo.birthday}
+          </span>
+          <span className="owner-detail-item">
+            번호: {userInfo.phoneNumber}
+          </span>
         </div>
       </div>
 
+      {/* 탈퇴 */}
       <div className="owner-withdraw-wrapper">
-        <button 
-            className="owner-withdraw-btn"
-            onClick = {() => setIsWithdrawOpen(true)}
+        <button
+          className="owner-withdraw-btn"
+          onClick={() => setIsWithdrawOpen(true)}
         >
-            탈퇴하기
+          탈퇴하기
         </button>
       </div>
 
-      {/* 모달 */}
+      {/* 닉네임 모달 */}
       <NickNameModal
-        isOpen = {isModalOpen}
-        initialValue= {userInfo?.nickname || ''}
-        onClose={closeModal}
+        isOpen={isModalOpen}
+        initialValue={userInfo.nickname}
+        onClose={() => setIsModalOpen(false)}
         onSave={handleNicknameSave}
       />
+
+      {/* 탈퇴 모달 */}
       <WithdrawModal
-        isOpen = {isWithdrawOpen}
+        isOpen={isWithdrawOpen}
         onClose={() => setIsWithdrawOpen(false)}
-        onWithdraw={handleWithdraw}
+        onWithdraw={() => withdrawMutation.mutate()}
       />
     </div>
   );
