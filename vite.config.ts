@@ -4,16 +4,14 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: '0.0.0.0',  // 외부 접속 허용
+    port: 5173,
     proxy: {
-      '/ws': {
-        target: 'actionary.site', 
-        changeOrigin: true,
-        ws: true
-      },
       '/api': {
-        target: 'actionary.site',
+        target: 'https://www.actionary.site/', // EC2 내부 도커 백엔드 주소
         changeOrigin: true,
-      }
-    }
+        secure: false,
+      },
+    },
   },
 });
