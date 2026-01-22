@@ -293,43 +293,65 @@ const {
     return allParticipants.slice(start, start + gridSize);
   }, [allParticipants, gridPage, gridSize]);
 
-  /* ===================== 5. STOMP 이벤트 처리 (채팅 & 말풍선) ===================== */
- // StudyRoomPage.tsx 내부의 채팅 useEffect 부분
+/* ===================== 5. STOMP 이벤트 처리 (채팅 & 말풍선 & 입퇴장) ===================== */
+useEffect(() => {
+  if (!me || !events) return;
+  const newEvents = events.slice(lastEventRef.current);
+  if (newEvents.length === 0) return;
 
-  /* ===================== 5. STOMP 이벤트 처리 (채팅 & 말풍선) ===================== */
-  useEffect(() => {
-    if (!me || !events) return;
-    const newEvents = events.slice(lastEventRef.current);
-    if (newEvents.length === 0) return;
+  lastEventRef.current = events.length;
 
-    lastEventRef.current = events.length;
+  newEvents.forEach((evt: any) => {
+      const d = evt.data;
 
-    newEvents.forEach((evt: any) => {
-        //  채팅 메시지
-        if (evt.type === "CHAT_MESSAGE") {
-            const d = evt.data;
-            if (d.chat && d.chat.startsWith("SIGNAL:")) return;
+      switch (evt.type) {
+          case "CHAT_MESSAGE":
+              if (d.chat && d.chat.startsWith("SIGNAL:")) return;
+              setChatMessages((prev) => [
+                ...prev,
+                {
+                  id: String(Date.now()) + Math.random(),
+                  mine: Number(d.senderId) === me.userId, 
+                  nickname: d.senderNickname || "알 수 없음",
+                  text: d.chat || "",
+                },
+              ]);
+              break;
 
-            setChatMessages((prev) => [
-              ...prev,
-              {
-                id: String(Date.now()) + Math.random(),
-                mine: Number(d.senderId) === me.userId, 
-                nickname: d.senderNickname || "알 수 없음",
-                text: d.chat || "",
-              },
-            ]);
-        } 
-        // 말풍선(상태) 변경
-        else if (evt.type === "NOW_STATE_CHANGED") {
-            const d = evt.data;
-            const spId = String(d.studyParticipantId);
-            if (spId) {
-                setBubbleMap((prev) => ({ ...prev, [spId]: d.nowState || "" }));
-            }
-        }
-    });
-  }, [events, me]);
+          case "NOW_STATE_CHANGED":
+              const spId = String(d.studyParticipantId);
+              if (spId) {
+                  setBubbleMap((prev) => ({ ...prev, [spId]: d.nowState || "" }));
+              }
+              break;
+
+
+          case "PARTICIPANT_JOINED":
+              if (d.userId === me.userId) return;
+              
+              setOthers((prev) => {
+                  if (prev.find(p => p.userId === d.userId)) return prev;
+                  
+                  const newGuest: Participant = {
+                      id: String(d.studyParticipantId), // [cite: 112]
+                      userId: d.userId,                 // [cite: 114]
+                      studyParticipantId: d.studyParticipantId,
+                      nickname: d.userNickname,         // [cite: 115]
+                      badgeId: d.badgeId ?? 0,          // [cite: 117]
+                      badgeImageUrl: d.badgeImageUrl ?? null, // [cite: 118]
+                      profileImageUrl: d.profileImageUrl, // [cite: 116]
+                      isMe: false
+                  };
+                  return [...prev, newGuest];
+              });
+              break;
+
+          case "PARTICIPANT_LEFT":
+              setOthers((prev) => prev.filter(p => p.studyParticipantId !== d.studyParticipantId)); 
+              break;
+      }
+  });
+}, [events, me]);
 
   /* ===================== 6. 기능 핸들러 ===================== */
   const leaveRoom = async () => {
