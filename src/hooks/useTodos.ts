@@ -24,10 +24,15 @@ export const useTodos = () => {
     const fetchTodos = async () => {
       setLoading(true);
       try {
-        const data = await getTodosByDate(selectedDate);
+        const data: Todo[] = await getTodosByDate(selectedDate);
+        const normalizedData: Todo[] = data.map((todo:Todo) => ({
+          ...todo,
+          date: todo.date ? todo.date.slice(0, 10) : selectedDate,
+        }));
+        
         setTodos(prev => {
-          const filtered = prev.filter(t => t.date !== selectedDate);
-          return [...filtered, ...data];
+          const nonTemp = prev.filter(t => t.date !== selectedDate);
+          return [...nonTemp, ...normalizedData];
         });
       } catch (err) {
         console.error("투두 조회 실패", err);
@@ -42,11 +47,12 @@ export const useTodos = () => {
   // ---------------- 캘린더용 맵 ----------------
 const calendarMap = todos.reduce<Record<string, Todo[]>>((acc, todo) => {
   if (!todo.date) return acc;
+  const dateKey = todo.date.slice(0, 10);
 
-  if (!acc[todo.date]) {
-    acc[todo.date] = [];
+  if (!acc[dateKey]) {
+    acc[dateKey] = [];
   }
-  acc[todo.date].push(todo);
+  acc[dateKey].push(todo);
   /*acc[todo.date] = acc[todo.date]
     ? [...acc[todo.date], todo]
     : [todo];*/
@@ -96,7 +102,8 @@ const calendarMap = todos.reduce<Record<string, Todo[]>>((acc, todo) => {
     };
 
       setTodos(prev =>
-        prev.map(t => (t.todoId === tempTodoId ? createdTodo : t))
+        //prev.map(t => (t.todoId === tempTodoId ? createdTodo : t))
+        [...prev.filter(t => t.todoId !== tempTodoId), createdTodo]
       );
     } catch (err) {
       console.error("투두 생성 실패", err);
