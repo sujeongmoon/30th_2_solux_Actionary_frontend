@@ -9,21 +9,23 @@ export const useLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { setToken } = useAuth();
+  const { setToken, setUser } = useAuth();
 
    /* 로그인 */
   const login = async (body: LoginRequest): Promise<AuthResponse> => {
     try {
       setIsLoading(true);
-      //setErrorMessage(null);
+      setErrorMessage(null);
 
       const response = await loginApi(body);
-      const accessToken = response.data.accessToken
+      //const accessToken = response.data.accessToken
+      const { accessToken, refreshToken, profileImageUrl } = response.data;
 
      /* 로그인 시 토큰 저장 */ 
-      //localStorage.setItem("accessToken", response.data.accessToken);
-      localStorage.setItem("refreshToken", response.data.refreshToken);
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
       setToken(accessToken);
+      setUser({ profileImageUrl: profileImageUrl ?? null });
       navigate("/");
 
       return response;
