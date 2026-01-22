@@ -145,33 +145,25 @@ export default function StudyRoomPage() {
     events,         // 들어온 메시지 목록 (채팅, 입장, 화상 신호 등)
     sendChat,       // 채팅 보내기 함수
     sendNowState,   // 말풍선 변경 함수
-    sendSignaling,  // 화상 신호 보내기 함수
+    //sendSignaling,  // 화상 신호 보내기 함수
   } = useStompChat({
     studyId: numericStudyId,
     wsBaseUrl: WS_BASE_URL,
   });
 
-  // 2. WebRTC 연결
-  const { 
-    localStream, 
-    remoteStreams, 
-    camOn, 
-    micOn, 
-    setCamOn, 
-    setMicOn 
-  } = useWebRTCRoom({
-    enabled: !!me && connected, 
-    userId: me?.userId,
-    events: events,             // 소켓으로 받은 메시지를 넘겨줌
-    sendSignaling: sendSignaling, // 소켓으로 보내는 함수를 넘겨줌
-  
-    // 👇 [필수] 이 줄이 없으면 "원래 있던 사람들"이 나갈 때 에러가 납니다!
-    initialParticipants: others.map(p => ({ 
-        userId: p.userId, 
-        studyParticipantId: p.studyParticipantId 
-    })),
-    
-  }) as any;
+// 2. WebRTC 연결 (
+const { 
+  localStream, 
+  remoteStreams, 
+  camOn, 
+  micOn, 
+  setCamOn, 
+  setMicOn 
+} = useWebRTCRoom({
+  enabled: !!me && connected, 
+  studyId: numericStudyId,
+  userId: me?.userId,
+});
 
 
   /* ===================== 3. 입장 및 데이터 조회 ===================== */
@@ -351,7 +343,7 @@ export default function StudyRoomPage() {
   const sendRealChat = () => {
     const text = chatInput.trim();
     if (!text || !me) return;
-    sendChat(me.userId, text); // STOMP로 전송
+    sendChat(me.userId, text);
     setChatInput("");
   };
 
