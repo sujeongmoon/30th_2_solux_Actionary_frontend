@@ -6,25 +6,19 @@ import gradientArrow from '../../assets/sidebar/gradientArrow.svg';
 import Bell from '../../assets/sidebar/Bell.svg';
 import Clock from '../../assets/sidebar/mingcute_time-line.svg';
 import gradientCheck from '../../assets/sidebar/gradientCheck.svg';
-import { updateTodoStatus } from '../../api/Todos/todosApi';
+import { updateTodoStatus, type TodoStatus, type Todo } from '../../api/Todos/todosApi';
 import { useNavigate } from "react-router-dom";
 import NotificationModal from "../Notification/NotificationModal";
 import { type NotificationItem } from "../Notification/NotificationModal";
-import { getNotifications, type NotificationResponse } from "../../api/Notification/notificationsApi";
-import {
-  getMyInfo,
-  getUserPoints,
-  getStudyTimeByDate,
-  getTodoListByDate
-} from '../../api/sidebar';
-import { getTodoCategories } from '../../api/Todos/todoCategoriesApi';
+import { getNotifications } from "../../api/Notification/notificationsApi";
+import { getMyInfo, getUserPoints, getStudyTimeByDate } from '../../api/sidebar';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-
-type TodoStatus = 'DONE' | 'FAILED' | 'PENDING';
+import { getTodoListByDate } from "../../api/MyPage/MyPage";
+import { getTodoCategories } from "../../api/MyPage/MyPage";
 
 interface SideTodoItem {
   todoId: number;
-  categoryId: number;
+  categoryId: string;
   task: string;
   status: TodoStatus;
   selected: boolean;
@@ -33,6 +27,11 @@ interface SideTodoItem {
 interface TodoCategory {
   categoryId: number;
   name: string;
+}
+
+interface UserInfo {
+  nickname: string;
+  profileImageUrl?: string;
 }
 
 const RightSidebar = () => {
@@ -46,121 +45,90 @@ const RightSidebar = () => {
   const isLoggedIn = Boolean(accessToken);
   const today = new Date().toISOString().split('T')[0];
 
-
-  /* =======================
-     1️⃣ 유저 정보
-  ======================= */
-  const { data: userInfo } = useQuery({
+  /* ===================== 유저 정보 & 포인트 & 공부 시간 ===================== */
+  const { data: userInfo } = useQuery<UserInfo>({
     queryKey: ['myInfo'],
     queryFn: getMyInfo,
   });
 
-  const { data: pointData } = useQuery({
+  const { data: pointData } = useQuery<{ totalPoint: number }>({
     queryKey: ['userPoints'],
     queryFn: getUserPoints,
   });
 
-  /* =======================
-     2️⃣ 오늘 공부 시간
-  ======================= */
-  const { data: studyTime } = useQuery({
+  const { data: studyTime } = useQuery<{ durationSeconds: number } | undefined>({
     queryKey: ['studyTime', today],
     queryFn: () => getStudyTimeByDate(today),
   });
 
   const todayStudyTime = studyTime
-    ? `${Math.floor(studyTime.durationSeconds / 3600)}H ${Math.floor(
-        (studyTime.durationSeconds % 3600) / 60
-      )}M`
+    ? `${Math.floor(studyTime.durationSeconds / 3600)}H ${Math.floor((studyTime.durationSeconds % 3600) / 60)}M`
     : '0H 0M';
 
-  /* =======================
-     3️⃣ 오늘 투두
-  ======================= */
-  const { data: todoData } = useQuery({
-    queryKey: ['sidebarTodos', today],
+  /* ===================== 투두 리스트 ===================== */
+  const { data: todoData } = useQuery<{ todos: Todo[] }>({
+    queryKey: ['todos', today], // ✅ MyPageOwner와 동일 key
     queryFn: () => getTodoListByDate(today),
   });
 
-  const todoList: SideTodoItem[] =
-    todoData?.todos.map((t: any) => ({
-      todoId: t.todoId,
-      categoryId: t.categoryId.toString(),
-      task: t.title,
-      status: t.status,
-      selected: t.status !== 'PENDING',
-    })) ?? [];
+  const todoList: SideTodoItem[] = todoData?.todos.map(t => ({
+    todoId: t.todoId,
+    categoryId: t.categoryId?.toString() ?? '0',
+    task: t.title,
+    status: t.status,
+    selected: t.status !== 'PENDING',
+  })) ?? [];
 
-  /* =======================
-     4️⃣ 카테고리
-  ======================= */
-  const { data: categories = [] } = useQuery({
+  /* ===================== 카테고리 ===================== */
+  const { data: categories = [] } = useQuery<TodoCategory[]>({
     queryKey: ['todoCategories'],
-    queryFn: async () => {
-      const res = await getTodoCategories();
-      return res.data;
-    },
+    queryFn: getTodoCategories,
   });
 
-  /* =======================
-     5️⃣ 투두 상태 변경
-  ======================= */
+  /* ===================== 투두 상태 변경 ===================== */
   const toggleMutation = useMutation({
-  mutationFn: ({ todoId, status }: { todoId: number; status: 'DONE' | 'FAILED' }) =>
-    updateTodoStatus(todoId, status),
+    mutationFn: ({ todoId, status }: { todoId: number; status: 'DONE' | 'FAILED' }) =>
+      updateTodoStatus(todoId, status),
+    onMutate: async ({ todoId, status }) => {
+      await queryClient.cancelQueries({ queryKey: ['todos', today] });
 
-  onMutate: async ({ todoId, status }) => {
-    await queryClient.cancelQueries({ queryKey: ['sidebarTodos', today] });
+      const previous = queryClient.getQueryData<{ todos: Todo[] }>(['todos', today]);
 
-    const prev = queryClient.getQueryData<any>(['sidebarTodos', today]);
+      queryClient.setQueryData<{ todos: Todo[] }>(['todos', today], old => {
+        if (!old) return old;
+        return {
+          todos: old.todos.map(t => (t.todoId === todoId ? { ...t, status } : t)),
+        };
+      });
 
-    queryClient.setQueryData(['sidebarTodos', today], (old: any) => {
-      if (!old) return old;
-      return {
-        ...old,
-        todos: old.todos.map((t: any) =>
-          t.todoId === todoId ? { ...t, status } : t
-        ),
-      };
-    });
-
-    return { prev };
-  },
-
-  onError: (_err, _vars, context) => {
-    if (context?.prev) {
-      queryClient.setQueryData(['sidebarTodos', today], context.prev);
-    }
-  },
-
-  onSettled: () => {
-    queryClient.invalidateQueries({
-      queryKey: ['sidebarTodos', today],
-    });
-  },
-});
-
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['todos', today], context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos', today] });
+    },
+  });
 
   const handleToggle = (todoId: number, status: 'DONE' | 'FAILED') => {
     toggleMutation.mutate({ todoId, status });
   };
 
-  /* =======================
-     6️⃣ 알림
-  ======================= */
+  /* ===================== 알림 ===================== */
   const fetchNotifications = async () => {
-    const data: NotificationResponse[] = await getNotifications();
-    setNotifications(
-      data.map(n => ({
-        notificationId: n.notificationId,
-        type: n.type,
-        title: n.title,
-        content: n.content,
-        createdAt: n.createdAt,
-        link: n.link,
-        isRead: n.isRead,
-      }))
-    );
+    const data = await getNotifications();
+    setNotifications(data.map(n => ({
+      notificationId: n.notificationId,
+      type: n.type,
+      title: n.title,
+      content: n.content,
+      createdAt: n.createdAt,
+      link: n.link,
+      isRead: n.isRead,
+    })));
   };
 
   const openNotificationModal = () => {
@@ -168,20 +136,18 @@ const RightSidebar = () => {
     setIsNotificationOpen(true);
   };
 
-  /* =======================
-     7️⃣ 투두 그룹핑
-  ======================= */
+  /* ===================== 그룹화 ===================== */
   const groupedTodos = todoList.reduce<Record<string, SideTodoItem[]>>((acc, todo) => {
     if (!acc[todo.categoryId]) acc[todo.categoryId] = [];
     acc[todo.categoryId].push(todo);
     return acc;
   }, {});
-    if (!isLoggedIn) return null;
+
+  if (!isLoggedIn) return null;
 
   return (
     <>
       <div className="hover-zone" onMouseEnter={() => setOpen(true)} />
-
       <aside className={`sidebar ${open ? "open" : ""}`} onMouseLeave={() => setOpen(false)}>
         {/* 상단 */}
         <div className="sidebar-header">
@@ -214,9 +180,7 @@ const RightSidebar = () => {
         {/* 공부 시간 */}
         <div className="section-header-row">
           <span className="section-title">오늘 공부량</span>
-          <button className="view-more" onClick={() => navigate('/studyTime')}>
-            더보기
-          </button>
+          <button className="view-more" onClick={() => navigate('/studyTime')}>더보기</button>
         </div>
         <div className="study-volume-card">
           <img src={Clock} alt="시간" className="sidebar-clock" />
@@ -232,9 +196,7 @@ const RightSidebar = () => {
         <div className="todo-list-scroll">
           <div className="todo-group-card">
             {Object.entries(groupedTodos).map(([categoryId, todos]) => {
-              const category = categories.find(
-                (c: TodoCategory) => c.categoryId.toString() === categoryId
-              );
+              const category = categories.find(c => c.categoryId.toString() === categoryId);
               return (
                 <div key={categoryId}>
                   {category && (
@@ -274,7 +236,7 @@ const RightSidebar = () => {
           isOpen={isNotificationOpen}
           onClose={() => setIsNotificationOpen(false)}
           notifications={notifications}
-          onUpdateNotification={(updated) =>
+          onUpdateNotification={updated =>
             setNotifications(prev =>
               prev.map(n => (n.notificationId === updated.notificationId ? updated : n))
             )
