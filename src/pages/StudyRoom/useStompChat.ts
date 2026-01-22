@@ -33,7 +33,7 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
       debug: (str) => console.log(`STOMP: ${str}`),
       
       onConnect: () => {
-        console.log("✅ STOMP Connected!");
+        console.log("STOMP Connected!");
         setConnected(true);
         setError(null);
         subRef.current?.unsubscribe();
@@ -85,18 +85,17 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
     });
   };
 
-  // 🔥 [핵심 수정] 화상 신호를 '채팅'인 척 포장해서 보냅니다!
+
   const sendSignaling = (payload: any) => {
     if (!chatSendPath || !clientRef.current?.connected) {
         console.warn("⚠️ 소켓 미연결: 신호 전송 실패");
         return;
     }
     
-    // "SIGNAL:" 접두어로 화상 신호임을 표시하고 문자열로 만듦
     const signalString = `SIGNAL:${JSON.stringify(payload)}`;
     
     clientRef.current.publish({
-        destination: chatSendPath, // ⚠️ 채팅 주소로 보냅니다!
+        destination: chatSendPath, 
         headers: { Authorization: localStorage.getItem("accessToken") || "" },
         body: JSON.stringify({
             senderId: payload.senderId, 
