@@ -1,333 +1,150 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { io, Socket } from "socket.io-client";
-
-type PeerId = string;
-type RemoteStreamMap = Record<PeerId, MediaStream>;
-type PeerNameMap = Record<PeerId, string>;
-
-type UseWebRTCRoomOpts = {
-  enabled?: boolean;
-  roomId: string;
-  signalingUrl: string;
-  displayName?: string;
-  enableVideo?: boolean;
-  enableAudio?: boolean;
-  userId?: number; 
-};
+import { useEffect, useRef, useState } from "react";
+import type { ChatEvent, WebRTCSignalData } from "./chatEventTypes";
 
 const RTC_CONFIG: RTCConfiguration = {
   iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }],
 };
 
-export function useWebRTCRoom(opts: UseWebRTCRoomOpts) {
-  const {
-    enabled = true,
-    roomId,
-    signalingUrl,
-    displayName = "익명",
-    enableVideo = true,
-    enableAudio = true,
-    userId, // 🔥 ID 받기
-  } = opts;
+type UseWebRTCRoomProps = {
+  enabled: boolean;
+  userId?: number;
+  events: ChatEvent[];            // STOMP로 들어오는 메시지들
+  sendSignaling: (data: any) => void; // STOMP로 메시지 보내는 함수
+};
 
-  const socketRef = useRef<Socket | null>(null);
-  const peersRef = useRef<Map<PeerId, RTCPeerConnection>>(new Map());
-  const localStreamRef = useRef<MediaStream | null>(null);
-
+export function useWebRTCRoom({ enabled, userId, events, sendSignaling }: UseWebRTCRoomProps) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
-  const [remoteStreams, setRemoteStreams] = useState<RemoteStreamMap>({});
-  const [peerNames, setPeerNames] = useState<PeerNameMap>({});
-  const [myPeerId, setMyPeerId] = useState<string>("");
-
-  const [camOn, setCamOn] = useState(enableVideo);
-  const [micOn, setMicOn] = useState(enableAudio);
+  const [remoteStreams, setRemoteStreams] = useState<Record<number, MediaStream>>({});
   
-  // 권한 에러 상태 (UI에 표시하기 위함)
-  const [permissionError, setPermissionError] = useState<boolean>(false);
+  const peersRef = useRef<Map<number, RTCPeerConnection>>(new Map());
+  const localStreamRef = useRef<MediaStream | null>(null);
+  
+  // 캠/마이크 상태
+  const [camOn, setCamOn] = useState(true);
+  const [micOn, setMicOn] = useState(true);
 
-  const remoteIds = useMemo(() => Object.keys(remoteStreams), [remoteStreams]);
-
-  // --- WebRTC 연결 로직 (PC 생성) ---
-  const ensurePC = (peerId: PeerId) => {
-    const existing = peersRef.current.get(peerId);
-    if (existing) return existing;
-
-    const pc = new RTCPeerConnection(RTC_CONFIG);
-
-    const ls = localStreamRef.current;
-    if (ls) {
-      ls.getTracks().forEach((track) => pc.addTrack(track, ls));
-    }
-
-    const incoming = new MediaStream();
-    pc.ontrack = (event) => {
-      const stream0 = event.streams?.[0];
-      if (stream0) {
-        for (const t of stream0.getTracks()) incoming.addTrack(t);
-      } else {
-        incoming.addTrack(event.track);
-      }
-      setRemoteStreams((prev) => ({ ...prev, [peerId]: incoming }));
-    };
-
-    pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        socketRef.current?.emit("ice-candidate", {
-          to: peerId,
-          candidate: event.candidate,
-        });
-      }
-    };
-
-    peersRef.current.set(peerId, pc);
-    return pc;
-  };
-
-  const closePeer = (peerId: PeerId) => {
-    const pc = peersRef.current.get(peerId);
-    if (pc) pc.close();
-    peersRef.current.delete(peerId);
-
-    setRemoteStreams((prev) => {
-      const copy = { ...prev };
-      delete copy[peerId];
-      return copy;
-    });
-
-    setPeerNames((prev) => {
-      const copy = { ...prev };
-      delete copy[peerId];
-      return copy;
-    });
-  };
-
-  // 1) getUserMedia (카메라/마이크 요청)
+  // 1. 내 미디어(캠/마이크) 가져오기
   useEffect(() => {
+    if (!enabled) return;
+
     let mounted = true;
-
-    if (!enabled) {
-      localStreamRef.current?.getTracks().forEach((t) => t.stop());
-      localStreamRef.current = null;
-      setLocalStream(null);
-      return;
-    }
-
-    if (typeof window === "undefined" || !navigator?.mediaDevices?.getUserMedia) {
-      console.warn("WebRTC not supported or insecure context");
-      return;
-    }
-
-    (async () => {
-      try {
-        setPermissionError(false);
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: enableVideo,
-          audio: enableAudio,
-        });
-
-        stream.getVideoTracks().forEach((t) => (t.enabled = camOn));
-        stream.getAudioTracks().forEach((t) => (t.enabled = micOn));
-
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then((stream) => {
         if (!mounted) {
-          stream.getTracks().forEach((t) => t.stop());
-          return;
+            stream.getTracks().forEach(t => t.stop());
+            return;
         }
-
         localStreamRef.current = stream;
         setLocalStream(stream);
-      } catch (e) {
-        console.error("getUserMedia failed:", e);
-        setPermissionError(true);
-        localStreamRef.current = null;
-        setLocalStream(null);
-      }
-    })();
+      })
+      .catch((err) => console.error("Media Error:", err));
 
     return () => {
       mounted = false;
-      localStreamRef.current?.getTracks().forEach((t) => t.stop());
+      localStreamRef.current?.getTracks().forEach(t => t.stop());
       localStreamRef.current = null;
       setLocalStream(null);
     };
   }, [enabled]);
 
+  // 캠/마이크 토글 처리
   useEffect(() => {
-    const ls = localStreamRef.current;
-    if (!ls) return;
-    ls.getVideoTracks().forEach((t) => (t.enabled = camOn));
+    localStreamRef.current?.getVideoTracks().forEach(t => t.enabled = camOn);
   }, [camOn]);
 
   useEffect(() => {
-    const ls = localStreamRef.current;
-    if (!ls) return;
-    ls.getAudioTracks().forEach((t) => (t.enabled = micOn));
+    localStreamRef.current?.getAudioTracks().forEach(t => t.enabled = micOn);
   }, [micOn]);
 
-  // 2) socket.io signaling (소켓 연결)
-  useEffect(() => {
-    if (!enabled) return;
-    if (!userId) return;
+  // 2. 피어 연결 생성 유틸
+  const createPC = (targetId: number) => {
+    const pc = new RTCPeerConnection(RTC_CONFIG);
 
-    // 토큰 준비
-    const rawToken = localStorage.getItem("accessToken") || "";
-    const cleanToken = rawToken.replace("Bearer ", ""); 
-    const bearerToken = `Bearer ${cleanToken}`;
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach(track => pc.addTrack(track, localStreamRef.current!));
+    }
 
-    console.log(`🚀 Socket Connecting... UserID: ${userId}`);
+    pc.ontrack = (e) => {
+      setRemoteStreams(prev => ({ ...prev, [targetId]: e.streams[0] }));
+    };
 
-    const socket = io(signalingUrl, {
-      transports: ["websocket"], 
-      withCredentials: true,
-
-      query: {
-        token: cleanToken,      
-        authorization: cleanToken,
-        senderId: String(userId), 
-        userId: String(userId),
-        displayName: displayName
-      },
-
-      auth: {
-        token: bearerToken,
-        authorization: bearerToken
-      },
-
-      extraHeaders: {
-        Authorization: bearerToken,
-      },
-    });
-
-    socketRef.current = socket;
-
-    // --- 소켓 이벤트 핸들러 ---
-
-    socket.on("connect", () => {
-      console.log("✅ Socket Connected! ID:", socket.id);
-      const myId = socket.id ?? "";
-      setMyPeerId(myId);
-      
-      // 이름 등록 및 방 입장
-      socket.emit("set-name", { displayName });
-      socket.emit("register-name", { displayName });
-      socket.emit("join-room", { roomId, displayName, userId });
-    });
-
-    socket.on("connect_error", (err) => {
-      console.error("Socket Connection Error:", err.message);
-    });
-
-    socket.on("peer-names", (payload: any) => {
-      const maybeMap = payload?.names ?? payload;
-      if (maybeMap && typeof maybeMap === "object") {
-        setPeerNames((prev) => ({ ...prev, ...maybeMap }));
+    pc.onicecandidate = (e) => {
+      if (e.candidate && userId) {
+        sendSignaling({
+          type: "ICE",
+          senderId: userId,
+          targetId: targetId,
+          candidate: e.candidate
+        } as WebRTCSignalData);
       }
-    });
+    };
 
-    socket.on("all-users", async (payload: any) => {
-      const users: PeerId[] = Array.isArray(payload?.users)
-        ? payload.users
-        : Array.isArray(payload)
-        ? payload
-        : [];
+    peersRef.current.set(targetId, pc);
+    return pc;
+  };
 
-      const names: PeerNameMap | null =
-        payload?.names && typeof payload.names === "object" ? payload.names : null;
+  // 3. STOMP 이벤트 수신하여 WebRTC 신호 처리
+  useEffect(() => {
+    if (!enabled || !userId || events.length === 0) return;
+    
+    // 마지막 이벤트만 처리 (이전 이벤트 중복 처리 방지 로직 필요시 추가)
+    const lastEvent = events[events.length - 1];
 
-      if (names) setPeerNames((prev) => ({ ...prev, ...names }));
+    const handleEvent = async () => {
+      // (A) 누군가 입장함 -> 내가 먼저 Offer를 보냄
+      if (lastEvent.type === "PARTICIPANT_JOINED") {
+        const targetId = lastEvent.data.userId;
+        if (targetId === userId) return; // 나 자신이면 패스
 
-      for (const peerId of users) {
-        if (!peerId) continue;
-        const pc = ensurePC(peerId);
+        // 이미 연결된 피어라면 패스
+        if (peersRef.current.has(targetId)) return;
+
+        console.log(`👋 New user ${targetId} joined. Sending Offer.`);
+        const pc = createPC(targetId);
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
-        socket.emit("offer", { to: peerId, sdp: offer });
-      }
-    });
-
-    socket.on("user-joined", async (payload: any) => {
-      const userId: PeerId = payload?.userId ?? payload?.id ?? payload?.peerId;
-      const name: string | undefined =
-        payload?.displayName ?? payload?.name ?? payload?.nickname;
-
-      if (userId && name) {
-        setPeerNames((prev) => ({ ...prev, [userId]: String(name) }));
+        
+        sendSignaling({ type: "OFFER", senderId: userId, targetId, sdp: offer });
       }
 
-      if (!userId) return;
-      const pc = ensurePC(userId);
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      socket.emit("offer", { to: userId, sdp: offer });
-    });
+      // (B) 화상 신호 수신 (Offer/Answer/Ice)
+      if (lastEvent.type === "WEBRTC_SIGNAL") {
+        const { senderId, targetId, type, sdp, candidate } = lastEvent.data;
+        
+        if (targetId && targetId !== userId) return; // 나한테 온 거 아니면 무시
+        if (senderId === userId) return; // 내가 보낸 거면 무시
 
-    socket.on("offer", async (payload: any) => {
-      const from: PeerId = payload?.from;
-      const sdp = payload?.sdp;
-      if (!from || !sdp) return;
+        let pc = peersRef.current.get(senderId);
 
-      const pc = ensurePC(from);
-      await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      socket.emit("answer", { to: from, sdp: answer });
-    });
-
-    socket.on("answer", async (payload: any) => {
-      const from: PeerId = payload?.from;
-      const sdp = payload?.sdp;
-      if (!from || !sdp) return;
-
-      const pc = peersRef.current.get(from);
-      if (!pc) return;
-      await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-    });
-
-    socket.on("ice-candidate", async (payload: any) => {
-      const from: PeerId = payload?.from;
-      const candidate = payload?.candidate;
-      if (!from || !candidate) return;
-
-      const pc = peersRef.current.get(from);
-      if (!pc) return;
-      try {
-        await pc.addIceCandidate(new RTCIceCandidate(candidate));
-      } catch (e) {
-        console.warn("addIceCandidate failed:", e);
+        if (type === "OFFER") {
+          if (!pc) pc = createPC(senderId);
+          await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          sendSignaling({ type: "ANSWER", senderId: userId, targetId: senderId, sdp: answer });
+        } 
+        else if (type === "ANSWER" && pc) {
+          await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+        } 
+        else if (type === "ICE" && pc) {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        }
       }
-    });
-
-    socket.on("user-left", (payload: any) => {
-      const userId: PeerId = payload?.userId ?? payload?.id ?? payload?.peerId;
-      if (userId) closePeer(userId);
-    });
-
-    socket.on("disconnect", () => {
-      peersRef.current.forEach((pc) => pc.close());
-      peersRef.current.clear();
-      setRemoteStreams({});
-    });
-
-    return () => {
-      socket.disconnect();
-      socketRef.current = null;
-      peersRef.current.forEach((pc) => pc.close());
-      peersRef.current.clear();
-      setRemoteStreams({});
-      setPeerNames({});
-      setMyPeerId("");
+      
+      // (C) 퇴장 -> 연결 종료
+      if (lastEvent.type === "PARTICIPANT_LEFT") {
+      }
     };
-  }, [enabled, roomId, signalingUrl, displayName, userId]); // userId 변경 시 재연결
 
-  return {
-    myPeerId,
-    localStream,
-    remoteStreams,
-    remoteIds,
-    peerNames,
-    camOn,
-    micOn,
-    setCamOn,
-    setMicOn,
-    permissionError, // 권한 에러 상태 내보내기
+    handleEvent();
+  }, [events, userId, enabled]);
+
+  return { 
+    localStream, 
+    remoteStreams, 
+    camOn, 
+    micOn, 
+    setCamOn, 
+    setMicOn 
   };
 }

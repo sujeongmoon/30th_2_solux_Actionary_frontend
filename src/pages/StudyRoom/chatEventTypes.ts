@@ -3,48 +3,57 @@ export type ChatEventType =
   | "NOW_STATE_CHANGED"
   | "PARTICIPANT_JOINED"
   | "PARTICIPANT_LEFT"
-  | "NOT_STUDY_PARTICIPANT";
+  | "WEBRTC_SIGNAL"; 
 
-// 1. 채팅 메시지 데이터 (data 객체 내부)
+// 1. 채팅 메시지 
 export type ChatMessageData = {
   studyParticipantId: number;
   studyId: number;
-  senderId: number;        // 보낸 유저 ID (userId)
-  senderNickname: string;  // 닉네임
-  badgeId: number;
-  badgeImageUrl: string;
-  chat: string;            // 메세지 내용 (message -> chat)
+  senderId: number;        
+  senderNickname: string;  
+  badgeId?: number;
+  badgeImageUrl?: string;
+  chat: string;            
 };
 
-// 2. 상태 변경 데이터
+// 2. 상태 변경 
 export type NowStateChangedData = {
   studyParticipantId: number;
   studyId: number;
   userId: number;
-  nowState: string;        // 상태 내용 (state -> nowState)
+  nowState: string;        
 };
 
-// 3. 입장/퇴장 
+// 3. 입장
 export type ParticipantJoinedData = {
   studyParticipantId: number;
-  nickname: string;
+  studyId: number;
+  userId: number;
+  userNickname: string;
+  profileImageUrl?: string;
+  badgeId?: number;
+  badgeImageUrl?: string;
 };
 
+// 4. 퇴장 
 export type ParticipantLeftData = {
   studyParticipantId: number;
+  studyId: number;
 };
 
-// 4. 전체 이벤트 타입 정의
+// 5. 화상 신호 
+export type WebRTCSignalData = {
+  type: "OFFER" | "ANSWER" | "ICE";
+  senderId: number;
+  targetId?: number; 
+  sdp?: any;
+  candidate?: any;
+};
+
+
 export type ChatEvent =
-  | { 
-      type: "CHAT_MESSAGE"; 
-      data: ChatMessageData; 
-      createdAt: string; 
-    }
-  | { 
-      type: "NOW_STATE_CHANGED"; 
-      data: NowStateChangedData; 
-    }
+  | { type: "CHAT_MESSAGE"; data: ChatMessageData }
+  | { type: "NOW_STATE_CHANGED"; data: NowStateChangedData }
   | { type: "PARTICIPANT_JOINED"; data: ParticipantJoinedData }
   | { type: "PARTICIPANT_LEFT"; data: ParticipantLeftData }
-  | { type: "NOT_STUDY_PARTICIPANT"; data: string }; 
+  | { type: "WEBRTC_SIGNAL"; data: WebRTCSignalData };

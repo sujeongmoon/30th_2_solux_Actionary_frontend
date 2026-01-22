@@ -1,3 +1,4 @@
+// useStompChat.ts
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client/dist/sockjs";
@@ -16,57 +17,54 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
   const [events, setEvents] = useState<ChatEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  // 구독 주소 ( /topic/studies/{studyId})
   const topic = useMemo(() => (studyId ? `/topic/studies/${studyId}` : null), [studyId]);
   
-  const sendPath = useMemo(() => (studyId ? `/app/studies/${studyId}/chat` : null), [studyId]);
+  // 채팅 전송 주소 (/app/studies/{studyId}/chat)
+  const chatSendPath = useMemo(() => (studyId ? `/app/studies/${studyId}/chat` : null), [studyId]);
 
   useEffect(() => {
     if (!studyId || !topic) return;
 
     if (!wsBaseUrl) {
-      setError("WS_BASE_URL이 설정되지 않았어요 (.env 확인 필요)");
+      setError("WS_BASE_URL 설정 필요");
       return;
     }
 
-    // 🔥 [추가] 로컬 스토리지에서 토큰 꺼내기
     const rawToken = localStorage.getItem("accessToken") || "";
     const bearerToken = rawToken.startsWith("Bearer ") ? rawToken : `Bearer ${rawToken}`;
 
+    const socketFactory = () => new SockJS(`${wsBaseUrl}/ws`);
+
     const client = new Client({
-      webSocketFactory: () => new SockJS(`${wsBaseUrl}/ws`),
-      
-      // 🔥 [핵심 수정] 연결할 때 '신분증(토큰)'을 같이 제출해야 합니다!
+      webSocketFactory: socketFactory,
       connectHeaders: {
         Authorization: bearerToken,
         token: bearerToken, 
       },
-
-      reconnectDelay: 2000,
-      debug: (str) => {
-        console.log('STOMP Debug:', str); // 디버깅용 로그
-      },
-
+      reconnectDelay: 5000,
+      debug: (str) => console.log(`STOMP: ${str}`), 
       onConnect: () => {
         console.log("STOMP Connected!");
         setConnected(true);
         setError(null);
 
+        // 구독 설정
         subRef.current?.unsubscribe();
         subRef.current = client.subscribe(topic, (msg) => {
           try {
             const payload = JSON.parse(msg.body);
-            console.log("📩 Msg Received:", payload); // 수신 로그 확인
             if (!payload?.type) return;
             setEvents((prev) => [...prev, payload as ChatEvent]);
           } catch (e) {
-            console.error("Invalid STOMP payload", e);
+            console.error("Payload 파싱 에러:", e);
           }
         });
       },
 
       onStompError: (frame) => {
-        console.error("❌ STOMP Error:", frame.headers["message"]);
-        setError(frame.headers["message"] ?? "STOMP error");
+        console.error("STOMP Error:", frame.headers["message"]);
+        setError(frame.headers["message"]);
       },
 
       onWebSocketClose: () => {
@@ -80,47 +78,53 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
 
     return () => {
       subRef.current?.unsubscribe();
-      subRef.current = null;
       clientRef.current?.deactivate();
-      clientRef.current = null;
       setConnected(false);
     };
   }, [studyId, wsBaseUrl, topic]);
 
-
+  // 채팅 전송
   const sendChat = (senderId: number, chat: string) => {
-    if (!sendPath || !clientRef.current?.connected) {
-        console.warn("⚠️ 소켓이 연결되지 않아 채팅을 보낼 수 없습니다.");
-        return;
-    }
-
-    console.log(`📤 Sending Chat: ${chat}`);
+    if (!chatSendPath || !clientRef.current?.connected) return;
 
     clientRef.current.publish({
-      destination: sendPath,
-      // 혹시 모르니 전송 시에도 헤더 추가
-      headers: {
-        Authorization: localStorage.getItem("accessToken") || "",
-      },
-      body: JSON.stringify({
-        senderId: senderId, 
-        chat: chat          
-      }),
+      destination: chatSendPath,
+      headers: { Authorization: localStorage.getItem("accessToken") || "" },
+      body: JSON.stringify({ senderId, chat }),
     });
   };
 
-
+  // 상태(말풍선) 변경 전송
   const sendNowState = (payload: { studyParticipantId: number; nowState: string }) => {
     if (!studyId || !clientRef.current?.connected) return;
-
+    
+    // 상태 변경용 주소
+    const statePath = `/app/studies/${studyId}/state`; 
+    
     clientRef.current.publish({
-      destination: `/app/studies/${studyId}/state`, 
-      body: JSON.stringify({
-        type: "NOW_STATE_CHANGED",
-        data: payload, 
-      }),
+      destination: statePath,
+      headers: { Authorization: localStorage.getItem("accessToken") || "" },
+      body: JSON.stringify(payload),
     });
   };
 
-  return { connected, events, error, sendChat, sendNowState };
+  // 화상 신호 전송 (WebRTC용)
+  const sendSignaling = (payload: any) => {
+    if (!studyId || !clientRef.current?.connected) return;
+    clientRef.current.publish({
+      destination: `/app/studies/${studyId}/video`, 
+      headers: { Authorization: localStorage.getItem("accessToken") || "" },
+      body: JSON.stringify({ type: "WEBRTC_SIGNAL", data: payload }),
+    });
+  };
+
+  return { 
+    connected, 
+    events, 
+    error, 
+    sendChat, 
+    sendNowState, 
+    sendSignaling,
+    client: clientRef.current 
+  };
 }
