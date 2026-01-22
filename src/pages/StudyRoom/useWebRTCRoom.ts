@@ -7,7 +7,7 @@ if (typeof window !== "undefined") {
 
 import Janus from "janus-gateway";
 
-const JANUS_URL = "/janus";
+const JANUS_URL = "/janus/";
 const PLUGIN = "janus.plugin.videoroom";
 
 export function useWebRTCRoom({ enabled, studyId, userId }: { enabled: boolean; studyId: number; userId?: number }) {
