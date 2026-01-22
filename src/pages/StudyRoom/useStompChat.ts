@@ -21,7 +21,10 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
 
   useEffect(() => {
     if (!studyId || !topic) return;
-    if (!wsBaseUrl) { setError("WS_BASE_URL 설정 필요"); return; }
+    if (wsBaseUrl === undefined || wsBaseUrl === null) { 
+        setError("WS_BASE_URL 설정 필요"); 
+        return; 
+    }
 
     const rawToken = localStorage.getItem("accessToken") || "";
     const bearerToken = rawToken.startsWith("Bearer ") ? rawToken : `Bearer ${rawToken}`;
@@ -84,7 +87,6 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
       body: JSON.stringify({ type: "NOW_STATE_CHANGED", data: payload }),
     });
   };
-
 
   const sendSignaling = (payload: any) => {
     if (!chatSendPath || !clientRef.current?.connected) {
