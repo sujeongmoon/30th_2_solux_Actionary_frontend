@@ -15,7 +15,7 @@ const BoardListPage: React.FC = () => {
    * 상태
    ====================== */
   const [currentPage, setCurrentPage] = useState(1); // UI 기준 1부터
-  const [selectedSort, setSelectedSort] = useState<'popular' | 'latest'>('latest');
+  const [selectedSort, setSelectedSort] = useState<'latest' | 'popular'>('latest');
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('말머리');
@@ -116,7 +116,7 @@ const BoardListPage: React.FC = () => {
                 setIsCategoryOpen(false);
               }}
             >
-              {selectedSort === 'latest' ? '인기순' : '최신순'}
+              {selectedSort === 'latest' ? '최신순' : '인기순'}
               <span className={`arrow ${isSortOpen ? 'up' : 'down'}`}>
                 <img src={DropdownIcon} alt="arrow" className="board-pagination-icon" />
               </span>
@@ -124,12 +124,12 @@ const BoardListPage: React.FC = () => {
 
             {isSortOpen && (
               <div className="custom-dropdown-menu">
-                <div className="dropdown-item" onClick={() => handleSortChange('popular')}>
-                  인기순
-                </div>
-                <div className="dropdown-divider" />
                 <div className="dropdown-item" onClick={() => handleSortChange('latest')}>
                   최신순
+                </div>
+                <div className="dropdown-divider" />
+                <div className="dropdown-item" onClick={() => handleSortChange('popular')}>
+                  인기순
                 </div>
               </div>
             )}

@@ -8,7 +8,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://13.209.205.33:8080/', // EC2 내부 도커 백엔드 주소
+        target: 'https://www.actionary.site/', // EC2 내부 도커 백엔드 주소
         changeOrigin: true,
         secure: false,
       },
