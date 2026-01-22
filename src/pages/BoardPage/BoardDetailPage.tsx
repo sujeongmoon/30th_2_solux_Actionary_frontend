@@ -305,6 +305,11 @@ const comments = commentResponse?.data.comments ?? [];
                             setEditingCommentId(comment.commentId);
                             setEditingCommentText(commentContent);
                             setEditingIsSecret(comment.isSecret);
+
+                            setOpenCommentMenuMap(prev => ({
+                              ...prev,
+                              [comment.commentId]: false,
+                            }));
                           }}>수정</button>
                           <button 
                             className="menu-item"
