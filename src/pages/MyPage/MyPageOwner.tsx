@@ -23,7 +23,10 @@ const MyPageOwner: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>('DAY');
 
-  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const koreaNow = new Date(now.getTime() + 9 * 60 * 60 * 1000); // UTC → KST
+  const todayString = koreaNow.toISOString().slice(0, 10); // YYYY-MM-DD
+
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: 'DAY', label: '일간' },
@@ -34,8 +37,8 @@ const MyPageOwner: React.FC = () => {
 
   /* ===================== 공부시간 조회 ===================== */
   const { data: studyTime } = useQuery({
-    queryKey: ['studyTime', activeTab, today],
-    queryFn: () => getStudyTime(activeTab, today),
+    queryKey: ['studyTime', activeTab, todayString],
+    queryFn: () => getStudyTime(activeTab, todayString),
   });
 
   const formatDuration = (seconds?: number) => {
@@ -47,8 +50,8 @@ const MyPageOwner: React.FC = () => {
 
   /* ===================== 투두 리스트 조회 ===================== */
   const { data: todoData } = useQuery<{ todos: TodoItem[] }>({
-    queryKey: ['todos', today],
-    queryFn: () => getTodoListByDate(today),
+    queryKey: ['todos', todayString],
+    queryFn: () => getTodoListByDate(todayString),
   });
 
   const todoList = todoData?.todos ?? [];
@@ -64,10 +67,10 @@ const MyPageOwner: React.FC = () => {
     mutationFn: ({ todoId, status }: { todoId: number; status: 'DONE' | 'FAILED' }) =>
       updateTodoStatus(todoId, status),
     onMutate: async ({ todoId, status }) => {
-      await queryClient.cancelQueries({ queryKey: ['todos', today] });
-      const previous = queryClient.getQueryData<{ todos: TodoItem[] }>(['todos', today]);
+      await queryClient.cancelQueries({ queryKey: ['todos', todayString] });
+      const previous = queryClient.getQueryData<{ todos: TodoItem[] }>(['todos', todayString]);
 
-      queryClient.setQueryData<{ todos: TodoItem[] }>(['todos', today], old => {
+      queryClient.setQueryData<{ todos: TodoItem[] }>(['todos', todayString], old => {
         if (!old) return old;
         return {
           todos: old.todos.map(t => (t.todoId === todoId ? { ...t, status } : t)),
@@ -78,11 +81,11 @@ const MyPageOwner: React.FC = () => {
     },
     onError: (_err, _vars, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(['todos', today], context.previous);
+        queryClient.setQueryData(['todos', todayString], context.previous);
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['todos', today] });
+      queryClient.invalidateQueries({ queryKey: ['todos', todayString] });
     },
   });
 
