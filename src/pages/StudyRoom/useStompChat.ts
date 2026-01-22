@@ -1,4 +1,3 @@
-// useStompChat.ts
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client/dist/sockjs";
@@ -17,39 +16,26 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
   const [events, setEvents] = useState<ChatEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // 구독 주소 ( /topic/studies/{studyId})
   const topic = useMemo(() => (studyId ? `/topic/studies/${studyId}` : null), [studyId]);
-  
-  // 채팅 전송 주소 (/app/studies/{studyId}/chat)
   const chatSendPath = useMemo(() => (studyId ? `/app/studies/${studyId}/chat` : null), [studyId]);
 
   useEffect(() => {
     if (!studyId || !topic) return;
-
-    if (!wsBaseUrl) {
-      setError("WS_BASE_URL 설정 필요");
-      return;
-    }
+    if (!wsBaseUrl) { setError("WS_BASE_URL 설정 필요"); return; }
 
     const rawToken = localStorage.getItem("accessToken") || "";
     const bearerToken = rawToken.startsWith("Bearer ") ? rawToken : `Bearer ${rawToken}`;
 
-    const socketFactory = () => new SockJS(`${wsBaseUrl}/ws`);
-
     const client = new Client({
-      webSocketFactory: socketFactory,
-      connectHeaders: {
-        Authorization: bearerToken,
-        token: bearerToken, 
-      },
+      webSocketFactory: () => new SockJS(`${wsBaseUrl}/ws`),
+      connectHeaders: { Authorization: bearerToken, token: bearerToken },
       reconnectDelay: 5000,
-      debug: (str) => console.log(`STOMP: ${str}`), 
+      debug: (str) => console.log(`STOMP: ${str}`),
+      
       onConnect: () => {
         console.log("STOMP Connected!");
         setConnected(true);
         setError(null);
-
-        // 구독 설정
         subRef.current?.unsubscribe();
         subRef.current = client.subscribe(topic, (msg) => {
           try {
@@ -57,18 +43,16 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
             if (!payload?.type) return;
             setEvents((prev) => [...prev, payload as ChatEvent]);
           } catch (e) {
-            console.error("Payload 파싱 에러:", e);
+            console.error("Payload Error:", e);
           }
         });
       },
-
       onStompError: (frame) => {
         console.error("STOMP Error:", frame.headers["message"]);
         setError(frame.headers["message"]);
       },
-
       onWebSocketClose: () => {
-        console.log("🔌 STOMP Disconnected");
+        console.log("STOMP Disconnected");
         setConnected(false);
       },
     });
@@ -83,10 +67,9 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
     };
   }, [studyId, wsBaseUrl, topic]);
 
-  // 채팅 전송
+  // 일반 채팅 전송
   const sendChat = (senderId: number, chat: string) => {
     if (!chatSendPath || !clientRef.current?.connected) return;
-
     clientRef.current.publish({
       destination: chatSendPath,
       headers: { Authorization: localStorage.getItem("accessToken") || "" },
@@ -94,37 +77,32 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
     });
   };
 
-  // 상태(말풍선) 변경 전송
   const sendNowState = (payload: { studyParticipantId: number; nowState: string }) => {
     if (!studyId || !clientRef.current?.connected) return;
-    
-    // 상태 변경용 주소
-    const statePath = `/app/studies/${studyId}/state`; 
-    
     clientRef.current.publish({
-      destination: statePath,
-      headers: { Authorization: localStorage.getItem("accessToken") || "" },
-      body: JSON.stringify(payload),
+      destination: `/app/studies/${studyId}/state`, 
+      body: JSON.stringify({ type: "NOW_STATE_CHANGED", data: payload }),
     });
   };
 
-  // 화상 신호 전송 (WebRTC용)
+
   const sendSignaling = (payload: any) => {
-    if (!studyId || !clientRef.current?.connected) return;
+    if (!chatSendPath || !clientRef.current?.connected) {
+        console.warn("⚠️ 소켓 미연결: 신호 전송 실패");
+        return;
+    }
+    
+    const signalString = `SIGNAL:${JSON.stringify(payload)}`;
+    
     clientRef.current.publish({
-      destination: `/app/studies/${studyId}/video`, 
-      headers: { Authorization: localStorage.getItem("accessToken") || "" },
-      body: JSON.stringify({ type: "WEBRTC_SIGNAL", data: payload }),
+        destination: chatSendPath, 
+        headers: { Authorization: localStorage.getItem("accessToken") || "" },
+        body: JSON.stringify({
+            senderId: payload.senderId, 
+            chat: signalString 
+        }), 
     });
   };
 
-  return { 
-    connected, 
-    events, 
-    error, 
-    sendChat, 
-    sendNowState, 
-    sendSignaling,
-    client: clientRef.current 
-  };
+  return { connected, events, error, sendChat, sendNowState, sendSignaling };
 }

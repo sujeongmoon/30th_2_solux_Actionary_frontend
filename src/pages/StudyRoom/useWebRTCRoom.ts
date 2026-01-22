@@ -1,193 +1,154 @@
 import { useEffect, useRef, useState } from "react";
-import type { ChatEvent, WebRTCSignalData } from "./chatEventTypes";
+import adapter from "webrtc-adapter";
 
-const RTC_CONFIG: RTCConfiguration = {
-  iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }],
-};
+if (typeof window !== "undefined") {
+  (window as any).adapter = adapter;
+}
 
-type UseWebRTCRoomProps = {
-  enabled: boolean;
-  userId?: number;
-  events: ChatEvent[];            
-  sendSignaling: (data: any) => void; 
+import Janus from "janus-gateway";
 
-  initialParticipants?: { userId: number; studyParticipantId: number }[];
-};
+const JANUS_URL = "/janus/";
+const PLUGIN = "janus.plugin.videoroom";
 
-export function useWebRTCRoom({ enabled, userId, events, sendSignaling, initialParticipants }: UseWebRTCRoomProps) {
+export function useWebRTCRoom({ enabled, studyId, userId }: { enabled: boolean; studyId: number; userId?: number }) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStreams, setRemoteStreams] = useState<Record<number, MediaStream>>({});
   
-  const peersRef = useRef<Map<number, RTCPeerConnection>>(new Map());
-  const localStreamRef = useRef<MediaStream | null>(null);
-  
-  // [핵심] 스터디 참여 ID -> 유저 ID 변환용 맵 (퇴장 처리 위해 필수)
-  const idMapRef = useRef<Map<number, number>>(new Map());
+  const janusInstance = useRef<any>(null);
+  const publisherHandle = useRef<any>(null);
+  const subscriberHandles = useRef<Map<number, any>>(new Map());
+  const feedToUserMap = useRef<Map<number, number>>(new Map());
 
-  const processedSignalIds = useRef<Set<string>>(new Set());
   const [camOn, setCamOn] = useState(true);
   const [micOn, setMicOn] = useState(true);
 
-  // 0. 초기 참여자 ID 매핑 등록
   useEffect(() => {
-    if (initialParticipants) {
-        initialParticipants.forEach(p => {
-            idMapRef.current.set(p.studyParticipantId, p.userId);
+    if (!enabled || !studyId) return;
+
+    Janus.init({
+      debug: "all",
+      callback: () => {
+        const janus = new Janus({
+          server: JANUS_URL,
+          success: () => {
+            janusInstance.current = janus;
+            attachPublisher(janus);
+          },
+          error: (err: any) => console.error("Janus Error:", err),
         });
-    }
-  }, [initialParticipants]);
-
-  // 1. 내 미디어 가져오기
-  useEffect(() => {
-    if (!enabled) return;
-    let mounted = true;
-    
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then((stream) => {
-        if (!mounted) {
-            stream.getTracks().forEach(t => t.stop());
-            return;
-        }
-        console.log("Local Stream Ready!");
-        localStreamRef.current = stream;
-        setLocalStream(stream);
-      })
-      .catch((err) => console.error("Media Error:", err));
-
-    return () => {
-      mounted = false;
-      localStreamRef.current?.getTracks().forEach(t => t.stop());
-      localStreamRef.current = null;
-      setLocalStream(null);
-    };
-  }, [enabled]);
-
-  useEffect(() => {
-    localStreamRef.current?.getVideoTracks().forEach(t => t.enabled = camOn);
-  }, [camOn]);
-
-  useEffect(() => {
-    localStreamRef.current?.getAudioTracks().forEach(t => t.enabled = micOn);
-  }, [micOn]);
-
-  // 2. 피어 생성 함수
-  const createPC = (targetId: number) => {
-    const existingPC = peersRef.current.get(targetId);
-    if (existingPC) return existingPC;
-
-    const pc = new RTCPeerConnection(RTC_CONFIG);
-
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => {
-        pc.addTrack(track, localStreamRef.current!);
-      });
-    }
-
-    pc.ontrack = (e) => {
-      setRemoteStreams(prev => ({ ...prev, [targetId]: e.streams[0] }));
-    };
-
-    pc.onicecandidate = (e) => {
-      if (e.candidate && userId) {
-        sendSignaling({
-          type: "ICE",
-          senderId: userId,
-          targetId: targetId,
-          candidate: e.candidate
-        } as WebRTCSignalData);
-      }
-    };
-
-    peersRef.current.set(targetId, pc);
-    return pc;
-  };
-
-  // 3. 연결 종료 함수 (퇴장 시 호출)
-  const closePeer = (targetUserId: number) => {
-      console.log(`Closing connection for user ${targetUserId}`);
-      const pc = peersRef.current.get(targetUserId);
-      if (pc) {
-          pc.close();
-          peersRef.current.delete(targetUserId);
-      }
-      setRemoteStreams(prev => {
-          const next = { ...prev };
-          delete next[targetUserId];
-          return next;
-      });
-  };
-
-  // 4. 이벤트 처리
-  useEffect(() => {
-    if (!enabled || !userId || !localStream) return;
-    if (events.length === 0) return;
-    
-    events.forEach(async (event) => {
-        const eventId = JSON.stringify(event);
-        if (processedSignalIds.current.has(eventId)) return;
-        processedSignalIds.current.add(eventId);
-
-        try {
-            // (A) 입장: ID 매핑 등록 + Offer 전송
-            if (event.type === "PARTICIPANT_JOINED") {
-                const p = event.data;
-                // 매핑 저장
-                idMapRef.current.set(p.studyParticipantId, p.userId);
-
-                if (p.userId === userId) return;
-
-                console.log(`👋 User ${p.userId} joined. Sending Offer.`);
-                const pc = createPC(p.userId);
-                const offer = await pc.createOffer();
-                await pc.setLocalDescription(offer);
-                
-                sendSignaling({ type: "OFFER", senderId: userId, targetId: p.userId, sdp: offer });
-            }
-
-            // (B) 화상 신호
-            if (event.type === "WEBRTC_SIGNAL") {
-                const { senderId, targetId, type, sdp, candidate } = event.data;
-                
-                if (targetId && Number(targetId) !== userId) return; 
-                if (Number(senderId) === userId) return; 
-
-                let pc = peersRef.current.get(senderId);
-
-                if (type === "OFFER") {
-                    if (!pc) pc = createPC(senderId);
-                    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-                    const answer = await pc.createAnswer();
-                    await pc.setLocalDescription(answer);
-                    sendSignaling({ type: "ANSWER", senderId: userId, targetId: senderId, sdp: answer });
-                } 
-                else if (type === "ANSWER" && pc) {
-                    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-                } 
-                else if (type === "ICE" && pc) {
-                    await pc.addIceCandidate(new RTCIceCandidate(candidate));
-                }
-            }
-            
-            // (C) 퇴장: ID 매핑을 통해 유저 찾아서 종료
-            if (event.type === "PARTICIPANT_LEFT") {
-                  const { studyParticipantId } = event.data;
-                  // 맵에서 userId 찾기
-                  const leftUserId = idMapRef.current.get(studyParticipantId);
-                  
-                  if (leftUserId) {
-                      closePeer(leftUserId);
-                      idMapRef.current.delete(studyParticipantId); // 매핑 삭제
-                  } else {
-                      console.warn(`⚠️ Cannot find userId for participant ${studyParticipantId}`);
-                  }
-            }
-
-        } catch (err) {
-            console.error("Signaling Error:", err);
-        }
+      },
     });
 
-  }, [events, userId, enabled, localStream]);
+    return () => janusInstance.current?.destroy();
+  }, [enabled, studyId]);
+
+  const attachPublisher = (janus: any) => {
+    janus.attach({
+      plugin: PLUGIN,
+      success: (handle: any) => {
+        publisherHandle.current = handle;
+        handle.send({
+          message: { request: "join", room: studyId, ptype: "publisher", display: String(userId) }
+        });
+      },
+      onmessage: (msg: any, jsep: any) => {
+        const event = msg["videoroom"];
+        if (event === "joined") {
+          publisherHandle.current.createOffer({
+            tracks: [
+              { type: 'video', capture: true, recv: false },
+              { type: 'audio', capture: true, recv: false }
+            ],
+            success: (jsep: any) => {
+              publisherHandle.current.send({ 
+                message: { request: "configure", audio: true, video: true }, 
+                jsep 
+              });
+            },
+          });
+          if (msg["publishers"]) subscribeToFeeds(msg["publishers"]);
+        } else if (event === "event") {
+          if (msg["publishers"]) subscribeToFeeds(msg["publishers"]);
+          if (msg["leaving"] || msg["unpublished"]) detachSubscriber(msg["leaving"] || msg["unpublished"]);
+        }
+        if (jsep) publisherHandle.current.handleRemoteJsep({ jsep });
+      },
+      onlocaltrack: (track: MediaStreamTrack, on: boolean) => {
+        if (on) {
+          console.log(`Local Track Added: ${track.kind}`);
+          setLocalStream((prev) => {
+            if (prev) {
+              prev.addTrack(track);
+              return new MediaStream(prev.getTracks());
+            }
+            return new MediaStream([track]);
+          });
+        }
+      },
+    });
+  };
+
+  const subscribeToFeeds = (publishers: any[]) => {
+    publishers.forEach((p) => {
+      const feedId = p["id"];
+      const displayUserId = Number(p["display"]);
+      if (subscriberHandles.current.has(feedId)) return;
+      
+      feedToUserMap.current.set(feedId, displayUserId);
+
+      janusInstance.current.attach({
+        plugin: PLUGIN,
+        success: (handle: any) => {
+          subscriberHandles.current.set(feedId, handle);
+          handle.send({ message: { request: "join", room: studyId, ptype: "subscriber", feed: feedId } });
+        },
+        onmessage: (msg: any, jsep: any) => {
+          if (jsep) {
+            const handle = subscriberHandles.current.get(feedId);
+            handle.createAnswer({
+              jsep,
+              tracks: [{ type: 'video', capture: false, recv: true }, { type: 'audio', capture: false, recv: true }],
+              success: (jsepAnswer: any) => {
+                handle.send({ message: { request: "start", room: studyId }, jsep: jsepAnswer });
+              },
+            });
+          }
+        },
+        onremotetrack: (track: MediaStreamTrack, mid: string, on: boolean) => {
+          if (on) {
+            console.log(`Remote Track Added: ${track.kind} from ${displayUserId}`);
+            setRemoteStreams((prev) => {
+              const existingStream = prev[displayUserId];
+              if (existingStream) {
+                existingStream.addTrack(track);
+                return { ...prev, [displayUserId]: new MediaStream(existingStream.getTracks()) };
+              }
+              return { ...prev, [displayUserId]: new MediaStream([track]) };
+            });
+          }
+        }
+      });
+    });
+  };
+
+  const detachSubscriber = (feedId: number) => {
+    const handle = subscriberHandles.current.get(feedId);
+    if (handle) {
+      const targetUserId = feedToUserMap.current.get(feedId);
+      handle.detach();
+      subscriberHandles.current.delete(feedId);
+      if (targetUserId) {
+        setRemoteStreams((prev) => { const next = { ...prev }; delete next[targetUserId]; return next; });
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (localStream) {
+      localStream.getVideoTracks().forEach((t) => (t.enabled = camOn));
+      localStream.getAudioTracks().forEach((t) => (t.enabled = micOn));
+    }
+  }, [camOn, micOn, localStream]);
 
   return { localStream, remoteStreams, camOn, micOn, setCamOn, setMicOn };
 }

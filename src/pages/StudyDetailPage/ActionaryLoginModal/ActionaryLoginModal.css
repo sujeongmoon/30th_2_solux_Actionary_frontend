@@ -12,12 +12,11 @@
 
 /* 모달 카드 본체 */
 .amModal {
-  width: 440px;
-  max-width: calc(100vw - 32px);
-  padding: 48px 32px 40px; /* 로고가 빠진 만큼 상단 패딩 확보 */
+  width: min(420px, calc(100vw - 48px)); 
+  padding: 32px 26px 26px; /* 로고가 빠진 만큼 상단 패딩 확보 */
   
   /* 1. 그라데이션 제거 & 모서리 40px로 둥글게 */
-  border-radius: 40px;
+  border-radius: 28px;
   background: #262627; 
   
   color: #fff;
@@ -88,7 +87,13 @@
 
 /* 취소/확인 버튼 스타일 */
 .amBtnGhost {
-  background: #3a3a3a; /* 배경은 조금 더 밝은 회색 */
+  background: linear-gradient(
+    90deg,
+    #ff8a65 0%,
+    #ff5c7a 50%,
+    #ff3d6e 100%
+  );
+  /* 배경은 조금 더 밝은 회색 */
   color: #ffffff;
 }
 
@@ -119,3 +124,17 @@
     transform: scale(1);
   }
 }
+
+.amBtns.one .amBtnGhost {
+  border: none;
+  background: linear-gradient(
+    90deg,
+    #ff8a65 0%,
+    #ff5c7a 50%,
+    #ff3d6e 100%
+  );
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 10px 22px rgba(255, 61, 110, 0.35);
+}
+

@@ -4,7 +4,6 @@ import { useWebRTCRoom } from "./useWebRTCRoom";
 import { useStompChat } from "./useStompChat";
 import { enterPublicStudy, exitStudy, updateNowState } from "../../api/studies";
 import "./StudyRoomPage.css";
-
 import lampIcon from "../../assets/icons/hugeicons_study-lamp.svg";
 import cameraIcon from "../../assets/icons/majesticons_camera-line.svg";
 import cameraOffIcon from "../../assets/icons/majesticons_camera-line_no.svg";
@@ -122,7 +121,7 @@ export default function StudyRoomPage() {
   const { studyId } = useParams();
   const numericStudyId = Number(studyId);
 
-  const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL ?? "http://13.209.205.33:8080";
+  const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL ?? "";
 
   // 상태 관리
   const [me, setMe] = useState<Participant | null>(null);
@@ -146,33 +145,25 @@ export default function StudyRoomPage() {
     events,         // 들어온 메시지 목록 (채팅, 입장, 화상 신호 등)
     sendChat,       // 채팅 보내기 함수
     sendNowState,   // 말풍선 변경 함수
-    sendSignaling,  // 화상 신호 보내기 함수
+    //sendSignaling,  // 화상 신호 보내기 함수
   } = useStompChat({
     studyId: numericStudyId,
     wsBaseUrl: WS_BASE_URL,
   });
 
-  // 2. WebRTC 연결
-  const { 
-    localStream, 
-    remoteStreams, 
-    camOn, 
-    micOn, 
-    setCamOn, 
-    setMicOn 
-  } = useWebRTCRoom({
-    enabled: !!me && connected, 
-    userId: me?.userId,
-    events: events,             // 소켓으로 받은 메시지를 넘겨줌
-    sendSignaling: sendSignaling, // 소켓으로 보내는 함수를 넘겨줌
-  
-    // 👇 [필수] 이 줄이 없으면 "원래 있던 사람들"이 나갈 때 에러가 납니다!
-    initialParticipants: others.map(p => ({ 
-        userId: p.userId, 
-        studyParticipantId: p.studyParticipantId 
-    })),
-    
-  }) as any;
+// 2. WebRTC 연결 (
+const { 
+  localStream, 
+  remoteStreams, 
+  camOn, 
+  micOn, 
+  setCamOn, 
+  setMicOn 
+} = useWebRTCRoom({
+  enabled: !!me && connected, 
+  studyId: numericStudyId,
+  userId: me?.userId,
+});
 
 
   /* ===================== 3. 입장 및 데이터 조회 ===================== */
@@ -188,7 +179,7 @@ export default function StudyRoomPage() {
         const token = localStorage.getItem("accessToken") || "";
         const authHeader = token.startsWith("Bearer ") ? token : `Bearer ${token}`;
         
-        const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://13.209.205.33:8080/api";
+        const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
         const baseUrl = API_BASE.endsWith('/') ? API_BASE.slice(0, -1) : API_BASE;
         const usersUrl = `${baseUrl}/studies/${numericStudyId}/participating/users`;
 
@@ -302,35 +293,73 @@ export default function StudyRoomPage() {
     return allParticipants.slice(start, start + gridSize);
   }, [allParticipants, gridPage, gridSize]);
 
-  /* ===================== 5. STOMP 이벤트 처리 (채팅 & 말풍선) ===================== */
-  useEffect(() => {
-    if (!me || !events) return;
-    const newEvents = events.slice(lastEventRef.current);
-    if (newEvents.length === 0) return;
+/* ===================== 5. STOMP 이벤트 처리 (채팅 & 말풍선 & 입퇴장) ===================== */
+useEffect(() => {
+  if (!me || !events) return;
+  const newEvents = events.slice(lastEventRef.current);
+  if (newEvents.length === 0) return;
 
-    lastEventRef.current = events.length;
+  lastEventRef.current = events.length;
 
-    newEvents.forEach((evt: any) => {
-        //  채팅 메시지
-        if (evt.type === "CHAT_MESSAGE") {
-            const d = evt.data;
-            setChatMessages((prev) => [
-              ...prev,
-              {
-                id: String(Date.now()) + Math.random(),
-                mine: Number(d.senderId) === me.userId, 
-                nickname: d.senderNickname || "알 수 없음",
-                text: d.chat || "",
-              },
-            ]);
-        } 
-        // 말풍선(상태) 변경
-        else if (evt.type === "NOW_STATE_CHANGED") {
-            const d = evt.data;
-            const spId = String(d.studyParticipantId);
-            if (spId) {
-                setBubbleMap((prev) => ({ ...prev, [spId]: d.nowState || "" }));
-            }
+  newEvents.forEach((evt: any) => {
+      const d = evt.data;
+
+      switch (evt.type) {
+          case "CHAT_MESSAGE":
+              if (d.chat && d.chat.startsWith("SIGNAL:")) return;
+              setChatMessages((prev) => [
+                ...prev,
+                {
+                  id: String(Date.now()) + Math.random(),
+                  mine: Number(d.senderId) === me.userId, 
+                  nickname: d.senderNickname || "알 수 없음",
+                  text: d.chat || "",
+                },
+              ]);
+              break;
+
+          case "NOW_STATE_CHANGED":
+              const spId = String(d.studyParticipantId);
+              if (spId) {
+                  setBubbleMap((prev) => ({ ...prev, [spId]: d.nowState || "" }));
+              }
+              break;
+
+
+          case "PARTICIPANT_JOINED":
+              if (d.userId === me.userId) return;
+              
+              setOthers((prev) => {
+                  if (prev.find(p => p.userId === d.userId)) return prev;
+                  
+                  const newGuest: Participant = {
+                      id: String(d.studyParticipantId), // [cite: 112]
+                      userId: d.userId,                 // [cite: 114]
+                      studyParticipantId: d.studyParticipantId,
+                      nickname: d.userNickname,         // [cite: 115]
+                      badgeId: d.badgeId ?? 0,          // [cite: 117]
+                      badgeImageUrl: d.badgeImageUrl ?? null, // [cite: 118]
+                      profileImageUrl: d.profileImageUrl, // [cite: 116]
+                      isMe: false
+                  };
+                  return [...prev, newGuest];
+              });
+              break;
+
+              case "PARTICIPANT_LEFT":
+                // 1. 들어온 ID를 확실하게 숫자로 변환
+                const targetId = Number(d.studyParticipantId);
+                
+                console.log(`퇴장: ${targetId}`); // 디버깅용 로그
+  
+                setOthers((prev) => {
+                    // 2. 기존 리스트의 ID도 숫자로 변환해서 비교 
+                    const newOthers = prev.filter(p => Number(p.studyParticipantId) !== targetId);
+                    
+                    console.log(`남은 인원: ${newOthers.length}명`); 
+                    return newOthers;
+                });
+                break;
         }
     });
   }, [events, me]);
@@ -347,7 +376,7 @@ export default function StudyRoomPage() {
   const sendRealChat = () => {
     const text = chatInput.trim();
     if (!text || !me) return;
-    sendChat(me.userId, text); // STOMP로 전송
+    sendChat(me.userId, text);
     setChatInput("");
   };
 
