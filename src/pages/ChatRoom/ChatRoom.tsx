@@ -268,7 +268,7 @@ const ChatBotUI = () => {
                 type="text"
                 value={selectedFile ? selectedFile.name : inputText}
                 onChange={e => !selectedFile && setInputText(e.target.value)}
-                placeholder={selectedFile ? '📄 파일 요약 모드' : '| 요약할 URL을 입력하세요'}
+                placeholder={selectedFile ? '📄 파일 요약 모드' : '| 요약할 파일을 첨부해주세요'}
                 className="chat-text-input"
                 readOnly={!!selectedFile}
                 onKeyDown={e => e.key === 'Enter' && handleSend()}
