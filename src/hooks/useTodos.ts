@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useQueryClient } from '@tanstack/react-query';
+
 import {
   getTodosByDate,
   createTodo,
@@ -12,6 +14,7 @@ export type TodoStatus = "PENDING" | "DONE" | "FAILED";
 
 
 export const useTodos = () => {
+  const queryClient = useQueryClient();
   // 오늘 날짜 (YYYY-MM-DD)
   const todayString = new Date().toISOString().slice(0, 10);
 
@@ -105,6 +108,12 @@ const calendarMap = todos.reduce<Record<string, Todo[]>>((acc, todo) => {
         //prev.map(t => (t.todoId === tempTodoId ? createdTodo : t))
         [...prev.filter(t => t.todoId !== tempTodoId), createdTodo]
       );
+
+      //queryClient 사용하겠습니다...!
+      queryClient.invalidateQueries({
+        queryKey: ['sidebarTodos', selectedDate],
+      });
+      
     } catch (err) {
       console.error("투두 생성 실패", err);
       // 실패 시 임시 투두 제거
