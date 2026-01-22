@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from '@tanstack/react-query';
-
 import {
   getTodosByDate,
   createTodo,
@@ -12,10 +11,8 @@ import type { Todo } from '../api/Todos/todosApi';
 
 export type TodoStatus = "PENDING" | "DONE" | "FAILED";
 
-
 export const useTodos = () => {
   const queryClient = useQueryClient();
-  // 오늘 날짜 (YYYY-MM-DD)
   const todayString = new Date().toISOString().slice(0, 10);
 
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -28,11 +25,11 @@ export const useTodos = () => {
       setLoading(true);
       try {
         const data: Todo[] = await getTodosByDate(selectedDate);
-        const normalizedData: Todo[] = data.map((todo:Todo) => ({
+        const normalizedData: Todo[] = data.map(todo => ({
           ...todo,
           date: todo.date ? todo.date.slice(0, 10) : selectedDate,
         }));
-        
+
         setTodos(prev => {
           const nonTemp = prev.filter(t => t.date !== selectedDate);
           return [...nonTemp, ...normalizedData];
@@ -48,36 +45,24 @@ export const useTodos = () => {
   }, [selectedDate]);
 
   // ---------------- 캘린더용 맵 ----------------
-const calendarMap = todos.reduce<Record<string, Todo[]>>((acc, todo) => {
-  if (!todo.date) return acc;
-  const dateKey = todo.date.slice(0, 10);
+  const calendarMap = todos.reduce<Record<string, Todo[]>>((acc, todo) => {
+    if (!todo.date) return acc;
+    const dateKey = todo.date.slice(0, 10);
+    if (!acc[dateKey]) acc[dateKey] = [];
+    acc[dateKey].push(todo);
+    return acc;
+  }, {});
 
-  if (!acc[dateKey]) {
-    acc[dateKey] = [];
-  }
-  acc[dateKey].push(todo);
-  /*acc[todo.date] = acc[todo.date]
-    ? [...acc[todo.date], todo]
-    : [todo];*/
-  /*const date = selectedDate; // 서버에서 날짜별 조회하므로 전부 이 날짜
-  acc[date] = acc[date] ? [...acc[date], todo] : [todo]; */
-  return acc;
-}, {});
-
-
-  
-
-  // ---------------- 투두 임시 추가 (UI용) ----------------
+  // ---------------- 투두 임시 추가 ----------------
   const addTodoItem = (categoryId: number): Todo => {
     const tempTodo: Todo = {
-      todoId: Date.now() * -1, // 임시 음수 ID
+      todoId: Date.now() * -1,
       title: "",
       date: selectedDate,
       categoryId,
       status: "PENDING",
       createdAt: new Date().toISOString(),
     };
-
     setTodos(prev => [...prev, tempTodo]);
     return tempTodo;
   };
@@ -96,27 +81,21 @@ const calendarMap = todos.reduce<Record<string, Todo[]>>((acc, todo) => {
       });
 
       const createdTodo: Todo = {
-      todoId: res.data.todoId,
-      title: res.data.title,
-      categoryId: res.data.categoryId,
-      status: res.data.status,
-      date: selectedDate,
-      createdAt: res.data.createdAt,
-    };
+        todoId: res.data.todoId,
+        title: res.data.title,
+        categoryId: res.data.categoryId,
+        status: res.data.status,
+        date: selectedDate,
+        createdAt: res.data.createdAt,
+      };
 
-      setTodos(prev =>
-        //prev.map(t => (t.todoId === tempTodoId ? createdTodo : t))
-        [...prev.filter(t => t.todoId !== tempTodoId), createdTodo]
-      );
+      setTodos(prev => [...prev.filter(t => t.todoId !== tempTodoId), createdTodo]);
 
-      //queryClient 사용하겠습니다...!
-      queryClient.invalidateQueries({
-        queryKey: ['sidebarTodos', selectedDate],
-      });
-      
+      // Sidebar와 동기화
+      queryClient.invalidateQueries({ queryKey: ['todos', selectedDate] });
+
     } catch (err) {
       console.error("투두 생성 실패", err);
-      // 실패 시 임시 투두 제거
       setTodos(prev => prev.filter(t => t.todoId !== tempTodoId));
     }
   };
@@ -136,28 +115,24 @@ const calendarMap = todos.reduce<Record<string, Todo[]>>((acc, todo) => {
         date: res.data.date ?? selectedDate,
         createdAt: res.data.createdAt,
       };
+      setTodos(prev => prev.map(t => t.todoId === todoId ? updatedTodo : t));
 
-
-      setTodos(prev =>
-        prev.map(t => (t.todoId === todoId ? updatedTodo : t))
-      );
+      queryClient.invalidateQueries({ queryKey: ['todos', selectedDate] });
     } catch (err) {
       console.error("투두 수정 실패", err);
     }
   };
 
   // ---------------- 상태 변경 ----------------
-  const changeStatus = async (
-    todoId: number,
-    status: "PENDING" | "DONE" | "FAILED"
-  ) => {
+  const changeStatus = async (todoId: number, status: TodoStatus) => {
     try {
       const res = await updateTodoStatus(todoId, status);
       setTodos(prev =>
-        prev.map(t =>
-          t.todoId === todoId ? { ...t, status: res.data.status } : t
-        )
+        prev.map(t => (t.todoId === todoId ? { ...t, status: res.data.status } : t))
       );
+
+      // Sidebar와 동기화
+      queryClient.invalidateQueries({ queryKey: ['todos', selectedDate] });
     } catch (err) {
       console.error("투두 상태 변경 실패", err);
     }
@@ -168,6 +143,8 @@ const calendarMap = todos.reduce<Record<string, Todo[]>>((acc, todo) => {
     try {
       await deleteTodo(todoId);
       setTodos(prev => prev.filter(t => t.todoId !== todoId));
+
+      queryClient.invalidateQueries({ queryKey: ['todos', selectedDate] });
     } catch (err) {
       console.error("투두 삭제 실패", err);
     }
@@ -187,7 +164,5 @@ const calendarMap = todos.reduce<Record<string, Todo[]>>((acc, todo) => {
     calendarMap,
   };
 };
-
-
 
 export default useTodos;
