@@ -36,13 +36,24 @@ const CategoryEditModal: React.FC<Props> = ({
   const handleDelete = async () => {
     const confirmDelete = window.confirm("카테고리를 삭제하겠습니까?");
     if (!confirmDelete) return;
+    try {
+      await removeCategory(categoryId);
+      onClose();
+    } catch (err: any) {
+      if (err.response?.status === 409) {
+        alert("이 카테고리에 등록된 투두가 있어 삭제할 수 없습니다.\n먼저 투두를 다른 카테고리로 이동하거나 삭제해주세요.");
+      } else {
+        alert("카테고리 삭제에 실패했습니다.");
+      }
+    }
 
-    await removeCategory(categoryId);
-    onClose();
   };
 
   return (
-    <div className="catCmodal-backdrop">
+    <div 
+      className="catCmodal-backdrop"
+      onClick={onClose}
+    >
       <div className="catCmodal" onClick={(e) => e.stopPropagation()}>
         <h2 className="catEmodal-title">카테고리</h2>
         <div className="catC-divider" />
