@@ -121,7 +121,7 @@ export default function StudyRoomPage() {
   const { studyId } = useParams();
   const numericStudyId = Number(studyId);
 
-  const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL ?? "http://13.209.205.33:8080";
+  const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL ?? "";
 
   // 상태 관리
   const [me, setMe] = useState<Participant | null>(null);
@@ -179,7 +179,7 @@ const {
         const token = localStorage.getItem("accessToken") || "";
         const authHeader = token.startsWith("Bearer ") ? token : `Bearer ${token}`;
         
-        const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://13.209.205.33:8080/api";
+        const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
         const baseUrl = API_BASE.endsWith('/') ? API_BASE.slice(0, -1) : API_BASE;
         const usersUrl = `${baseUrl}/studies/${numericStudyId}/participating/users`;
 
@@ -346,12 +346,23 @@ useEffect(() => {
               });
               break;
 
-          case "PARTICIPANT_LEFT":
-              setOthers((prev) => prev.filter(p => p.studyParticipantId !== d.studyParticipantId)); 
-              break;
-      }
-  });
-}, [events, me]);
+              case "PARTICIPANT_LEFT":
+                // 1. 들어온 ID를 확실하게 숫자로 변환
+                const targetId = Number(d.studyParticipantId);
+                
+                console.log(`퇴장: ${targetId}`); // 디버깅용 로그
+  
+                setOthers((prev) => {
+                    // 2. 기존 리스트의 ID도 숫자로 변환해서 비교 
+                    const newOthers = prev.filter(p => Number(p.studyParticipantId) !== targetId);
+                    
+                    console.log(`남은 인원: ${newOthers.length}명`); 
+                    return newOthers;
+                });
+                break;
+        }
+    });
+  }, [events, me]);
 
   /* ===================== 6. 기능 핸들러 ===================== */
   const leaveRoom = async () => {
