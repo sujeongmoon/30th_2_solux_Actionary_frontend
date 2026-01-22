@@ -351,3 +351,13 @@
   margin: 0px auto;
   width: 100%;         /* 위아래 여백 + 중앙 배치 */
 }
+
+/* Tiptap 에디터 내부 스타일 */
+.ProseMirror p {
+  margin: 0; /* 문단 간의 간격을 없애거나 줄임 */
+}
+
+.ProseMirror img {
+  display: block;
+  margin-bottom: 8px; /* 이미지와 텍스트 사이 간격 조절 */
+}
