@@ -51,6 +51,7 @@ export const useTodoCategories = () => {
       setCategories(prev => prev.filter(cat => cat.categoryId !== categoryId));
     } catch (err) {
       console.error('카테고리 삭제 실패', err);
+      throw err;
     }
   };
 
