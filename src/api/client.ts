@@ -26,7 +26,7 @@ api.interceptors.response.use(
     const url: string = originalRequest?.url ?? "";
 
     /**
-     * ✅ [핵심] "비공개 스터디 비번 확인/입장" 요청에서 401은
+     * [핵심] "비공개 스터디 비번 확인/입장" 요청에서 401은
      * 토큰 만료가 아니라 "비번 틀림"일 수 있음.
      * -> 절대 refresh/redirect 하지 말고 그대로 컴포넌트로 넘김
      */
@@ -45,7 +45,7 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // ✅ 토큰 만료(401) 처리: refresh 시도
+    // 토큰 만료(401) 처리: refresh 시도
     if (
       status === 401 &&
       !originalRequest._retry &&
@@ -55,11 +55,7 @@ api.interceptors.response.use(
 
       const refreshToken = localStorage.getItem("refreshToken");
 
-      /**
-       * ❗ 기존엔 여기서 refreshToken 없으면 무조건 /login으로 보냈지?
-       * -> 그게 비번 틀림 같은 401도 로그인으로 튕기게 만드는 원흉.
-       * ✅ 이제는 그냥 reject해서 화면이 알아서 처리하게 둠.
-       */
+
       if (!refreshToken) {
         return Promise.reject(error);
       }

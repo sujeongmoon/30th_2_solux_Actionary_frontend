@@ -4,7 +4,6 @@ import { useWebRTCRoom } from "./useWebRTCRoom";
 import { useStompChat } from "./useStompChat";
 import { enterPublicStudy, exitStudy, updateNowState } from "../../api/studies";
 import "./StudyRoomPage.css";
-
 import lampIcon from "../../assets/icons/hugeicons_study-lamp.svg";
 import cameraIcon from "../../assets/icons/majesticons_camera-line.svg";
 import cameraOffIcon from "../../assets/icons/majesticons_camera-line_no.svg";
@@ -303,6 +302,9 @@ export default function StudyRoomPage() {
   }, [allParticipants, gridPage, gridSize]);
 
   /* ===================== 5. STOMP 이벤트 처리 (채팅 & 말풍선) ===================== */
+ // StudyRoomPage.tsx 내부의 채팅 useEffect 부분
+
+  /* ===================== 5. STOMP 이벤트 처리 (채팅 & 말풍선) ===================== */
   useEffect(() => {
     if (!me || !events) return;
     const newEvents = events.slice(lastEventRef.current);
@@ -314,6 +316,8 @@ export default function StudyRoomPage() {
         //  채팅 메시지
         if (evt.type === "CHAT_MESSAGE") {
             const d = evt.data;
+            if (d.chat && d.chat.startsWith("SIGNAL:")) return;
+
             setChatMessages((prev) => [
               ...prev,
               {
