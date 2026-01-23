@@ -173,7 +173,7 @@ const RightSidebar = () => {
                   className="profile-image" 
                   onClick={(e) => { 
                     e.stopPropagation(); 
-                    console.log('clicked!'); 
+                    navigate('/mypage'); 
                   }} 
                 />
               ) : (
