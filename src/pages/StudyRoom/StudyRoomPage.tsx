@@ -496,8 +496,8 @@ case "PARTICIPANT_LEFT":
       const data = await postDurationTime(numericStudyId, apiType);
       if (data) {
         console.log(`서버 저장 완료: ${data.changedTypeLabel}`);
-        setStudySec(data.totalBreakSeconds); 
-        setRestSec(data.totalStudySeconds);
+        setStudySec(Number(data.totalStudySeconds ?? 0));
+        setRestSec(Number(data.totalBreakSeconds ?? 0));  
       }
     } catch (e) {
       console.error("모드 전환 실패:", e);
@@ -530,8 +530,8 @@ case "PARTICIPANT_LEFT":
         console.log("스터디룸 입장: 공부 시간 기록 시작 (API 호출)");
         const data = await postDurationTime(numericStudyId, "STUDY");
         if (data) {
-          setStudySec(data.totalBreakSeconds); 
-          setRestSec(data.totalStudySeconds);
+          setStudySec(Number(data.totalStudySeconds ?? 0));
+          setRestSec(Number(data.totalBreakSeconds ?? 0));
           setMode("STUDY");
         }
       } catch (e) {
