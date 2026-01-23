@@ -6,7 +6,7 @@ import type {
   StudyEnterResponse,
   StudyListResponse,
   StudyVisibility,
-  MyStudyListResvlfponse,
+  MyStudyListResponse,
   RankingsResponse,
   Paginated,
   SearchStudyItem,
@@ -203,6 +203,18 @@ export async function updateNowState(studyId: number, nowState: string) {
     nowState, 
   });
   return res.data;
+}
+
+export async function reissueJanusSession(studyId: number) {
+  try {
+    const res = await api.post<ApiEnvelope<any>>("/study/janus", {
+      studyId,
+    });
+    return res.data.success; 
+  } catch (e) {
+    console.error("Janus 세션 재발급 요청 실패:", e);
+    return false;
+  }
 }
 
 
