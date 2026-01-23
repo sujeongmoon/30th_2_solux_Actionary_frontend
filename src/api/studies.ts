@@ -117,9 +117,33 @@ export async function enterPrivateStudy(studyId: number, password: string | numb
   return res.data.data;
 }
 
-export async function exitStudy(studyId: number, type: "STUDY" | "BREAK") {
-  const res = await api.patch<ApiEnvelope<null>>(`/studies/${studyId}/participating`, { type });
+export type NowState = "STUDY" | "BREAK";
+
+
+type DurationTimeRes = {
+  studyTimeId: number;
+  studyParticipantId: number;
+  studyId: number;
+  userId: number;
+  changedType: NowState;
+  changedTypeLabel: string;
+  totalStudySeconds: number;
+  totalBreakSeconds: number;
+};
+
+export async function postDurationTime(studyId: number, type: NowState) {
+  const res = await api.post<ApiEnvelope<DurationTimeRes>>(
+    `/studies/${studyId}/participating/durationtime`,
+    { type }
+  );
   return res.data.data;
+}
+export async function exitStudy(studyId: number, type: "STUDY" | "BREAK") {
+  const res = await api.post(
+    `/studies/${studyId}/participating/exit`,
+    { type }
+  );
+  return res.data;
 }
 
 

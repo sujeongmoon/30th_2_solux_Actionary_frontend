@@ -11,7 +11,7 @@ import moonIcon from "../../assets/icons/solar_moon-sleep-linear.svg";
 import micIcon from "../../assets/icons/stash_mic-solid.svg";
 import micOffIcon from "../../assets/icons/Frame 106.svg";
 import avatarIcon from "../../assets/icons/Vector.svg";
-
+import { postDurationTime } from "../../api/studies";
 /* ===================== 타입 정의 ===================== */
 type Participant = {
   id: string; 
@@ -333,13 +333,13 @@ useEffect(() => {
                   if (prev.find(p => p.userId === d.userId)) return prev;
                   
                   const newGuest: Participant = {
-                      id: String(d.studyParticipantId), // [cite: 112]
-                      userId: d.userId,                 // [cite: 114]
+                      id: String(d.studyParticipantId), 
+                      userId: d.userId,           
                       studyParticipantId: d.studyParticipantId,
-                      nickname: d.userNickname,         // [cite: 115]
-                      badgeId: d.badgeId ?? 0,          // [cite: 117]
-                      badgeImageUrl: d.badgeImageUrl ?? null, // [cite: 118]
-                      profileImageUrl: d.profileImageUrl, // [cite: 116]
+                      nickname: d.userNickname,        
+                      badgeId: d.badgeId ?? 0,          
+                      badgeImageUrl: d.badgeImageUrl ?? null, 
+                      profileImageUrl: d.profileImageUrl, 
                       isMe: false
                   };
                   return [...prev, newGuest];
@@ -350,7 +350,7 @@ useEffect(() => {
                 // 1. 들어온 ID를 확실하게 숫자로 변환
                 const targetId = Number(d.studyParticipantId);
                 
-                console.log(`퇴장: ${targetId}`); // 디버깅용 로그
+                console.log(`퇴장: ${targetId}`); 
   
                 setOthers((prev) => {
                     // 2. 기존 리스트의 ID도 숫자로 변환해서 비교 
@@ -368,7 +368,7 @@ useEffect(() => {
   const leaveRoom = async () => {
     if (numericStudyId && joinedRef.current && !exitCalledRef.current) {
         exitCalledRef.current = true;
-        try { await exitStudy(numericStudyId, "STUDY"); } catch(e) {}
+        try { await exitStudy(numericStudyId, toApiType(mode)); } catch(e) {}
     }
     navigate("/studies");
   };
@@ -429,17 +429,70 @@ useEffect(() => {
     return () => { if (timerRef.current) window.clearInterval(timerRef.current); };
   }, [pomoRunning]);
 
-  const [mode, setMode] = useState<Mode>("REST");
+  const [mode, setMode] = useState<"STUDY" | "REST">("STUDY");
   const [studySec, setStudySec] = useState(0);
   const [restSec, setRestSec] = useState(0);
+  const durationStartedRef = useRef(false);
+  const toApiType = (m: Mode): "STUDY" | "BREAK" => (m === "STUDY" ? "STUDY" : "BREAK");
+  const [isChangingMode, setIsChangingMode] = useState(false);
+  const changeMode = async (next: Mode) => {
+    if (!numericStudyId) return;
+    if (mode === next) return; 
+    if (isChangingMode) return; 
+
+    const prevMode = mode; 
+    const apiType = next === "STUDY" ? "STUDY" : "BREAK";
+
+    setMode(next);
+    setIsChangingMode(true);
+
+    try {
+      console.log(` 상태 변경 요청: ${prevMode} -> ${next}`);
+
+      const data = await postDurationTime(numericStudyId, apiType);
+      if (data) {
+        console.log(`서버 저장 완료: ${data.changedTypeLabel}`);
+      }
+    } catch (e) {
+      console.error("모드 전환 실패:", e);
+      setMode(prevMode); 
+      alert("서버 연결에 실패했습니다.");
+    } finally {
+      setIsChangingMode(false);
+    }
+  };
 
   useEffect(() => {
     const t = window.setInterval(() => {
-      if (mode === "STUDY") setStudySec((v) => v + 1);
-      else setRestSec((v) => v + 1);
+      if (mode === "STUDY") {
+        setStudySec((prev) => prev + 1);
+      } else {
+        setRestSec((prev) => prev + 1);
+      }
     }, 1000);
+  
     return () => window.clearInterval(t);
   }, [mode]);
+
+  useEffect(() => {
+    if (!numericStudyId || !me || durationStartedRef.current) return;;
+  
+    durationStartedRef.current = true;
+  
+    (async () => {
+      try {
+        console.log("스터디룸 입장: 공부 시간 기록 시작 (API 호출)");
+        const data = await postDurationTime(numericStudyId, "STUDY");
+        if (data) {
+          setStudySec(data.totalStudySeconds);
+          setRestSec(data.totalBreakSeconds);
+          setMode("STUDY");
+        }
+      } catch (e) {
+        console.error("durationtime(STUDY) start failed:", e);
+      }
+    })();
+  }, [numericStudyId, me]);
 
   /* ===================== 렌더링 ===================== */
   if (error) return <div className="srError" style={{padding:40, color:'white'}}>{error} <button onClick={leaveRoom}>나가기</button></div>;
@@ -579,8 +632,22 @@ useEffect(() => {
             <span className="srPillTime">{formatHMS(studySec)}</span>
           </div>
           <div className="srDockCenter">
-            <button type="button" className="srCtlMain" onClick={() => setMode("STUDY")}>▶</button>
-            <button type="button" className="srCtlMain" onClick={() => setMode("REST")}>❚❚</button>
+            <button 
+              type="button" 
+              className={`srCtlMain ${mode === "STUDY" ? "active" : ""}`} 
+              onClick={() => changeMode("STUDY")}
+              title="공부 시작"
+            >
+              ▶
+            </button>
+            <button 
+              type="button" 
+              className={`srCtlMain ${mode === "REST" ? "active" : ""}`} 
+              onClick={() => changeMode("REST")}
+              title="휴식 (기록 중지)"
+            >
+              ❚❚
+            </button>
           </div>
           <div className="srDockRight">
             <button type="button" className={`srCtlIcon ${camOn ? "isOn" : "isOff"}`} onClick={() => setCamOn((v) => !v)}>
