@@ -26,6 +26,8 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
         return; 
     }
 
+    setEvents([]);
+
     const rawToken = localStorage.getItem("accessToken") || "";
     const bearerToken = rawToken.startsWith("Bearer ") ? rawToken : `Bearer ${rawToken}`;
 
@@ -42,9 +44,17 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
         subRef.current?.unsubscribe();
         subRef.current = client.subscribe(topic, (msg) => {
           try {
-            const payload = JSON.parse(msg.body);
-            if (!payload?.type) return;
-            setEvents((prev) => [...prev, payload as ChatEvent]);
+            let payload = JSON.parse(msg.body);
+
+            if (typeof payload === "string") {
+                console.log("⚠️ 이중 JSON 감지! 한 번 더 파싱합니다.");
+                payload = JSON.parse(payload);
+            }
+
+            if (payload) {
+                setEvents((prev) => [...prev, payload as ChatEvent]);
+            }
+
           } catch (e) {
             console.error("Payload Error:", e);
           }
