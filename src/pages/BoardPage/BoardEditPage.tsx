@@ -33,6 +33,7 @@ const BoardEditPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('소통');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  
 
   const editor = useEditor({
     extensions: [
@@ -169,14 +170,22 @@ const BoardEditPage = () => {
 
   // 삭제된 이미지 URL 계산
   const delImages = originalImageUrls.filter(url => !currentImageUrls.includes(url));
-  if (delImages.length > 0) formData.append('delImages', JSON.stringify(delImages));
+  if (delImages.length > 0) {
+    formData.append(
+  'delImages',
+  new Blob(
+    [JSON.stringify({ imageUrl: delImages })],
+    { type: 'application/json' }
+  )
+);
+
+  }
 
   // 새로 업로드한 이미지 추가
   if (uploadedFiles.length > 0) {
     uploadedFiles.forEach(file => formData.append('addImages', file));
   }
 
-  // ---------------- post 필드 처리 ----------------
   // ---------------- post 필드 처리 ----------------
 const postPayload: Record<string, any> = {};
 
