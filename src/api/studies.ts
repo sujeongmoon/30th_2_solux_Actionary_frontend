@@ -207,7 +207,7 @@ export async function updateNowState(studyId: number, nowState: string) {
 
 export async function reissueJanusSession(studyId: number) {
   try {
-    const res = await api.post<ApiEnvelope<any>>("/study/janus", {
+    const res = await api.post<ApiEnvelope<any>>("/studies/janus", {
       studyId,
     });
     return res.data.success; 
