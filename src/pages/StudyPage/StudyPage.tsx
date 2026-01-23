@@ -123,7 +123,6 @@ export default function StudyPage() {
     setPage(1);
   };
 
-  // myFilter 바뀌면 “나만의 스터디”도 1페이지로 리셋
   useEffect(() => {
     setMyPage(1);
   }, [myFilter]);
@@ -174,7 +173,6 @@ export default function StudyPage() {
     if (page > totalPages) setPage(totalPages);
   }, [totalPages, page]);
 
-  // ===== 나만의 스터디 목록 (페이지네이션 적용) =====
   useEffect(() => {
     let mounted = true;
 
@@ -255,6 +253,19 @@ export default function StudyPage() {
           onClose={() => setSelectedStudyId(null)}
           onDeleted={(deletedId) => {
             navigate(0);
+          }}
+          onUnlike={(unlikedId) => {
+            if (myFilter === "LIKED") {
+              setMyStudies((prev) =>
+                prev.filter((s) => s.studyId !== unlikedId)
+              );
+            } else {
+              setMyStudies((prev) =>
+                prev.map((s) =>
+                  s.studyId === unlikedId ? { ...s, isStudyLike: false } : s
+                )
+              );
+            }
           }}
         />
       )}

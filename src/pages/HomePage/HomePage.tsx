@@ -214,33 +214,38 @@ useEffect(() => {
 
       {/* ===== 2. 메인 콘텐츠 ===== */}
       <div className="home-main-content">
-      {myStudies.length > 0 && isLoggedIn ? (
-        <MyStudyCarousel
-          myStudies={myStudies}
-          myFilter={myFilter as any}
-          setMyFilter={setMyFilter as any}
-          myPage={myPage}
-          setMyPage={setMyPage}
-          myTotalPages={myTotalPages}
-          onOpenStudy={handleStudyClick}
-          onDeleteStudy={handleDeleteStudy}
-        />
-      ) : (
-        <CTAbox isLoggedIn={isLoggedIn} nickname={nickname} />
-      )}
+        {isLoggedIn ? (
+          <MyStudyCarousel
+            myStudies={myStudies}                
+            myFilter={myFilter as any}
+            setMyFilter={setMyFilter as any}
+            myPage={myPage}
+            setMyPage={setMyPage}
+            myTotalPages={myTotalPages}
+            onOpenStudy={handleStudyClick}
+            onDeleteStudy={handleDeleteStudy}
+          />
+        ) : (
+          <CTAbox isLoggedIn={isLoggedIn} nickname={nickname} />
+        )}
 
-      {selectedStudyId !== null && (
-        <StudyViewModal
-          open={true}
-          studyId={selectedStudyId}
-          onClose={() => setSelectedStudyId(null)} // 모달 닫기
-          onDeleted={(deletedId) => {
-            setMyStudies((prev) => prev.filter((s) => s.studyId !== deletedId));
-            setSelectedStudyId(null); // 모달 닫기 확실히
-            setSkipNextFetch(true);   // 
-          }}
-        />
-      )}
+        {selectedStudyId !== null && (
+          <StudyViewModal
+            open={true}
+            studyId={selectedStudyId}
+            onClose={() => setSelectedStudyId(null)}
+            onDeleted={(deletedId) => {
+              setMyStudies((prev) => prev.filter((s) => s.studyId !== deletedId));
+              setSelectedStudyId(null);
+              setSkipNextFetch(true);
+            }}
+            onUnlike={(unlikedId) => {
+              setMyStudies(prev =>
+                prev.filter(study => study.studyId !== unlikedId)
+              );
+            }}
+          />
+        )}
 
         <div className="Ai-Container">
           <p className="Ai-Container-Title" onClick={() => { if(isLoggedIn) {navigate("/chatroom")}
