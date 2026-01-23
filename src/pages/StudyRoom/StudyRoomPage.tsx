@@ -128,6 +128,7 @@ export default function StudyRoomPage() {
   const [others, setOthers] = useState<Participant[]>([]);
   const [panelOpen, setPanelOpen] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [janusReady, setJanusReady] = useState(false);
   
   // 기능 상태
   const [bubbleMap, setBubbleMap] = useState<Record<string, string>>({});
@@ -160,7 +161,7 @@ const {
   setCamOn, 
   setMicOn 
 } = useWebRTCRoom({
-  enabled: !!me && connected, 
+  enabled: !!me && connected && janusReady, 
   studyId: numericStudyId,
   userId: me?.userId,
 });
@@ -175,6 +176,7 @@ const {
     (async () => {
       try {
         setError(null);
+        setJanusReady(false);
         
         const token = localStorage.getItem("accessToken") || "";
         const authHeader = token.startsWith("Bearer ") ? token : `Bearer ${token}`;
@@ -190,7 +192,7 @@ const {
         });
 
         if (response.status === 403 || response.status === 401) {
-            console.log("⚠️ 미참여 상태. 공개 입장 시도...");
+            console.log("미참여 상태. 공개 입장 시도...");
             try {
                 await enterPublicStudy(numericStudyId);
                 // 입장 성공 후 다시 조회
@@ -256,6 +258,27 @@ const {
             });
             setBubbleMap(initialBubbles);
         }
+
+        try {
+          const janusUrl = `${baseUrl}/studies/${numericStudyId}/janus`;
+          console.log("📡 [Janus] 방 생성/확인 API 호출 시도:", janusUrl);
+          
+          const janusRes = await fetch(janusUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Authorization": authHeader },
+          });
+
+          if (janusRes.ok) {
+              console.log("[Janus] 준비 완료. WebRTC 연결 시작.");
+              setJanusReady(true); 
+          } else {
+              console.error("[Janus] 방 생성 API 오류:", janusRes.status);
+              setJanusReady(true); 
+          }
+      } catch (apiErr) {
+          console.error("[Janus] API 네트워크 오류:", apiErr);
+          setJanusReady(true);
+      }
 
         joinedRef.current = true;
 
@@ -346,20 +369,39 @@ useEffect(() => {
               });
               break;
 
-              case "PARTICIPANT_LEFT":
-                // 1. 들어온 ID를 확실하게 숫자로 변환
-                const targetId = Number(d.studyParticipantId);
-                
-                console.log(`퇴장: ${targetId}`); 
-  
-                setOthers((prev) => {
-                    // 2. 기존 리스트의 ID도 숫자로 변환해서 비교 
-                    const newOthers = prev.filter(p => Number(p.studyParticipantId) !== targetId);
-                    
-                    console.log(`남은 인원: ${newOthers.length}명`); 
-                    return newOthers;
-                });
-                break;
+
+case "PARTICIPANT_LEFT":
+    console.log("퇴장 신호 수신:", d);
+
+    setOthers((prev) => {
+        const data = d as any; 
+        const targetId = Number(
+            data.studyParticipantId || 
+            data.studyParticipantld || 
+            data.study_participant_id ||
+            data.id
+        );
+
+        console.log(`삭제 타겟 ID: ${targetId}`);
+
+        if (!targetId) {
+            console.error("삭제할 ID가 없습니다. Payload 확인 필요.");
+            return prev;
+        }
+
+        const newOthers = prev.filter(p => {
+            const spId = Number(p.studyParticipantId);
+            const uId = Number(p.userId);
+            
+            const isMatch = (spId === targetId) || (uId === targetId);
+            
+            return !isMatch;
+        });
+
+        console.log(`[최종 결과] 남은 인원 ${newOthers.length}명`);
+        return newOthers;
+    });
+    break;
         }
     });
   }, [events, me]);
@@ -435,6 +477,8 @@ useEffect(() => {
   const durationStartedRef = useRef(false);
   const toApiType = (m: Mode): "STUDY" | "BREAK" => (m === "STUDY" ? "STUDY" : "BREAK");
   const [isChangingMode, setIsChangingMode] = useState(false);
+
+
   const changeMode = async (next: Mode) => {
     if (!numericStudyId) return;
     if (mode === next) return; 
@@ -452,6 +496,8 @@ useEffect(() => {
       const data = await postDurationTime(numericStudyId, apiType);
       if (data) {
         console.log(`서버 저장 완료: ${data.changedTypeLabel}`);
+        setStudySec(data.totalBreakSeconds); 
+        setRestSec(data.totalStudySeconds);
       }
     } catch (e) {
       console.error("모드 전환 실패:", e);
@@ -484,8 +530,8 @@ useEffect(() => {
         console.log("스터디룸 입장: 공부 시간 기록 시작 (API 호출)");
         const data = await postDurationTime(numericStudyId, "STUDY");
         if (data) {
-          setStudySec(data.totalStudySeconds);
-          setRestSec(data.totalBreakSeconds);
+          setStudySec(data.totalBreakSeconds); 
+          setRestSec(data.totalStudySeconds);
           setMode("STUDY");
         }
       } catch (e) {
