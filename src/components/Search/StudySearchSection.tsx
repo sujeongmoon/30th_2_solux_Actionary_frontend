@@ -15,6 +15,12 @@ function useQuery() {
   return useMemo(() => new URLSearchParams(search), [search]);
 }
 
+const getSafeImg = (url?: string | null) => {
+  if (!url) return noImg;
+  if (url === "null" || url === "undefined") return noImg;
+  return url;
+};
+
 export default function StudySearchSection({ studies }: StudySearchSectionProps) {
   const q = useQuery();
   const location = useLocation();
@@ -55,7 +61,9 @@ export default function StudySearchSection({ studies }: StudySearchSectionProps)
               >
                 <div
                   className="searchStudyThumb"
-                  style={{ backgroundImage: `url(${s.thumbnailUrl || noImg})` }}
+                  style={{
+                    backgroundImage: `url("${(s.thumbnailUrl ?? "").trim()}"), url("${noImg}")`,
+                  }}
                 >
 
                   <div className="searchStudyTitleBar">
