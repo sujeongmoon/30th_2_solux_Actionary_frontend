@@ -40,6 +40,7 @@ type Props = {
   onClose: () => void;
   studyId: number | null;
   onDeleted?: (studyId: number) => void;
+  onUnlike?: (studyId: number) => void;
 };
 
 function toHM(sec: number) {
@@ -51,7 +52,7 @@ function toHM(sec: number) {
   return `${h}시간 ${m}분`;
 }
 
-export default function StudyViewModal({ open, onClose, studyId, onDeleted }: Props) {
+export default function StudyViewModal({ open, onClose, studyId, onDeleted, onUnlike, }: Props) {
   const navigate = useNavigate();
 
   /** UI 상태 */
@@ -209,19 +210,27 @@ export default function StudyViewModal({ open, onClose, studyId, onDeleted }: Pr
     setActionModalOpen(true);
   };
 
-  /** 좋아요 토글 */
   const onToggleLike = async () => {
     if (!studyId || likeLoading) return;
-
+  
     if (!isLoggedInNow()) {
       openActionModal("login_like");
       return;
     }
-
+  
     setLikeLoading(true);
     try {
+      const wasLiked = detail?.isStudyLike;
+  
       await toggleStudyLike(studyId);
-      setDetail((prev) => (prev ? { ...prev, isStudyLike: !prev.isStudyLike } : prev));
+  
+      setDetail((prev) =>
+        prev ? { ...prev, isStudyLike: !prev.isStudyLike } : prev
+      );
+  
+      if (wasLiked) {
+        onUnlike?.(studyId);
+      }
     } catch (e: any) {
       const status = e?.response?.status;
       if (status === 401) {
@@ -344,15 +353,9 @@ export default function StudyViewModal({ open, onClose, studyId, onDeleted }: Pr
       setDeleteLoading(true);
   
       await deleteStudy(studyId);
-  
-      // ✅ 1) 먼저 UI부터 즉시 닫기 (체감 속도 개선 핵심)
       setMenuOpen(false);
       onClose();
-  
-      // ✅ 2) 부모(HomePage / StudyPage)에게 삭제됐다고 알리기 (1번만!)
       onDeleted?.(studyId);
-  
-      // ❌ alert는 브라우저 멈춰서 느려짐 → 토스트/모달로 바꾸는 게 best
       // alert("스터디가 삭제되었습니다.");
     } catch (e: any) {
       const status = e?.response?.status;

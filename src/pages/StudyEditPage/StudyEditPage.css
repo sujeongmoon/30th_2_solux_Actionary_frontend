@@ -202,7 +202,7 @@
 .successBackdropBtn{
   position: fixed;
   inset: 0;
-  z-index: 1;   /* ✅ 모달보다 아래로 */
+  z-index: 1;  
   background: transparent;
   border: none;
   cursor: default;
