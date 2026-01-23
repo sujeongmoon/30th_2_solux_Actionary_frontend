@@ -57,6 +57,7 @@
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
+  cursor: pointer;
 }
 
 .header-underline {
@@ -114,6 +115,15 @@
 .section-title {
     font-weight: 400;
 }
+
+/* Sidebar.css */
+.section-title.todo-title {
+  display: flex;           /* 가로 배치 */
+  align-items: center;     /* 세로 가운데 정렬 */
+  gap: 3px;                /* p와 img 사이 간격 */
+}
+
+
 
 /* 포인트 카드 (그라데이션) */
 .points-card {

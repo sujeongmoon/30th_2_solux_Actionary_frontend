@@ -166,7 +166,15 @@ const RightSidebar = () => {
             <img src={Bell} alt="알림" className="sidebar-bell" onClick={openNotificationModal} />
             <div className="side-profile-circle">
               {userInfo?.profileImageUrl ? (
-                <img src={userInfo.profileImageUrl} alt="프로필" className="profile-image" />
+                <img 
+                  src={userInfo.profileImageUrl} 
+                  alt="프로필" 
+                  className="profile-image" 
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    console.log('clicked!'); 
+                  }} 
+                />
               ) : (
                 <FiUser size={25} />
               )}
@@ -192,7 +200,7 @@ const RightSidebar = () => {
 
         {/* 투두 */}
         <div className="section-title todo-title">
-          TO DO LIST
+          <p onClick={() => navigate('/todolistpage')}>TO DO LIST</p>
           <img src={gradientCheck} alt="체크" className="sidebar-check" />
         </div>
 
