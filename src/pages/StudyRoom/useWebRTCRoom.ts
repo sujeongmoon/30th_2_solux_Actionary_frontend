@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { reissueJanusSession } from "../../api/studies"; 
 
-const JANUS_URL = "/janus"; 
+const JANUS_URL = "/janus/"; 
 const PLUGIN = "janus.plugin.videoroom";
 
 export function useWebRTCRoom({ enabled, studyId, userId }: { enabled: boolean; studyId: number; userId?: number }) {
