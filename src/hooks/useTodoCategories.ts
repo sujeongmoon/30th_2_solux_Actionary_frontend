@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import api from "../api/client"; // axios instance
 import type { TodoCategory } from '../api/Todos/todoCategoriesApi';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 
 export const useTodoCategories = () => {
   const [categories, setCategories] = useState<TodoCategory[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const queryClient = useQueryClient();
   // ---------------- 초기 카테고리 로드 ----------------
   useEffect(() => {
     const fetchCategories = async () => {
@@ -26,6 +27,7 @@ export const useTodoCategories = () => {
   const addCategory = async ({ name, color }: { name: string; color: string }) => {
     try {
       const res = await api.post('/todo-categories', { name, color });
+      queryClient.invalidateQueries({ queryKey: ['todoCategories'] });
       setCategories(prev => [...prev, res.data.data]);
     } catch (err) {
       console.error('카테고리 추가 실패', err);
