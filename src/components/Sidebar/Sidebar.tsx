@@ -120,6 +120,7 @@ const RightSidebar = () => {
     toggleMutation.mutate({ todoId, status });
   };
 
+
   /* ===================== 알림 ===================== */
   const fetchNotifications = async () => {
     const data = await getNotifications();
@@ -200,7 +201,7 @@ const RightSidebar = () => {
 
         {/* 투두 */}
         <div className="section-title todo-title">
-          <p onClick={() => navigate('/todolistpage')}>TO DO LIST</p>
+          <p onClick={() => navigate('/todolistpage')} style={{ cursor: 'pointer' }}>TO DO LIST</p>
           <img src={gradientCheck} alt="체크" className="sidebar-check" />
         </div>
 
