@@ -230,11 +230,14 @@
   display: grid;
   place-items: center;
 }
-.svmHeart.active{
-  border-color: rgba(255, 58, 100, .35);
-  box-shadow: 0 10px 18px rgba(255, 58, 100, .12);
-}
 
+.svmHeart.active{
+  border-color: #ff3a64;
+  background: linear-gradient(135deg, #ff8366, #ff3a64);
+  box-shadow: 0 8px 20px rgba(255, 58, 100, .35);
+  color: #fff;
+
+}
 
 .svmRankBox{
   margin-top: 22px;
