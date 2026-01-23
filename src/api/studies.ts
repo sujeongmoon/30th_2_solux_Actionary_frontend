@@ -139,8 +139,8 @@ export async function postDurationTime(studyId: number, type: NowState) {
   return res.data.data;
 }
 export async function exitStudy(studyId: number, type: "STUDY" | "BREAK") {
-  const res = await api.post(
-    `/studies/${studyId}/participating/exit`,
+  const res = await api.patch(
+    `/studies/${studyId}/participating`,
     { type }
   );
   return res.data;
