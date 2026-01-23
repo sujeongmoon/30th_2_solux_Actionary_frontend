@@ -142,7 +142,7 @@ export default function StudyEditPage() {
     if (!title.trim()) return false;
     if (!category) return false;
     if (!summary.trim()) return false;
-    if (!Number.isFinite(limit) || limit < 1) return false;
+    if (!Number.isFinite(limit) || limit < 2) return false;
     if (visibility === "private" && !/^\d{6}$/.test(password)) return false;
     return true;
   }, [title, category, summary, limit, visibility, password]);
@@ -152,7 +152,7 @@ export default function StudyEditPage() {
     if (!title.trim()) next.title = "제목은 필수예요.";
     if (!category) next.category = "카테고리를 선택해주세요.";
     if (!summary.trim()) next.summary = "간단 소개글은 필수예요.";
-    if (!Number.isFinite(limit) || limit < 1) next.limit = "인원 제한을 설정해주세요.";
+    if (!Number.isFinite(limit) || limit < 2) next.limit = "인원 제한은 최소 2명 이상이어야 해요.";
     if (visibility === "private" && !/^\d{6}$/.test(password))
       next.password = "비밀번호(숫자 6자리)가 필요해요.";
     return next;
@@ -349,7 +349,7 @@ export default function StudyEditPage() {
             type="number"
             className="limitInput"
             value={limit}
-            min={1}
+            min={2}
             max={30}
             onChange={(e) => {
               const v = Number(e.target.value);
