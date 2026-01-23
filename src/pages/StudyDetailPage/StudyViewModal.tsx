@@ -419,7 +419,15 @@ export default function StudyViewModal({ open, onClose, studyId, onDeleted, onUn
                 <>
                   <div className="svmTop">
                     <div className="svmCover">
-                      <img src={detail.coverImage || noImg} alt="" />
+                    <img
+                      src={detail.coverImage || noImg}
+                      alt=""
+                      onError={(e) => {
+                        const img = e.currentTarget;
+                        if (img.src.includes("study_noimg.png")) return; 
+                        img.src = noImg;
+                      }}
+                    />
                     </div>
 
                     <div className="svmInfo">
