@@ -77,6 +77,11 @@ export default function StudySearchSection({ studies }: StudySearchSectionProps)
             navigate(location.pathname + location.search, { replace: true });
             navigate(0);
           }}
+          onUnlike={(unlikedId) => {
+            setMyStudies(prev =>
+              prev.filter(study => study.studyId !== unlikedId)
+            );
+          }}
         />
       )}
 
