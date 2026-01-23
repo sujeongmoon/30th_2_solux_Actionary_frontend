@@ -167,131 +167,125 @@ const {
 });
 
 
-  /* ===================== 3. 입장 및 데이터 조회 ===================== */
-  useEffect(() => {
-    if (!numericStudyId) return;
-    
-    let mounted = true;
+/* ===================== 3. 입장 및 데이터 조회 ===================== */
+useEffect(() => {
+  if (!numericStudyId) return;
 
-    (async () => {
-      try {
-        setError(null);
-        setJanusReady(false);
-        
-        const token = localStorage.getItem("accessToken") || "";
-        const authHeader = token.startsWith("Bearer ") ? token : `Bearer ${token}`;
-        
-        const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
-        const baseUrl = API_BASE.endsWith('/') ? API_BASE.slice(0, -1) : API_BASE;
-        const usersUrl = `${baseUrl}/studies/${numericStudyId}/participating/users`;
+  let mounted = true;
 
-        // 3-1. 선 조회 -> 실패 시 입장 -> 재조회 
-        let response = await fetch(usersUrl, {
-          method: "GET",
-          headers: { "Content-Type": "application/json", "Authorization": authHeader },
-        });
+  (async () => {
+    try {
+      setError(null);
+      setJanusReady(false);
 
-        if (response.status === 403 || response.status === 401) {
-            console.log("미참여 상태. 공개 입장 시도...");
-            try {
-                await enterPublicStudy(numericStudyId);
-                // 입장 성공 후 다시 조회
-                response = await fetch(usersUrl, {
-                    method: "GET",
-                    headers: { "Content-Type": "application/json", "Authorization": authHeader },
-                });
-            } catch (joinErr: any) {
-                console.error("입장 실패:", joinErr);
-                const msg = joinErr?.response?.data?.message || "";
-                if (msg.includes("정원")) setError("정원 초과");
-                else setError("입장에 실패했습니다.");
-                return;
-            }
-        }
+      const token = localStorage.getItem("accessToken") || "";
+      const authHeader = token.startsWith("Bearer ") ? token : `Bearer ${token}`;
 
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const res = await response.json();
-        const data = res.data;
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
+      const baseUrl = API_BASE.endsWith('/') ? API_BASE.slice(0, -1) : API_BASE;
+      const usersUrl = `${baseUrl}/studies/${numericStudyId}/participating/users`;
 
-        if (!mounted || !data) return;
+      let response = await fetch(usersUrl, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", "Authorization": authHeader },
+      });
 
-        // 3-2. 내 정보 설정
-        if (data.me) {
-          const m = data.me;
-          setMe({
-            id: String(m.studyParticipantId),
-            userId: m.userId,
-            studyParticipantId: m.studyParticipantId,
-            nickname: m.userNickname,
-            profileImageUrl: m.profileImageUrl,
-            badgeId: m.badgeId ?? 0,
-            badgeImageUrl: m.badgeImageUrl ?? null,
-            isMe: true,
+      if (response.status === 403 || response.status === 401) {
+        console.log("미참여 상태. 공개 입장 시도...");
+        try {
+          await enterPublicStudy(numericStudyId);
+          response = await fetch(usersUrl, {
+            method: "GET",
+            headers: { "Content-Type": "application/json", "Authorization": authHeader },
           });
-        } else {
-          setError("내 정보를 불러오지 못했습니다.");
+        } catch (joinErr: any) {
+          console.error("입장 실패:", joinErr);
+          const msg = joinErr?.response?.data?.message || "";
+          if (msg.includes("정원")) setError("정원 초과");
+          else setError("입장에 실패했습니다.");
           return;
         }
+      }
 
-        // 3-3. 다른 참여자 설정
-        const rawList = data.participatingUsers ?? [];
-        const mappedList: Participant[] = rawList
-          .filter((p: any) => p.userId !== data.me.userId)
-          .map((p: any) => ({
-              id: String(p.studyParticipantId),
-              userId: p.userId,
-              studyParticipantId: p.studyParticipantId,
-              nickname: p.userNickname,
-              profileImageUrl: p.profileImageUrl,
-              badgeId: p.badgeId ?? 0,
-              badgeImageUrl: p.badgeImageUrl ?? null,
-              isMe: false,
-          }));
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const res = await response.json();
+      const data = res.data;
 
-        setOthers(mappedList);
+      if (!mounted || !data) return;
+      if (data.me) {
+        const m = data.me;
+        setMe({
+          id: String(m.studyParticipantId),
+          userId: m.userId,
+          studyParticipantId: m.studyParticipantId,
+          nickname: m.userNickname,
+          profileImageUrl: m.profileImageUrl,
+          badgeId: m.badgeId ?? 0,
+          badgeImageUrl: m.badgeImageUrl ?? null,
+          isMe: true,
+        });
+      } else {
+        setError("내 정보를 불러오지 못했습니다.");
+        return;
+      }
 
-        // 3-4. 말풍선 초기값 설정
-        if (data.participantNowStates) {
-            const initialBubbles: Record<string, string> = {};
-            Object.keys(data.participantNowStates).forEach(key => {
-                initialBubbles[key] = data.participantNowStates[key];
-            });
-            setBubbleMap(initialBubbles);
-        }
+      const rawList = data.participatingUsers ?? [];
+      const mappedList: Participant[] = rawList
+        .filter((p: any) => p.userId !== data.me.userId)
+        .map((p: any) => ({
+          id: String(p.studyParticipantId),
+          userId: p.userId,
+          studyParticipantId: p.studyParticipantId,
+          nickname: p.userNickname,
+          profileImageUrl: p.profileImageUrl,
+          badgeId: p.badgeId ?? 0,
+          badgeImageUrl: p.badgeImageUrl ?? null,
+          isMe: false,
+        }));
 
-        try {
-          const janusUrl = `${baseUrl}/studies/${numericStudyId}/janus`;
-          console.log("📡 [Janus] 방 생성/확인 API 호출 시도:", janusUrl);
-          
-          const janusRes = await fetch(janusUrl, {
-              method: "POST",
-              headers: { "Content-Type": "application/json", "Authorization": authHeader },
-          });
+      setOthers(mappedList);
 
-          if (janusRes.ok) {
-              console.log("[Janus] 준비 완료. WebRTC 연결 시작.");
-              setJanusReady(true); 
-          } else {
-              console.error("[Janus] 방 생성 API 오류:", janusRes.status);
-              setJanusReady(true); 
-          }
-      } catch (apiErr) {
-          console.error("[Janus] API 네트워크 오류:", apiErr);
+      if (data.participantNowStates) {
+        const initialBubbles: Record<string, string> = {};
+        Object.keys(data.participantNowStates).forEach(key => {
+          initialBubbles[key] = data.participantNowStates[key];
+        });
+        setBubbleMap(initialBubbles);
+      }
+
+      try {
+        const janusUrl = `${baseUrl}/studies/janus`; 
+        console.log("[Janus] 방 생성/확인 API 호출 시도 (JSON Body):", janusUrl);
+
+        const janusRes = await fetch(janusUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": authHeader },
+          body: JSON.stringify({ studyId: numericStudyId }), 
+        });
+
+        if (janusRes.ok) {
+          console.log("[Janus] 준비 완료. WebRTC 연결 시작.");
           setJanusReady(true);
+        } else {
+          console.error("[Janus] 방 생성 API 오류:", janusRes.status);
+          setJanusReady(true);
+        }
+      } catch (apiErr) {
+        console.error("[Janus] API 네트워크 오류:", apiErr);
+        setJanusReady(true);
       }
 
-        joinedRef.current = true;
+      joinedRef.current = true;
 
-      } catch (e: any) {
-        if (!mounted) return;
-        console.error("데이터 조회 실패", e);
-        setError("데이터 로딩 실패");
-      }
-    })();
+    } catch (e: any) {
+      if (!mounted) return;
+      console.error("데이터 조회 실패", e);
+      setError("데이터 로딩 실패");
+    }
+  })();
 
-    return () => { mounted = false; };
-  }, [numericStudyId]);
-
+  return () => { mounted = false; };
+}, [numericStudyId]);
   /* ===================== 4. 그리드 & 페이지네이션 ===================== */
   const allParticipants = useMemo(() => {
     if (!me) return [];
@@ -530,8 +524,8 @@ case "PARTICIPANT_LEFT":
         console.log("스터디룸 입장: 공부 시간 기록 시작 (API 호출)");
         const data = await postDurationTime(numericStudyId, "STUDY");
         if (data) {
-          setStudySec(Number(data.totalStudySeconds ?? 0));
-          setRestSec(Number(data.totalBreakSeconds ?? 0));
+setStudySec(Number(data.totalStudySeconds ?? 0));
+setRestSec(Number(data.totalBreakSeconds ?? 0));
           setMode("STUDY");
         }
       } catch (e) {
