@@ -475,27 +475,19 @@ case "PARTICIPANT_LEFT":
 
   const changeMode = async (next: Mode) => {
     if (!numericStudyId) return;
-    if (mode === next) return; 
-    if (isChangingMode) return; 
-
-    const prevMode = mode; 
-    const apiType = next === "STUDY" ? "STUDY" : "BREAK";
-
-    setMode(next);
+    if (mode === next) return;
+    if (isChangingMode) return;
+  
     setIsChangingMode(true);
-
+    const closingType: "STUDY" | "BREAK" = mode === "STUDY" ? "STUDY" : "BREAK";
+  
     try {
-      console.log(` 상태 변경 요청: ${prevMode} -> ${next}`);
-
-      const data = await postDurationTime(numericStudyId, apiType);
-      if (data) {
-        console.log(`서버 저장 완료: ${data.changedTypeLabel}`);
-        setStudySec(Number(data.totalStudySeconds ?? 0));
-        setRestSec(Number(data.totalBreakSeconds ?? 0));  
-      }
+      const data = await postDurationTime(numericStudyId, closingType);
+      setStudySec(Number(data.totalStudySeconds ?? 0));
+      setRestSec(Number(data.totalBreakSeconds ?? 0));
+      setMode(next);
     } catch (e) {
       console.error("모드 전환 실패:", e);
-      setMode(prevMode); 
       alert("서버 연결에 실패했습니다.");
     } finally {
       setIsChangingMode(false);
@@ -503,16 +495,14 @@ case "PARTICIPANT_LEFT":
   };
 
   useEffect(() => {
+    if (isChangingMode) return;
     const t = window.setInterval(() => {
-      if (mode === "STUDY") {
-        setStudySec((prev) => prev + 1);
-      } else {
-        setRestSec((prev) => prev + 1);
-      }
+      if (mode === "STUDY") setStudySec((prev) => prev + 1);
+      else setRestSec((prev) => prev + 1);
     }, 1000);
   
     return () => window.clearInterval(t);
-  }, [mode]);
+  }, [mode, isChangingMode]);
 
   useEffect(() => {
     if (!numericStudyId || !me || durationStartedRef.current) return;;
