@@ -122,11 +122,22 @@ export default function StudyLoggedInView(props: Props) {
                   tabIndex={0}
                 >
                   <div className="studyThumb">
-                    <img
-                      src={s.coverImage || StudyNoImg}
-                      alt=""
-                      className={!s.coverImage ? "noImage" : ""}
-                    />
+                  <img
+                    src={
+                      s.coverImage &&
+                      String(s.coverImage).trim() &&
+                      String(s.coverImage) !== "null"
+                        ? s.coverImage
+                        : StudyNoImg
+                    }
+                    alt=""
+                    className={!s.coverImage ? "noImage" : ""}
+                    onError={(e) => {
+                      const img = e.currentTarget;
+                      if (img.src.endsWith("study_noimg.png")) return;
+                      img.src = StudyNoImg;
+                    }}
+                  />
                     <div className="titlePill">
                       <div className="titlePillText">{s.studyName}</div>
                     </div>
