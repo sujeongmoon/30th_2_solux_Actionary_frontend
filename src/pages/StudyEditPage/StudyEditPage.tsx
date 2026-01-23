@@ -191,6 +191,7 @@ export default function StudyEditPage() {
       studyName: title.trim(),
       category: LABEL_TO_ENUM[category],
       description: clampText(summary.trim(), 20),
+      longDescription: guide.trim() ? guide.trim() : null,
       memberLimit: Number(limit),
       isPublic: visibility === "public",
     };
