@@ -110,7 +110,8 @@ export default function StudyCreatePage() {
       await createStudy(
         {
           studyName: title.trim(),
-          description,
+          description: summary.trim(),
+          longDescription: guide.trim() ? guide.trim() : null,
           category: LABEL_TO_ENUM[category],
           memberLimit: limit,
           isPublic: visibility === "public",

@@ -46,6 +46,7 @@ export async function createStudy(
   payload: {
     studyName: string;
     description: string;
+    longDescription?: string | null;
     category: StudyCategory;
     memberLimit: number;
     isPublic: boolean;
@@ -133,6 +134,7 @@ export type UpdateStudyPayload = {
     | "EMPLOYMENT"
     | "OTHER";
   description: string;    // 20자 제한
+  longDescription?: string | null;
   memberLimit: number;    // int
   isPublic: boolean;      // boolean
   password?: number;      // 비공개일 때만
