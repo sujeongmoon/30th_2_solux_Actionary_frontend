@@ -86,10 +86,10 @@ export default function StudySearch() {
 
         const mapped: StudyItem[] = (data.content ?? []).map((s: any) => ({
           studyId: s.studyId,
-          studyName: s.studyName,
-          coverImage: s.coverImage ?? null,
+          studyName: s.title,
+          coverImage: s.thumbnailUrl ?? null,
           isPublic: s.isPublic,
-          categoryLabel: s.categoryLabel ?? "기타",
+          categoryLabel: s.cateory ?? "기타",
           createdAt: s.createdAt,
           memberCount: s.memberCount,
         }));
