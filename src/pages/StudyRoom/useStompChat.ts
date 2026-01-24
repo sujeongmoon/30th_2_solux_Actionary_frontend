@@ -5,10 +5,11 @@ import type { ChatEvent } from "./chatEventTypes";
 
 type UseStompChatParams = {
   studyId: number | null;
+  studyParticipantId: number | null; 
   wsBaseUrl?: string;
 };
 
-export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
+export function useStompChat({ studyId, studyParticipantId, wsBaseUrl }: UseStompChatParams) {
   const clientRef = useRef<Client | null>(null);
   const subRef = useRef<any>(null);
 
@@ -20,7 +21,8 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
   const chatSendPath = useMemo(() => (studyId ? `/app/studies/${studyId}/chat` : null), [studyId]);
 
   useEffect(() => {
-    if (!studyId || !topic) return;
+    if (!studyId || !topic || !studyParticipantId) return;
+    
     if (wsBaseUrl === undefined || wsBaseUrl === null) { 
         setError("WS_BASE_URL 설정 필요"); 
         return; 
@@ -33,7 +35,11 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
 
     const client = new Client({
       webSocketFactory: () => new SockJS(`${wsBaseUrl}/ws`),
-      connectHeaders: { Authorization: bearerToken, token: bearerToken },
+      connectHeaders: { 
+        Authorization: bearerToken, 
+        token: bearerToken,
+        studyParticipantId: String(studyParticipantId) 
+      },
       reconnectDelay: 5000,
       debug: (str) => console.log(`STOMP: ${str}`),
       
@@ -78,9 +84,8 @@ export function useStompChat({ studyId, wsBaseUrl }: UseStompChatParams) {
       clientRef.current?.deactivate();
       setConnected(false);
     };
-  }, [studyId, wsBaseUrl, topic]);
+  }, [studyId, wsBaseUrl, topic, studyParticipantId]);
 
-  // 일반 채팅 전송
   const sendChat = (senderId: number, chat: string) => {
     if (!chatSendPath || !clientRef.current?.connected) return;
     clientRef.current.publish({

@@ -12,6 +12,7 @@ import micIcon from "../../assets/icons/stash_mic-solid.svg";
 import micOffIcon from "../../assets/icons/Frame 106.svg";
 import avatarIcon from "../../assets/icons/Vector.svg";
 import { postDurationTime } from "../../api/studies";
+
 /* ===================== 타입 정의 ===================== */
 type Participant = {
   id: string; 
@@ -142,150 +143,152 @@ export default function StudyRoomPage() {
 
   // 1. STOMP 연결 (채팅 + 화상 신호 통로)
   const { 
-    connected,      // 소켓 연결 여부
-    events,         // 들어온 메시지 목록 (채팅, 입장, 화상 신호 등)
-    sendChat,       // 채팅 보내기 함수
-    sendNowState,   // 말풍선 변경 함수
-    //sendSignaling,  // 화상 신호 보내기 함수
+    connected,      
+    events,         
+    sendChat,       
+    sendNowState,   
   } = useStompChat({
     studyId: numericStudyId,
     wsBaseUrl: WS_BASE_URL,
+    // [수정됨] 백엔드 요청 반영: 내 ID 정보를 넘겨줌 (me가 로딩되면 연결됨)
+    studyParticipantId: me?.studyParticipantId ?? null 
   });
 
-// 2. WebRTC 연결 (
-const { 
-  localStream, 
-  remoteStreams, 
-  camOn, 
-  micOn, 
-  setCamOn, 
-  setMicOn 
-} = useWebRTCRoom({
-  enabled: !!me && connected && janusReady, 
-  studyId: numericStudyId,
-  userId: me?.userId,
-});
+  // 2. WebRTC 연결
+  const { 
+    localStream, 
+    remoteStreams, 
+    camOn, 
+    micOn, 
+    setCamOn, 
+    setMicOn 
+  } = useWebRTCRoom({
+    enabled: !!me && connected && janusReady, 
+    studyId: numericStudyId,
+    userId: me?.userId,
+  });
 
 
-/* ===================== 3. 입장 및 데이터 조회 ===================== */
-useEffect(() => {
-  if (!numericStudyId) return;
+  /* ===================== 3. 입장 및 데이터 조회 ===================== */
+  useEffect(() => {
+    if (!numericStudyId) return;
 
-  let mounted = true;
+    let mounted = true;
 
-  (async () => {
-    try {
-      setError(null);
-      setJanusReady(false);
+    (async () => {
+      try {
+        setError(null);
+        setJanusReady(false);
 
-      const token = localStorage.getItem("accessToken") || "";
-      const authHeader = token.startsWith("Bearer ") ? token : `Bearer ${token}`;
+        const token = localStorage.getItem("accessToken") || "";
+        const authHeader = token.startsWith("Bearer ") ? token : `Bearer ${token}`;
 
-      const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
-      const baseUrl = API_BASE.endsWith('/') ? API_BASE.slice(0, -1) : API_BASE;
-      const usersUrl = `${baseUrl}/studies/${numericStudyId}/participating/users`;
+        const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
+        const baseUrl = API_BASE.endsWith('/') ? API_BASE.slice(0, -1) : API_BASE;
+        const usersUrl = `${baseUrl}/studies/${numericStudyId}/participating/users`;
 
-      let response = await fetch(usersUrl, {
-        method: "GET",
-        headers: { "Content-Type": "application/json", "Authorization": authHeader },
-      });
+        let response = await fetch(usersUrl, {
+          method: "GET",
+          headers: { "Content-Type": "application/json", "Authorization": authHeader },
+        });
 
-      if (response.status === 403 || response.status === 401) {
-        console.log("미참여 상태. 공개 입장 시도...");
-        try {
-          await enterPublicStudy(numericStudyId);
-          response = await fetch(usersUrl, {
-            method: "GET",
-            headers: { "Content-Type": "application/json", "Authorization": authHeader },
+        if (response.status === 403 || response.status === 401) {
+          console.log("미참여 상태. 공개 입장 시도...");
+          try {
+            await enterPublicStudy(numericStudyId);
+            response = await fetch(usersUrl, {
+              method: "GET",
+              headers: { "Content-Type": "application/json", "Authorization": authHeader },
+            });
+          } catch (joinErr: any) {
+            console.error("입장 실패:", joinErr);
+            const msg = joinErr?.response?.data?.message || "";
+            if (msg.includes("정원")) setError("정원 초과");
+            else setError("입장에 실패했습니다.");
+            return;
+          }
+        }
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const res = await response.json();
+        const data = res.data;
+
+        if (!mounted || !data) return;
+        if (data.me) {
+          const m = data.me;
+          setMe({
+            id: String(m.studyParticipantId),
+            userId: m.userId,
+            studyParticipantId: m.studyParticipantId,
+            nickname: m.userNickname,
+            profileImageUrl: m.profileImageUrl,
+            badgeId: m.badgeId ?? 0,
+            badgeImageUrl: m.badgeImageUrl ?? null,
+            isMe: true,
           });
-        } catch (joinErr: any) {
-          console.error("입장 실패:", joinErr);
-          const msg = joinErr?.response?.data?.message || "";
-          if (msg.includes("정원")) setError("정원 초과");
-          else setError("입장에 실패했습니다.");
+        } else {
+          setError("내 정보를 불러오지 못했습니다.");
           return;
         }
-      }
 
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const res = await response.json();
-      const data = res.data;
+        const rawList = data.participatingUsers ?? [];
+        const mappedList: Participant[] = rawList
+          .filter((p: any) => p.userId !== data.me.userId)
+          .map((p: any) => ({
+            id: String(p.studyParticipantId),
+            userId: p.userId,
+            studyParticipantId: p.studyParticipantId,
+            nickname: p.userNickname,
+            profileImageUrl: p.profileImageUrl,
+            badgeId: p.badgeId ?? 0,
+            badgeImageUrl: p.badgeImageUrl ?? null,
+            isMe: false,
+          }));
 
-      if (!mounted || !data) return;
-      if (data.me) {
-        const m = data.me;
-        setMe({
-          id: String(m.studyParticipantId),
-          userId: m.userId,
-          studyParticipantId: m.studyParticipantId,
-          nickname: m.userNickname,
-          profileImageUrl: m.profileImageUrl,
-          badgeId: m.badgeId ?? 0,
-          badgeImageUrl: m.badgeImageUrl ?? null,
-          isMe: true,
-        });
-      } else {
-        setError("내 정보를 불러오지 못했습니다.");
-        return;
-      }
+        setOthers(mappedList);
 
-      const rawList = data.participatingUsers ?? [];
-      const mappedList: Participant[] = rawList
-        .filter((p: any) => p.userId !== data.me.userId)
-        .map((p: any) => ({
-          id: String(p.studyParticipantId),
-          userId: p.userId,
-          studyParticipantId: p.studyParticipantId,
-          nickname: p.userNickname,
-          profileImageUrl: p.profileImageUrl,
-          badgeId: p.badgeId ?? 0,
-          badgeImageUrl: p.badgeImageUrl ?? null,
-          isMe: false,
-        }));
+        if (data.participantNowStates) {
+          const initialBubbles: Record<string, string> = {};
+          Object.keys(data.participantNowStates).forEach(key => {
+            initialBubbles[key] = data.participantNowStates[key];
+          });
+          setBubbleMap(initialBubbles);
+        }
 
-      setOthers(mappedList);
+        try {
+          const janusUrl = `${baseUrl}/studies/janus`; 
+          console.log("[Janus] 방 생성/확인 API 호출 시도 (JSON Body):", janusUrl);
 
-      if (data.participantNowStates) {
-        const initialBubbles: Record<string, string> = {};
-        Object.keys(data.participantNowStates).forEach(key => {
-          initialBubbles[key] = data.participantNowStates[key];
-        });
-        setBubbleMap(initialBubbles);
-      }
+          const janusRes = await fetch(janusUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": authHeader },
+            body: JSON.stringify({ studyId: numericStudyId }), 
+          });
 
-      try {
-        const janusUrl = `${baseUrl}/studies/janus`; 
-        console.log("[Janus] 방 생성/확인 API 호출 시도 (JSON Body):", janusUrl);
-
-        const janusRes = await fetch(janusUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Authorization": authHeader },
-          body: JSON.stringify({ studyId: numericStudyId }), 
-        });
-
-        if (janusRes.ok) {
-          console.log("[Janus] 준비 완료. WebRTC 연결 시작.");
-          setJanusReady(true);
-        } else {
-          console.error("[Janus] 방 생성 API 오류:", janusRes.status);
+          if (janusRes.ok) {
+            console.log("[Janus] 준비 완료. WebRTC 연결 시작.");
+            setJanusReady(true);
+          } else {
+            console.error("[Janus] 방 생성 API 오류:", janusRes.status);
+            setJanusReady(true);
+          }
+        } catch (apiErr) {
+          console.error("[Janus] API 네트워크 오류:", apiErr);
           setJanusReady(true);
         }
-      } catch (apiErr) {
-        console.error("[Janus] API 네트워크 오류:", apiErr);
-        setJanusReady(true);
+
+        joinedRef.current = true;
+
+      } catch (e: any) {
+        if (!mounted) return;
+        console.error("데이터 조회 실패", e);
+        setError("데이터 로딩 실패");
       }
+    })();
 
-      joinedRef.current = true;
+    return () => { mounted = false; };
+  }, [numericStudyId]);
 
-    } catch (e: any) {
-      if (!mounted) return;
-      console.error("데이터 조회 실패", e);
-      setError("데이터 로딩 실패");
-    }
-  })();
-
-  return () => { mounted = false; };
-}, [numericStudyId]);
   /* ===================== 4. 그리드 & 페이지네이션 ===================== */
   const allParticipants = useMemo(() => {
     if (!me) return [];
@@ -310,92 +313,110 @@ useEffect(() => {
     return allParticipants.slice(start, start + gridSize);
   }, [allParticipants, gridPage, gridSize]);
 
-/* ===================== 5. STOMP 이벤트 처리 (채팅 & 말풍선 & 입퇴장) ===================== */
-useEffect(() => {
-  if (!me || !events) return;
-  const newEvents = events.slice(lastEventRef.current);
-  if (newEvents.length === 0) return;
+  /* ===================== 5. STOMP 이벤트 처리 (채팅 & 말풍선 & 입퇴장) ===================== */
+  useEffect(() => {
+    if (!me || !events) return;
+    const newEvents = events.slice(lastEventRef.current);
+    if (newEvents.length === 0) return;
 
-  lastEventRef.current = events.length;
+    lastEventRef.current = events.length;
 
-  newEvents.forEach((evt: any) => {
-      const d = evt.data;
+    newEvents.forEach((evt: any) => {
+        console.log(`[이벤트 도착] Type: [${evt.type}]`, evt);
 
-      switch (evt.type) {
-          case "CHAT_MESSAGE":
-              if (d.chat && d.chat.startsWith("SIGNAL:")) return;
-              setChatMessages((prev) => [
-                ...prev,
-                {
-                  id: String(Date.now()) + Math.random(),
-                  mine: Number(d.senderId) === me.userId, 
-                  nickname: d.senderNickname || "알 수 없음",
-                  text: d.chat || "",
-                },
-              ]);
-              break;
+        const d = evt.data || {}; 
 
-          case "NOW_STATE_CHANGED":
-              const spId = String(d.studyParticipantId);
-              if (spId) {
-                  setBubbleMap((prev) => ({ ...prev, [spId]: d.nowState || "" }));
-              }
-              break;
-
-
-          case "PARTICIPANT_JOINED":
-              if (d.userId === me.userId) return;
-              
-              setOthers((prev) => {
-                  if (prev.find(p => p.userId === d.userId)) return prev;
-                  
-                  const newGuest: Participant = {
-                      id: String(d.studyParticipantId), 
-                      userId: d.userId,           
-                      studyParticipantId: d.studyParticipantId,
-                      nickname: d.userNickname,        
-                      badgeId: d.badgeId ?? 0,          
-                      badgeImageUrl: d.badgeImageUrl ?? null, 
-                      profileImageUrl: d.profileImageUrl, 
-                      isMe: false
-                  };
-                  return [...prev, newGuest];
-              });
-              break;
-
-
-case "PARTICIPANT_LEFT":
-    console.log("퇴장 신호 수신:", d);
-
-    setOthers((prev) => {
-        const data = d as any; 
-        const targetId = Number(
-            data.studyParticipantId || 
-            data.studyParticipantld || 
-            data.study_participant_id ||
-            data.id
-        );
-
-        console.log(`삭제 타겟 ID: ${targetId}`);
-
-        if (!targetId) {
-            console.error("삭제할 ID가 없습니다. Payload 확인 필요.");
-            return prev;
+        // -----------------------------------------------------------
+        // 1. 채팅 메시지 처리
+        // -----------------------------------------------------------
+        if (evt.type === "CHAT_MESSAGE") {
+            if (d.chat && d.chat.startsWith("SIGNAL:")) return;
+            setChatMessages((prev) => [
+              ...prev,
+              {
+                id: String(Date.now()) + Math.random(),
+                mine: Number(d.senderId) === me.userId, 
+                nickname: d.senderNickname || "알 수 없음",
+                text: d.chat || "",
+              },
+            ]);
+        } 
+        
+        // -----------------------------------------------------------
+        // 2. 말풍선 상태 변경
+        // -----------------------------------------------------------
+        else if (evt.type === "NOW_STATE_CHANGED") {
+            const spId = String(d.studyParticipantId);
+            if (spId) {
+                setBubbleMap((prev) => ({ ...prev, [spId]: d.nowState || "" }));
+            }
         }
 
-        const newOthers = prev.filter(p => {
-            const spId = Number(p.studyParticipantId);
-            const uId = Number(p.userId);
-            
-            const isMatch = (spId === targetId) || (uId === targetId);
-            
-            return !isMatch;
-        });
+        // -----------------------------------------------------------
+        // 3. 입장 처리
+        // -----------------------------------------------------------
+        else if (evt.type === "PARTICIPANT_JOINED") {
+            if (d.userId === me.userId) return;
+            setOthers((prev) => {
+                if (prev.find(p => p.userId === d.userId)) return prev;
+                const newGuest: Participant = {
+                    id: String(d.studyParticipantId), 
+                    userId: d.userId,           
+                    studyParticipantId: d.studyParticipantId,
+                    nickname: d.userNickname,        
+                    badgeId: d.badgeId ?? 0,          
+                    badgeImageUrl: d.badgeImageUrl ?? null, 
+                    profileImageUrl: d.profileImageUrl, 
+                    isMe: false
+                };
+                return [...prev, newGuest];
+            });
+        }
 
-        console.log(`[최종 결과] 남은 인원 ${newOthers.length}명`);
-        return newOthers;
-    });
-    break;
+        // -----------------------------------------------------------
+        // 4. 퇴장 처리 (이전 수정사항 포함)
+        // -----------------------------------------------------------
+        else if (evt.type && evt.type.includes("PARTICIPANT_LEFT")) {
+            console.log("[퇴장 로직 진입]", d);
+
+            setOthers((prev) => {
+                // 1) d(data) 안에 ID가 있는지 확인 (표준, 오타, 스네이크 케이스 전부)
+                let targetId = Number(
+                    d.studyParticipantId || 
+                    d.studyParticipantld || // PDF 오타 대응
+                    d.study_participant_id
+                );
+
+                // 2) 만약 d 안에 없다면, 혹시 evt(상위 객체) 바로 아래에 ID가 있는지 확인
+                if (!targetId) {
+                    console.log("⚠️ data 안에 ID 없음. 상위 객체(evt) 탐색 중...");
+                    const parentData = evt as any;
+                    targetId = Number(
+                        parentData.studyParticipantId ||
+                        parentData.studyParticipantld ||
+                        parentData.study_participant_id
+                    );
+                }
+
+                console.log(`[삭제 타겟 ID 확정]: ${targetId}`);
+
+                if (!targetId) {
+                    console.error("결국 ID를 찾지 못했습니다. 전체 데이터 확인:", evt);
+                    return prev;
+                }
+
+                // 3) 필터링
+                const newOthers = prev.filter(p => {
+                    const spId = Number(p.studyParticipantId);
+                    const uId = Number(p.userId); 
+                    const isMatch = (spId === targetId) || (uId === targetId);
+                    if (isMatch) console.log(`사용자 삭제됨: ${p.nickname} (ID: ${targetId})`);
+                    return !isMatch;
+                });
+
+                console.log(`[최종 인원] ${prev.length}명 -> ${newOthers.length}명`);
+                return newOthers;
+            });
         }
     });
   }, [events, me]);
@@ -514,8 +535,8 @@ case "PARTICIPANT_LEFT":
         console.log("스터디룸 입장: 공부 시간 기록 시작 (API 호출)");
         const data = await postDurationTime(numericStudyId, "STUDY");
         if (data) {
-setStudySec(Number(data.totalStudySeconds ?? 0));
-setRestSec(Number(data.totalBreakSeconds ?? 0));
+          setStudySec(Number(data.totalStudySeconds ?? 0));
+          setRestSec(Number(data.totalBreakSeconds ?? 0));
           setMode("STUDY");
         }
       } catch (e) {
