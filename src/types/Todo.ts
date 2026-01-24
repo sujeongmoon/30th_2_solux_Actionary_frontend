@@ -6,5 +6,6 @@ export interface CreateCategoryResponse {
     name: string;
     color: string;
     createdAt: string;
+    startDate: string;
   };
 }

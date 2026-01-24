@@ -39,10 +39,13 @@ const TodoListPage: React.FC = () => {
 
   const { categories } = useTodoCategoriesContext();
   const visibleCategories = categories.filter(cat => {
-    const created = new Date(cat.createdAt); created.setHours(0,0,0,0);
-    const selected = new Date(selectedDate); selected.setHours(0,0,0,0);
-    return selected >= created;
+  const start = new Date(cat.startDate); // startDate 기준
+    start.setHours(0,0,0,0);
+    const selected = new Date(selectedDate);
+    selected.setHours(0,0,0,0);
+    return selected >= start; // 선택한 날짜 이후면 보이기
   });
+
 
   const handleAddTodo = (categoryId: number) => {
     const tempTodo = addTodoItem(categoryId);
@@ -181,7 +184,7 @@ const TodoListPage: React.FC = () => {
         </ul>, document.body
       )}
 
-      {createModalOpen && <CategoryCreateModal onClose={() => setCreateModalOpen(false)} />}
+      {createModalOpen && <CategoryCreateModal onClose={() => setCreateModalOpen(false)} selectedDate={selectedDate} />}
       {manageModalOpen && <CategoryManageModal onClose={() => setManageModalOpen(false)} />}
     </div>
   );
