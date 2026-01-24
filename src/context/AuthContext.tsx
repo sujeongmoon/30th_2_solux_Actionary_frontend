@@ -11,6 +11,7 @@ type AuthContextValue = {
   setToken: (t: string | null) => void;
   setUser: (u: User | null) => void;
   logout: () => void;
+  forceUpdate: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -18,12 +19,22 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem("accessToken"));
   const [user, setUser] = useState<User | null>(null);
-  const isLoggedIn = useMemo(() => !!token, [token]);
+  //const isLoggedIn = useMemo(() => !!token, [token]);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!token);
+  const [, setUpdateFlag] = useState<boolean>(false);
+
+  const forceUpdate = () => setUpdateFlag(prev => !prev);
 
   useEffect(() => {
     if (token) {
       localStorage.setItem("accessToken", token);
-    } else {localStorage.removeItem("accessToken");}
+      setIsLoggedIn(true);
+    } else {
+      localStorage.removeItem("accessToken");
+      setIsLoggedIn(false);
+      setUser(null);
+    }
+    forceUpdate();
   }, [token]);
 
     /*useEffect(() => {
@@ -39,6 +50,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const logoutHandler = () => {
       setToken(null);
       setUser(null);
+      setIsLoggedIn(false);
+      forceUpdate();
     };
     window.addEventListener("force-logout", logoutHandler);
     return () => window.removeEventListener("force-logout", logoutHandler);
@@ -47,11 +60,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setToken(null);
     setUser(null);
+    setIsLoggedIn(false);
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refresh");
+    setIsLoggedIn(false);
+    forceUpdate();
   };
 
-  const value = useMemo(() => ({ isLoggedIn, token, user, setUser, setToken, logout }), [isLoggedIn, token, user]);
+  const value = useMemo(() => ({ isLoggedIn, token, user, setUser, setToken, logout, forceUpdate }), [isLoggedIn, token, user]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

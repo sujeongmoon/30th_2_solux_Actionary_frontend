@@ -10,19 +10,19 @@ import { getMyInfo } from "../../api/sidebar";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { isLoggedIn, user, logout } = useAuth();
+  const { isLoggedIn, user, logout, forceUpdate } = useAuth();
   //const profileImageUrl = user?.profileImageUrl ?? null;
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
-
   const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   const handleLogout = () => {
-    /* localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("profileImageUrl");*/
     logout();
     navigate("/");
   };
+
+  useEffect(() => {
+    forceUpdate();
+  },[]);
 
   const handleProfileClick = () => {
     if (isLoggedIn) {
@@ -44,6 +44,7 @@ const Navbar = () => {
         setProfileImageUrl(userInfo.profileImageUrl || null);
       } catch (e) {
         console.log("유저 정보 불러오기 실패", e);
+        setProfileImageUrl(null);
       }
     };
 
@@ -95,21 +96,13 @@ const Navbar = () => {
             className="nav-profile-circle"
             onClick={handleProfileClick}
           >
-            {profileImageUrl ? (
-              <img
-                src={profileImageUrl}
-                alt="프로필"
-                className="nav-profile-image"
-              />
+            {isLoggedIn && user?.profileImageUrl ? (
+              <img src={user.profileImageUrl} alt="프로필" className="nav-profile-image"/>
             ) : (
               <div className="profile-default">
-                <img
-                  src={ProfilePerson}
-                  alt="프로필 아이콘"
-                  className="profile-person"
-                />
+                <img src={ProfilePerson} alt="프로필 아이콘" className="profile-person" />
               </div>
-            )}
+           )}
           </div>
         </div>
       </nav>
