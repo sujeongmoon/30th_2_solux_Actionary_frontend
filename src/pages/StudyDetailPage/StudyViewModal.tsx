@@ -400,6 +400,7 @@ export default function StudyViewModal({ open, onClose, studyId, onDeleted, onUn
         <div className="svmWrap">
           <div className="svmBody">
             <div className="svmCard">
+            {isOwner && (
               <button
                 className="svmKebab"
                 type="button"
@@ -408,6 +409,7 @@ export default function StudyViewModal({ open, onClose, studyId, onDeleted, onUn
               >
                 ⋮
               </button>
+            )}
 
               {detailLoading ? (
                 <div className="svmLoading">불러오는 중...</div>
