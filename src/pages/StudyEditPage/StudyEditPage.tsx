@@ -194,6 +194,7 @@ export default function StudyEditPage() {
       longDescription: guide.trim() ? guide.trim() : null,
       memberLimit: Number(limit),
       isPublic: visibility === "public",
+      coverImage: coverFile ? null : existingCover,
     };
   
     const finalPayload: UpdateStudyPayload =
@@ -257,7 +258,7 @@ export default function StudyEditPage() {
                 navigate("/studies");
               }}
             >
-              메인으로
+              스터디 목록으로
             </button>
           </div>
           <button className="successBackdropBtn" type="button" onClick={() => setSuccessModalOpen(false)} aria-label="close" />
