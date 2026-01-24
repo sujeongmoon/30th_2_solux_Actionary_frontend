@@ -10,13 +10,17 @@ import type { Todo } from '../../api/Todos/todosApi';
 // 모달 컴포넌트
 import CategoryCreateModal from '../../components/TodoList/CategoryCreateModal';
 import CategoryManageModal from '../../components/TodoList/CategoryManageModal';
-import CategoryEditModal from '../../components/TodoList/CategoryEditModal';
+import { useMonthlyCalendarSummary } from '../../hooks/useMonthlyCalendarSummary';
 import { ReactMarkView } from '@tiptap/react';
 
 
 // import 구문은 그대로 유지
 const TodoListPage: React.FC = () => {
   const { todos, selectedDate, setSelectedDate, addTodoItem, editTodo, removeTodo, changeStatus, createTodoOnServer, calendarMap } = useTodos();
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth() + 1;
+  const { doneMap, summaryMap } = useMonthlyCalendarSummary(currentYear, currentMonth);
 
   const isCreatingRef = useRef(false);
 
@@ -78,7 +82,13 @@ const TodoListPage: React.FC = () => {
   return (
     <div className="todo-page">
       <div className="todo-content">
-        <TodoCalendar selectedDate={selectedDate} onChangeDate={setSelectedDate} calendarMap={calendarMap} />
+        <TodoCalendar 
+          selectedDate={selectedDate} 
+          onChangeDate={setSelectedDate} 
+          calendarMap={calendarMap}
+          doneMap={doneMap} 
+          summaryMap={summaryMap}
+        />
 
         <div className="todo-container">
           <div className="todo-header">
@@ -121,7 +131,7 @@ const TodoListPage: React.FC = () => {
                         try {
                           const trimmed = editingTitle.trim();
                           if(trimmed === '') {
-                            if(todo.todoId < 0) setTodos(prev => prev.filter(t => t.todoId !== todo.todoId));
+                            //if(todo.todoId < 0) setTodos(prev => prev.filter(t => t.todoId !== todo.todoId));
                             setEditTodoId(null);
                             return;
                           }
@@ -143,7 +153,10 @@ const TodoListPage: React.FC = () => {
                     <button className={`todo-status-btn success ${todo.status === 'DONE' ? 'active' : ''}`} onClick={() => changeStatus(todo.todoId, 'DONE')}>달성</button>
                     <button className={`todo-status-btn fail ${todo.status === 'FAILED' ? 'active' : ''}`} onClick={() => changeStatus(todo.todoId, 'FAILED')}>실패</button>
 
-                    <button className="todo-dropdown-button" ref={el => dropdownButtonRefs.current[todo.todoId]=el} onClick={() => handleTodoDropdownToggle(todo.todoId)}>
+                    <button 
+                      className="todo-dropdown-button" 
+                      ref={el => {dropdownButtonRefs.current[todo.todoId]=el;}}
+                      onClick={() => handleTodoDropdownToggle(todo.todoId)}>
                       <img src={ddd} className="todo-dropdown-button" alt="옵션" />
                     </button>
                   </div>

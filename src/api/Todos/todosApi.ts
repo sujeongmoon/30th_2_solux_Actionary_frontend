@@ -1,40 +1,43 @@
 import { api } from '../client';
 
+interface GetTodosResponse {
+    date: string;
+    todos: Todo[];
+}
 
 // 특정 날짜 투두리스트 조회
 export const getTodosByDate = async (date: string): Promise<Todo[]> => {
-    try {
-        const res = await api.get(`/todos`, {
-            params: {date},
-        });
-        return res.data.data.todos; // 수정: 실제 todos 배열 반환
-    } catch (error) {
-        console.error('투두리스트 조회 실패', error);
-        throw error;
-    }
+    const res = await api.get<{
+        success: boolean;
+        data: GetTodosResponse;
+    }>('/todos', {
+        params: { date },
+    });
+    return res.data.data.todos;
 };
 
 // 투두리스트 달성, 실패 (수정)
 export type TodoStatus = 'PENDING' | 'DONE' | 'FAILED';
-
+export interface TodoStatusResponse {
+    todoId: number;
+    status: TodoStatus;
+}
 export const updateTodoStatus = async (
     todoId: number,
     status: TodoStatus
-): Promise<{success: boolean; data: { todoId: number; status: TodoStatus}}> => {
-    try {
-        const res = await api.patch(`/todos/${todoId}/status`, {status});
-        return res.data;
-    } catch (error) {
-        console.error('투두 상태 변경 실패', error);
-        throw error;
-    }
+): Promise<{success: boolean; data: TodoStatusResponse}> => {
+    const res = await api.patch(`/todos/${todoId}/status`, { status });
+    return res.data;
 };
 
+// 투두 타입
 export interface Todo {
-  todoId: number;
-  title: string;
-  categoryId?: number;
-  status: TodoStatus;
+    todoId: number;
+    title: string;
+    date: string;
+    categoryId?: number | null;
+    status: TodoStatus;
+    createdAt: string;
 }
 
 // 투두 생성
@@ -90,4 +93,24 @@ export const deleteTodo = async (todoId: number): Promise<{success: boolean; mes
         console.error('투두 삭제 실패', error);
         throw error;
     }
+};
+
+export type MonthlyCalendarSummary = {
+    date: string;
+    doneCount: number;
+    totalTodoCount: number;
+};
+
+export const getMonthlyCalendarSummary = async (
+    year: number,
+    month: number
+): Promise<MonthlyCalendarSummary[]> => {
+    const res = await api.get(
+        `/todos/calendar/summary/monthly`,
+        {
+            params: { year, month },
+        }
+    );
+
+    return res.data.data;
 };
