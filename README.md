@@ -77,7 +77,7 @@ $ npm start
 <br/>
 
 # 5. Technology Stack (기술 스택)
-<img src="./src/assets/Main Stack.png">
+<img src="./src/assets/Stack.png">
 
 <br/>
 
