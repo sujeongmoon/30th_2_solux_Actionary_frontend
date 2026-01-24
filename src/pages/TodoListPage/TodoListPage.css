@@ -135,7 +135,8 @@
 }
 
 .todo-check-icon {
-  width: 20px;
+  width: 25px;
+  padding-right: 6px;
 }
 
 .todo-item {
@@ -144,11 +145,13 @@
   align-items: center;
   margin-bottom: 5px;
   padding: 5px 8px;
+  font-size: 17px;
 }
 
 .todo-item input[type="text"] {
   flex: 1;
   padding: 4px 6px;
+  font-size: 15px;
 }
 
 .todo-item span {
