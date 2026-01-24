@@ -17,8 +17,10 @@ const SESSION_ACTIVE_KEY = 'todoPageActive';
 
 export const useTodos = () => {
   const queryClient = useQueryClient();
-  const todayString = new Date().toISOString().slice(0, 10);
-  
+  const today = new Date();
+  today.setHours(today.getHours() + 9); // UTC → KST
+  const todayString = today.toISOString().slice(0, 10);
+
   // 세션 스토리지에서 저장된 날짜 가져오기 (페이지가 활성 상태였으면 유지, 아니면 오늘)
   const getInitialDate = () => {
     const isActive = sessionStorage.getItem(SESSION_ACTIVE_KEY);
