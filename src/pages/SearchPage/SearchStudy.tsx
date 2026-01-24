@@ -208,7 +208,7 @@ export default function StudySearch() {
           </div>
         )}
 
-        <button onClick={() => setPage((p) => p + 1)}>다음</button>
+        <button onClick={() => setPage((p) => p + 1)}></button>
       </section>
 
       {selectedStudyId !== null && (
