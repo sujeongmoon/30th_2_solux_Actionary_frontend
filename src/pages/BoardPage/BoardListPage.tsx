@@ -174,11 +174,11 @@ const BoardListPage: React.FC = () => {
                           질문
                         </div>
                         <div className="dropdown-divider" />
-                        <div className="dropdown-item-board" onClick={() => handleCategoryChange('질문')}>
+                        <div className="dropdown-item-board" onClick={() => handleCategoryChange('구인')}>
                           구인
                         </div>
                         <div className="dropdown-divider" />
-                        <div className="dropdown-item-board" onClick={() => handleCategoryChange('질문')}>
+                        <div className="dropdown-item-board" onClick={() => handleCategoryChange('정보')}>
                           정보
                         </div>
 
