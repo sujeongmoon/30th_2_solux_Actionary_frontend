@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import './TodoCalendar.css';
-import type { Todo } from '../../api/Todos/todosApi';
+import type { MonthlyCalendarSummary, Todo } from '../../api/Todos/todosApi';
 import icona from '../../assets/TodoList/icona.svg';
 import iconb from '../../assets/TodoList/iconb.svg';
 import iconc from '../../assets/TodoList/iconc.svg';
@@ -12,8 +12,8 @@ import icone from '../../assets/TodoList/icone.svg';
 interface TodoCalendarProps {
   selectedDate: string;
   onChangeDate: (date: string) => void;
-  //todoMap: Record<string, { status: 'PENDING' | 'DONE' | 'FAILED' }[]>;
-  calendarMap: Record<string, Todo[]>;
+  calendarMap: Record<string, Todo[]>; // 날짜별 투두 리스트
+  summaryMap: Record<string, MonthlyCalendarSummary>; // 날짜별 달성 개수
 }
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -27,6 +27,7 @@ const TodoCalendar: React.FC<TodoCalendarProps> = ({
   selectedDate,
   onChangeDate,
   calendarMap,
+  summaryMap,
 }) => {
   const [activeMonth, setActiveMonth] = useState(parseDate(selectedDate));
   const [view, setView] =
@@ -114,33 +115,23 @@ const TodoCalendar: React.FC<TodoCalendarProps> = ({
             date.getMonth() + 1
           )}-${pad(date.getDate())}`;
 
-          const dayTodos = calendarMap[dateStr] ?? [];
+          const dayTodos = calendarMap[dateStr] ?? []; // 투두 리스트
+          const summary = summaryMap[dateStr]; // 서버 집계
 
-          if (dayTodos.length === 0) return null;
+          if (!summary && dayTodos.length === 0) return null;
 
-          const doneCount = dayTodos.filter(t => t.status === 'DONE').length;
-          const ratio = doneCount / dayTodos.length;
+          const doneCount = summary?.doneCount ?? dayTodos.filter(t => t.status === 'DONE').length;
+          const totalCount = summary?.totalTodoCount ?? dayTodos.length;
 
-         /* let icon =
-            'https://actionary-s3-bucket-v2.s3.ap-northeast-2.amazonaws.com/static/study_time_calendar/under2.png';
-          if (ratio >= 0.9)
-            icon =
-              'https://actionary-s3-bucket-v2.s3.ap-northeast-2.amazonaws.com/static/study_time_calendar/over8.png';
-          else if (ratio >= 0.6)
-            icon =
-              'https://actionary-s3-bucket-v2.s3.ap-northeast-2.amazonaws.com/static/study_time_calendar/over6.png';
-          else if (ratio >= 0.4)
-            icon =
-              'https://actionary-s3-bucket-v2.s3.ap-northeast-2.amazonaws.com/static/study_time_calendar/over4.png';
-          else if (ratio >= 0.2)
-            icon =
-              'https://actionary-s3-bucket-v2.s3.ap-northeast-2.amazonaws.com/static/study_time_calendar/over2.png'; */
+          if (totalCount === 0) return null;
+
+          const ratio = doneCount / totalCount;
+
           let icon = icona;
           if (ratio >= 0.8) icon = icone;
           else if (ratio >= 0.6) icon = icond;
           else if (ratio >= 0.4) icon = iconc;
           else if (ratio >= 0.2) icon = iconb;
-            
 
           return (
             <div className="todo-calendar-completion-icon">
