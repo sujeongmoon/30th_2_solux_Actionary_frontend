@@ -7,12 +7,14 @@ export interface TodoCategory {
   name: string;
   color: string;
   createdAt: string;
+  startDate: string;
 }
 
 // 카테고리 생성
 export interface CreateCategoryRequest {
   name: string;
   color: string;
+  startDate: string;
 }
 
 export const createTodoCategory = async (

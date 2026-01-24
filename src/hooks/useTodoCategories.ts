@@ -24,9 +24,9 @@ export const useTodoCategories = () => {
   }, []);
 
   // ---------------- 카테고리 추가 ----------------
-  const addCategory = async ({ name, color }: { name: string; color: string }) => {
+  const addCategory = async ({ name, color, startDate }: { name: string; color: string; startDate: string }) => {
     try {
-      const res = await api.post('/todo-categories', { name, color });
+      const res = await api.post('/todo-categories', { name, color, startDate });
       queryClient.invalidateQueries({ queryKey: ['todoCategories'] });
       setCategories(prev => [...prev, res.data.data]);
     } catch (err) {
@@ -63,11 +63,10 @@ export const useTodoCategories = () => {
   selected.setHours(0, 0, 0, 0); // 선택한 날짜 0시 기준
 
   return categories.filter(cat => {
-    const createdUTC = new Date(cat.createdAt);
-    const createdKST = new Date(createdUTC.getTime() + 9 * 60 * 60 * 1000); // UTC → KST
-    createdKST.setHours(0, 0, 0, 0); // 카테고리 생성일 0시 기준
+    const catStart = new Date(cat.startDate)
+    catStart.setHours(0, 0, 0, 0);
 
-    return selected >= createdKST; // 선택한 날짜가 생성일 이후면 보여주기
+    return selected >= catStart; // 선택한 날짜가 생성일 이후면 보여주기
   });
 };
 

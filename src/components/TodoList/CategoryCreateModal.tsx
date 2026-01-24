@@ -5,9 +5,10 @@ import ColorPaletteModal from "./ColorPaletteModal";
 
 interface Props {
   onClose: () => void;
+  selectedDate: string;
 }
 
-const CategoryCreateModal: React.FC<Props> = ({ onClose }) => {
+const CategoryCreateModal: React.FC<Props> = ({ onClose, selectedDate }) => {
   const { addCategory } = useTodoCategoriesContext();
 
   const [name, setName] = useState("");
@@ -16,7 +17,7 @@ const CategoryCreateModal: React.FC<Props> = ({ onClose }) => {
 
   const handleSubmit = async () => {
     if (!name.trim()) return;
-    await addCategory({ name, color });
+    await addCategory({ name, color, startDate: selectedDate });
     onClose();
   };
 
