@@ -13,15 +13,20 @@ import type { Todo, MonthlyCalendarSummary } from '../api/Todos/todosApi';
 export type TodoStatus = "PENDING" | "DONE" | "FAILED";
 
 const SESSION_STORAGE_KEY = 'todoSelectedDate';
+const SESSION_ACTIVE_KEY = 'todoPageActive';
 
 export const useTodos = () => {
   const queryClient = useQueryClient();
   const todayString = new Date().toISOString().slice(0, 10);
   
-  // 세션 스토리지에서 저장된 날짜 가져오기 (없으면 오늘 날짜)
+  // 세션 스토리지에서 저장된 날짜 가져오기 (페이지가 활성 상태였으면 유지, 아니면 오늘)
   const getInitialDate = () => {
-    const savedDate = sessionStorage.getItem(SESSION_STORAGE_KEY);
-    return savedDate || todayString;
+    const isActive = sessionStorage.getItem(SESSION_ACTIVE_KEY);
+    if (isActive === 'true') {
+      const savedDate = sessionStorage.getItem(SESSION_STORAGE_KEY);
+      return savedDate || todayString;
+    }
+    return todayString;
   };
 
   // ---------------- 상태 변수 ----------------
@@ -36,18 +41,19 @@ export const useTodos = () => {
   const [doneMap, setDoneMap] = useState<Record<string, number>>({});
   const [summaryLoading, setSummaryLoading] = useState(false);
 
+  // ---------------- 페이지 활성 상태 설정 ----------------
+  useEffect(() => {
+    sessionStorage.setItem(SESSION_ACTIVE_KEY, 'true');
+    
+    return () => {
+      sessionStorage.setItem(SESSION_ACTIVE_KEY, 'false');
+    };
+  }, []);
+
   // ---------------- 선택한 날짜를 세션 스토리지에 저장 ----------------
   useEffect(() => {
     sessionStorage.setItem(SESSION_STORAGE_KEY, selectedDate);
   }, [selectedDate]);
-
-  // ---------------- 컴포넌트 언마운트 시 세션 스토리지 정리 ----------------
-  useEffect(() => {
-    return () => {
-      // 페이지를 벗어날 때 세션 스토리지 삭제
-      sessionStorage.removeItem(SESSION_STORAGE_KEY);
-    };
-  }, []);
 
   // ---------------- 특정 날짜 투두 조회 ----------------
   useEffect(() => {
