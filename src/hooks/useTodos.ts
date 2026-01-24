@@ -132,17 +132,33 @@ export const useTodos = () => {
   };
 
   // ---------------- 상태 변경 ----------------
+  // ---------------- 상태 변경 (Optimistic Update) ----------------
   const changeStatus = async (todoId: number, status: TodoStatus) => {
+
+    setTodos(prev =>
+      prev.map(t => (t.todoId === todoId ? { ...t, status } : t))
+    );
+
     try {
       const res = await updateTodoStatus(todoId, status);
       setTodos(prev =>
-        prev.map(t => (t.todoId === todoId ? { ...t, status: res.data.status } : t))
+        prev.map(t =>
+          t.todoId === todoId ? { ...t, status: res.data.status } : t
+        )
       );
       queryClient.invalidateQueries({ queryKey: ['todos', selectedDate] });
     } catch (err) {
       console.error("투두 상태 변경 실패", err);
+
+      //  실패 시 이전 상태로 롤백
+      setTodos(prev =>
+        prev.map(t =>
+          t.todoId === todoId ? { ...t, status: t.status === status ? "PENDING" : t.status } : t
+        )
+      );
     }
   };
+
 
   // ---------------- 투두 삭제 ----------------
   const removeTodo = async (todoId: number) => {
