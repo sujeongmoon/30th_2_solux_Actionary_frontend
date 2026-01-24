@@ -4,7 +4,6 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
 export const api = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true,
 });
 
 const refreshApi = axios.create({
@@ -12,11 +11,19 @@ const refreshApi = axios.create({
   withCredentials: true,
 });
 
+let isRefreshing = false;
+let refreshQueue: {
+  resolve: (token: string) => void;
+  reject: (error: any) => void;
+}[] = [];
+
 /* ===================== Request Interceptor ===================== */
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {config.headers.Authorization = `Bearer ${token}`;}
+    const accessToken = localStorage.getItem("accessToken");
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -26,7 +33,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    const originalRequest = error.config as any;
     const status = error?.response?.status;
     const url: string = originalRequest?.url ?? "";
 
@@ -50,65 +57,83 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // 토큰 만료(401) 처리: refresh 시도
-    if (
-      status === 401 &&
-      !originalRequest._retry &&
-      !url.includes("/auth/refresh")
-    ) {
-      originalRequest._retry = true;
-
-      const refreshToken = localStorage.getItem("refreshToken");
-
-
-      if (!refreshToken) {
-        localStorage.clear();
-        return Promise.reject(error);
-      }
-
-      try {
-        const refreshResponse = await refreshApi.post("/auth/refresh", {
-          refresh: refreshToken,
-        
-          /*`${BASE_URL}/auth/refresh`,
-          { refresh: refreshToken },
-          { withCredentials: true }*/
-        });
-
-        //const newAccessToken = refreshResponse.data?.data?.accessToken;
-        const {
-          accessToken: newAccessToken,
-          refreshToken: newRefreshToken,
-        } = refreshResponse.data?.data || {};
-
-        if (!newAccessToken) {
-          /*localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
-          return Promise.reject(error);*/
-          throw new Error("No access token");
-        }
-
-        localStorage.setItem("accessToken", newAccessToken);
-
-        if (newRefreshToken) {
-          localStorage.setItem("refreshToken", newRefreshToken);
-        }
-        window.dispatchEvent(new Event("token-refreshed"));
-
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        return api(originalRequest);
-
-      } catch (refreshError) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-
-        window.dispatchEvent(new Event("force-logout"));
-        return Promise.reject(refreshError);
-      }
+    /* refresh 대상 아닌 경우 컷 */
+    if (status !== 401 || originalRequest._retry) {
+      return Promise.reject(error);
     }
 
-    return Promise.reject(error);
+    if (url.includes("/auth/refresh")) {
+      forceLogout();
+      return Promise.reject(error);
+    }
+
+    /* refresh 진행 중이라면 큐에 대기 */
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        refreshQueue.push({
+          resolve: (token: string) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(api(originalRequest));
+          },
+          reject,
+        });
+      });
+    }
+
+    /* refresh 시작 */
+    originalRequest._retry = true;
+    isRefreshing = true;
+
+    const refreshToken = localStorage.getItem("refresh");
+    if (!refreshToken) {
+      forceLogout();
+      return Promise.reject(error);
+    }
+
+    try {
+      const response = await refreshApi.post("/auth/refresh", {
+        refresh: refreshToken,
+      });
+
+      const {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      } = response.data?.data || {};
+
+      if (!newAccessToken) {
+        throw new Error ("No access token");
+      }
+
+      /* 토큰 저장 */
+      localStorage.setItem("accessToken", newAccessToken);
+      if (newRefreshToken) {
+        localStorage.setItem("refresh", newRefreshToken);
+      }
+
+      /* 이후 모든 요청에 새 토큰 적용 */
+      api.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
+
+      /* 대기 중인 요청들 처리 */
+      refreshQueue.forEach((prom) => prom.resolve(newAccessToken));
+      refreshQueue = [];
+
+      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+      return api(originalRequest);
+    } catch (refreshError) {
+      refreshQueue.forEach((prom) => prom.reject(refreshError));
+      refreshQueue = [];
+      forceLogout();
+      return Promise.reject(refreshError);
+    } finally {
+      isRefreshing = false;
+    }
   }
 );
+
+function forceLogout() {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refresh");
+  window.dispatchEvent(new Event("force-logout"));
+}
 
 export default api;
