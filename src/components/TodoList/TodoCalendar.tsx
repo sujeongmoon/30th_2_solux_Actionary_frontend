@@ -120,8 +120,15 @@ const TodoCalendar: React.FC<TodoCalendarProps> = ({
 
           if (!summary && dayTodos.length === 0) return null;
 
-          const doneCount = summary?.doneCount ?? dayTodos.filter(t => t.status === 'DONE').length;
-          const totalCount = summary?.totalTodoCount ?? dayTodos.length;
+          const doneCount = Math.max(
+            dayTodos.filter(t => t.status === 'DONE').length,
+            summary?.doneCount ?? 0
+);
+          const totalCount = Math.max(
+            dayTodos.length,
+            summary?.totalTodoCount ?? 0
+          );
+
 
           if (totalCount === 0) return null;
 
