@@ -22,37 +22,5 @@ https://www.actionary.site/
 
 # 📁프론트엔드 폴더구조
 
-src/
-├── assets/           # 이미지, 아이콘, 폰트, PDF 등 정적 자원
-├── components/       # 재사용 가능한 UI 컴포넌트
-│   ├── Button/
-│   │   ├── Button.tsx
-│   │   └── Button.css
-│   └── ...
-├── pages/            # 라우트별 페이지 컴포넌트
-│   ├── Home/
-│   │   └── Home.tsx
-│   ├── Study/
-│   │   └── Study.tsx
-│   └── ...
-├── layouts/          # 페이지 레이아웃, 공통 헤더/사이드바
-├── hooks/            # 커스텀 훅
-├── context/          # React Context / 전역 상태 관리
-├── services/         # API 요청 / axios instance
-├── utils/            # 공용 함수, helper
-├── types/            # 타입 정의 (TypeScript)
-├── store/            # Redux / Zustand 등 상태관리
-├── routes/           # 라우터 정의
-├── styles/           # 전역 스타일, 테마
-└── App.tsx           # 최상위 컴포넌트
-└── main.tsx          # 엔트리 포인트
----
+<img width="1259" height="983" alt="image" src="https://github.com/user-attachments/assets/f5b1b9b8-fd68-4411-a54a-43d4fe47664c" />
 
-# 📌commit 형식
-[Feat]: 새로운 기능 추가 <br>
-[Fix]: 버그 수정 <br>
-[Docs]: 문서 수정 <br>
-[Style]: 코드 포맷팅, 세미콜론 누락, 코드 변경이 없는 경우 <br>
-[Refactor]: 코드 리펙토링 <br>
-[Test]: 테스트 코드, 리펙토링 테스트 코드 추가 <br>
-[Chore]: 빌드 업무 수정, 패키지 매니저 수정 <br><br>
