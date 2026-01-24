@@ -97,12 +97,12 @@
   border-radius: 50% !important;
 }
 
-.add-custom-calendar .react-calendar__tile--now { background: none; color: #333; background-color: #B0B0B0; font-weight: bold; }
+.add-custom-calendar .react-calendar__tile--now { background: none; color: #333; font-weight: bold; }
 .add-custom-calendar .react-calendar__tile:enabled:hover { background-color: #f0f0f0; }
 
 /* 선택된 날짜 (깔끔한 원형) */
 .add-custom-calendar .react-calendar__tile--active {
-  color: #000000 !important;
+  color: #FA785B !important;
   border-radius: 50% !important;
   font-weight: 800;
 }
