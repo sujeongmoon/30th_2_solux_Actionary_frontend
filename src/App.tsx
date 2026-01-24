@@ -44,7 +44,7 @@ function App() {
           <Route path="/studies/:studyId" element={<StudyDetailPage />} />
           <Route path="/studies/my" element={<MyStudiesPage />} />
           <Route path= "/posts" element={<BoardListPage />} />
-          <Route path= "/search/board" element={<SearchBoard /> } />
+          <Route path= "/search/posts" element={<SearchBoard /> } />
           <Route path = "/search/all" element={<AllSearch />} />
           <Route path="/search/study" element={<SearchStudy />} />
         </Route>
