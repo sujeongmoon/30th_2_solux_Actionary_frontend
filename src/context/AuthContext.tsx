@@ -26,13 +26,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else {localStorage.removeItem("accessToken");}
   }, [token]);
 
-    useEffect(() => {
+    /*useEffect(() => {
     const handler = () => {
       setToken(localStorage.getItem("accessToken"));
     };
     window.addEventListener("token-refreshed", handler);
     return () => window.removeEventListener("token-refreshed", handler);
-  }, []);
+  }, []);*/
+  
 
   useEffect(() => {
     const logoutHandler = () => {
@@ -47,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(null);
     setUser(null);
     localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("refresh");
   };
 
   const value = useMemo(() => ({ isLoggedIn, token, user, setUser, setToken, logout }), [isLoggedIn, token, user]);

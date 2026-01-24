@@ -23,7 +23,7 @@ export const useLogin = () => {
 
      /* 로그인 시 토큰 저장 */ 
       localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("refreshToken", refreshToken);
+      localStorage.setItem("refresh", refreshToken);
       setToken(accessToken);
       setUser({ profileImageUrl: profileImageUrl ?? null });
       navigate("/");
@@ -43,7 +43,7 @@ export const useLogin = () => {
   /* 로그아웃 
   const logout = () => {
     localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("refresh");
   } */
       
 
