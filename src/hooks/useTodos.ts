@@ -12,14 +12,22 @@ import type { Todo, MonthlyCalendarSummary } from '../api/Todos/todosApi';
 
 export type TodoStatus = "PENDING" | "DONE" | "FAILED";
 
+const SESSION_STORAGE_KEY = 'todoSelectedDate';
+
 export const useTodos = () => {
   const queryClient = useQueryClient();
   const todayString = new Date().toISOString().slice(0, 10);
+  
+  // 세션 스토리지에서 저장된 날짜 가져오기 (없으면 오늘 날짜)
+  const getInitialDate = () => {
+    const savedDate = sessionStorage.getItem(SESSION_STORAGE_KEY);
+    return savedDate || todayString;
+  };
 
   // ---------------- 상태 변수 ----------------
   const [calendarMap, setCalendarMap] = useState<Record<string, Todo[]>>({});
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string>(todayString);
+  const [selectedDate, setSelectedDate] = useState(getInitialDate());
   const [loading, setLoading] = useState(false);
   const [activeMonth, setActiveMonth] = useState(new Date());
 
@@ -27,6 +35,19 @@ export const useTodos = () => {
   const [summaryMap, setSummaryMap] = useState<Record<string, MonthlyCalendarSummary>>({});
   const [doneMap, setDoneMap] = useState<Record<string, number>>({});
   const [summaryLoading, setSummaryLoading] = useState(false);
+
+  // ---------------- 선택한 날짜를 세션 스토리지에 저장 ----------------
+  useEffect(() => {
+    sessionStorage.setItem(SESSION_STORAGE_KEY, selectedDate);
+  }, [selectedDate]);
+
+  // ---------------- 컴포넌트 언마운트 시 세션 스토리지 정리 ----------------
+  useEffect(() => {
+    return () => {
+      // 페이지를 벗어날 때 세션 스토리지 삭제
+      sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    };
+  }, []);
 
   // ---------------- 특정 날짜 투두 조회 ----------------
   useEffect(() => {
@@ -124,6 +145,7 @@ export const useTodos = () => {
         date: res.data.date ?? selectedDate,
         createdAt: res.data.createdAt,
       };
+
       setTodos(prev => prev.map(t => t.todoId === todoId ? updatedTodo : t));
       queryClient.invalidateQueries({ queryKey: ['todos', selectedDate] });
     } catch (err) {
@@ -131,10 +153,8 @@ export const useTodos = () => {
     }
   };
 
-  // ---------------- 상태 변경 ----------------
   // ---------------- 상태 변경 (Optimistic Update) ----------------
   const changeStatus = async (todoId: number, status: TodoStatus) => {
-
     setTodos(prev =>
       prev.map(t => (t.todoId === todoId ? { ...t, status } : t))
     );
@@ -149,16 +169,16 @@ export const useTodos = () => {
       queryClient.invalidateQueries({ queryKey: ['todos', selectedDate] });
     } catch (err) {
       console.error("투두 상태 변경 실패", err);
-
-      //  실패 시 이전 상태로 롤백
+      // 실패 시 이전 상태로 롤백
       setTodos(prev =>
         prev.map(t =>
-          t.todoId === todoId ? { ...t, status: t.status === status ? "PENDING" : t.status } : t
+          t.todoId === todoId
+            ? { ...t, status: t.status === status ? "PENDING" : t.status }
+            : t
         )
       );
     }
   };
-
 
   // ---------------- 투두 삭제 ----------------
   const removeTodo = async (todoId: number) => {
@@ -180,12 +200,15 @@ export const useTodos = () => {
           activeMonth.getFullYear(),
           activeMonth.getMonth() + 1
         );
+
         const summary: Record<string, MonthlyCalendarSummary> = {};
         const done: Record<string, number> = {};
+
         data.forEach(item => {
           summary[item.date] = item;
           done[item.date] = item.doneCount;
         });
+
         setSummaryMap(summary);
         setDoneMap(done);
       } catch (err) {
@@ -212,8 +235,8 @@ export const useTodos = () => {
     calendarMap,
     activeMonth,
     setActiveMonth, // TodoCalendar에서 달 이동 시 업데이트용
-    summaryMap,     // 달력 아이콘용 전체 info
-    doneMap,        // 달성 개수만
+    summaryMap, // 달력 아이콘용 전체 info
+    doneMap, // 달성 개수만
     summaryLoading,
   };
 };
