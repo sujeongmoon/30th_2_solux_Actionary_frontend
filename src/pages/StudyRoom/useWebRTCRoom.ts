@@ -105,7 +105,6 @@ export function useWebRTCRoom({ enabled, studyId, userId }: { enabled: boolean; 
       },
       error: (err: any) => {
           console.error("플러그인 연결 실패:", err);
-          // 플러그인 에러 시에도 필요하다면 여기서 재시도 로직을 트리거할 수 있음
       },
       onmessage: (msg: any, jsep: any) => {
         const event = msg["videoroom"];
@@ -117,6 +116,11 @@ export function useWebRTCRoom({ enabled, studyId, userId }: { enabled: boolean; 
         if (event) {
             if (event === "joined") {
                 console.log("방 입장 성공! ID:", msg["id"]);
+                
+                // 수정됨: 입장 시 이미 방에 있는 사람들(publishers) 구독 시작
+                if (msg["publishers"]) {
+                    subscribeToFeeds(msg["publishers"]);
+                }
                 
                 publisherHandle.current.createOffer({
                     tracks: [
