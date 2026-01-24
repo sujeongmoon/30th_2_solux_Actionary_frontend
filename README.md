@@ -70,14 +70,14 @@ $ npm start
 |  |  |  |
 |-----------------|-----------------|-----------------|
 | 김가인    |  <img src="https://avatars.githubusercontent.com/u/195723459?v=4" alt="김가인" width="100"> | <ul><li>홈페이지 개발</li><li>사이드바 및 알림창 개발</li><li>게시판 페이지 개발</li><li>마이 페이지 개발</li><li>Ai 요약 서비스 개발</li></ul>     |
-| 배송이   |  <img src="https://github.com/user-attachments/assets/78ec4937-81bb-4637-975d-631eb3c4601e" alt="배송이" width="100">| <ul><li>스터디 페이지 개발</li><li>스터디 접속 페이지 개발</li></ul> |
-| 이나경   |  <img src="https://github.com/user-attachments/assets/78ce1062-80a0-4edb-bf6b-5efac9dd992e" alt="이나경" width="100">    |<ul><li>투두리스트 페이지 개발</li><li>로그인 및 회원가입 페이지 개발</li><li>헤더 개발</li></ul>  |
+| 배송이   |  <img src="https://avatars.githubusercontent.com/u/202894828?v=4" alt="배송이" width="100">| <ul><li>스터디 페이지 개발</li><li>스터디 접속 페이지 개발</li></ul> |
+| 이나경   |  <img src="https://avatars.githubusercontent.com/u/228654844?v=4" alt="이나경" width="100">    |<ul><li>투두리스트 페이지 개발</li><li>로그인 및 회원가입 페이지 개발</li><li>헤더 개발</li></ul>  |
 
 <br/>
 <br/>
 
 # 5. Technology Stack (기술 스택)
-<img src="./src/assets/Main Stack.png">
+<img src="./src/assets/Stack.png">
 
 <br/>
 
