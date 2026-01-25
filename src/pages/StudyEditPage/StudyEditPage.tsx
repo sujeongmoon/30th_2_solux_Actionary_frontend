@@ -199,7 +199,7 @@ export default function StudyEditPage() {
   
     const finalPayload: UpdateStudyPayload =
       visibility === "private"
-        ? { ...basePayload, password: Number(password) }
+        ? { ...basePayload, password }
         : basePayload;
   
     try {
