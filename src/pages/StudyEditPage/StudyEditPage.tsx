@@ -194,7 +194,6 @@ export default function StudyEditPage() {
       longDescription: guide.trim() ? guide.trim() : null,
       memberLimit: Number(limit),
       isPublic: visibility === "public",
-      coverImage: coverFile ? null : existingCover,
     };
   
     const finalPayload: UpdateStudyPayload =
