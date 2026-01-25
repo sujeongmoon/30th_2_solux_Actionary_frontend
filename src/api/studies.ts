@@ -162,7 +162,6 @@ export type UpdateStudyPayload = {
   memberLimit: number;    // int
   isPublic: boolean;      // boolean
   password?: number;      // 비공개일 때만
-  coverImage?: string | null;
 };
 
 
