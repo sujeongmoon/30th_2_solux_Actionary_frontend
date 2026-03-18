@@ -41,14 +41,6 @@ export function useWebRTCRoom({ enabled, studyId, userId }: { enabled: boolean; 
 
           const janus = new Janus({
             server: JANUS_URL,
-            iceServers: [
-              { urls: "stun:stun.l.google.com:19302" },
-              {
-                urls: "turn:13.209.205.33:3478",
-                username: "actionaryturnuser",
-                credential: "actionaryturnpassword"
-              }
-            ],
             success: () => {
               console.log("Janus 화상 서버 연결 성공!");
               retryCount.current = 0; 
@@ -100,6 +92,16 @@ export function useWebRTCRoom({ enabled, studyId, userId }: { enabled: boolean; 
   const attachPublisher = (janus: any) => {
     janus.attach({
       plugin: PLUGIN,
+
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        {
+          urls: "turn:13.209.205.33:3478",
+          username: "actionaryturnuser",
+          credential: "actionaryturnpassword"
+        }
+      ],
+      
       success: (handle: any) => {
         publisherHandle.current = handle;
         
@@ -178,6 +180,16 @@ export function useWebRTCRoom({ enabled, studyId, userId }: { enabled: boolean; 
 
       janusInstance.current.attach({
         plugin: PLUGIN,
+
+        iceServers: [
+          { urls: "stun:stun.l.google.com:19302" },
+          {
+            urls: "turn:13.209.205.33:3478",
+            username: "actionaryturnuser",
+            credential: "actionaryturnpassword"
+          }
+        ],
+        
         success: (handle: any) => {
           subscriberHandles.current.set(feedId, handle);
           const subscribe = { 
