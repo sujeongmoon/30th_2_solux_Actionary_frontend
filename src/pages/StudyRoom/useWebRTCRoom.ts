@@ -94,6 +94,11 @@ export function useWebRTCRoom({ enabled, studyId, userId }: { enabled: boolean; 
       plugin: PLUGIN,
 
       iceServers: [
+        {
+          urls: "turn:13.209.205.33:3478?transport=tcp", 
+          username: "actionaryturnuser",
+          credential: "actionaryturnpassword"
+        },
         { urls: "stun:stun.l.google.com:19302" },
         {
           urls: "turn:13.209.205.33:3478",
@@ -182,6 +187,11 @@ export function useWebRTCRoom({ enabled, studyId, userId }: { enabled: boolean; 
         plugin: PLUGIN,
 
         iceServers: [
+          {
+            urls: "turn:13.209.205.33:3478?transport=tcp", 
+            username: "actionaryturnuser",
+            credential: "actionaryturnpassword"
+          },
           { urls: "stun:stun.l.google.com:19302" },
           {
             urls: "turn:13.209.205.33:3478",
